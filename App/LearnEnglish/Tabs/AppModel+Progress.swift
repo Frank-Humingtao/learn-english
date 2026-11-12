@@ -6,17 +6,17 @@ import StudyComposer
 
 /// 进度 tab (ticket 09): profile with the card ledger's active cards, test streak, public links.
 extension AppModel {
-    /// The Learner Profile as the 进度 tab and everything else in the app uses it: active cards come
-    /// from the card ledger, so 重新学 and the Leech cooldown count (same numbers as `profile-engine`
-    /// when there are no relearned Leeches).
+    /// The Learner Profile as the 进度 tab and everything else in the app uses it. The same
+    /// computation as `profile-engine profile` in GitHub Actions (active cards from the shared card
+    /// replay, reference time = latest Observation), so both publish identical numbers.
     nonisolated static func computeProfile(observations: [LearnerObservation], lexicon: Lexicon) -> LearnerProfile {
-        // Active cards depend only on ratings, not on FSRS weights, so a default composer is enough here.
         ProgressPage.report(observations: observations, lexicon: lexicon, composer: StudyComposer(),
                             now: Date(), calendar: .current).profile
     }
 
-    var testActivity: TestActivity {
-        ProgressPage.testActivity(observations: observations, now: Date(), calendar: .current)
+    /// 连续学习天数 and the latest test day (same rule as the public dashboard).
+    var studyActivity: StudyActivity {
+        ProgressPage.activity(observations: observations, now: Date(), calendar: .current)
     }
 
     // MARK: public dashboard

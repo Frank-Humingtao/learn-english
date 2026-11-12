@@ -108,6 +108,23 @@ class LoadReviewsTests(unittest.TestCase):
                          [(1, 3, 900), (2, 4, 1500), (1, 2, 1500)])
         self.assertEqual(logs[2].review_datetime, t + dt.timedelta(days=2))
 
+    def test_a_relearned_leech_continues_as_a_new_card(self):
+        t = NOW - dt.timedelta(days=20)
+        rows = [review(t + dt.timedelta(minutes=i), "apple", 1) for i in range(8)]
+        rows += [{"lemma": "apple", "result": "reset", "source": "relearn", "ts": iso(t + dt.timedelta(days=1))},
+                 review(t + dt.timedelta(days=1, minutes=5), "apple", 3),
+                 review(t + dt.timedelta(days=2), "pear", 3)]
+        self.assertEqual([l.card_id for l in ft.review_log_rows(rows)], [1] * 8 + [2, 3])
+
+    def test_malformed_lines_are_skipped(self):
+        t = NOW - dt.timedelta(days=3)
+        with tempfile.TemporaryDirectory() as root:
+            write_repo(root, [review(t, "apple", 3)])
+            with open(os.path.join(root, "observations", "iphone", "2026-11.jsonl"), "a") as f:
+                f.write("{truncated\n")
+            self.assertEqual(len(ft.load_reviews(root)), 1)
+            self.assertEqual(ft.main(["check", "--data", root]), 0)
+
     def test_a_review_without_revlog_falls_back_to_the_result_string(self):
         row = {"lemma": "apple", "result": "hard", "source": "review", "ts": "2026-11-01T00:00:00Z"}
         self.assertEqual(ft.review_log_rows([row])[0].rating, 2)

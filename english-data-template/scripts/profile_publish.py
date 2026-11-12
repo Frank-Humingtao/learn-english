@@ -12,10 +12,12 @@ Runs in GitHub Actions inside the private `english-data` repo (see
 Report rule (decide_report): a Progress Report is created after the first Vocabulary Test of a
 day, the same day's report is updated by later tests that day, review-only syncs never create
 or update one, and every other open report is closed (kept, not deleted).
+
+Privacy: public files and reports carry dates, never times of day, and nothing that reveals how much
+the Learner reviews (no Observation counts, no review dates).
 """
 import argparse
 import datetime as dt
-import glob
 import hashlib
 import json
 import os
@@ -26,6 +28,9 @@ import sys
 import tempfile
 import urllib.error
 import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from obs_io import latest_plan, load_observations, parse_ts, streak, study_days  # noqa: E402,F401
 
 try:
     from zoneinfo import ZoneInfo
@@ -41,24 +46,9 @@ RECENT_DAYS = 7
 MAX_NEWLY_MASTERED = 30
 MAX_FOCUS_TARGETS = 50
 CURVE_POINTS = 60
-TS_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$")
 
 
 # --- time ---------------------------------------------------------------------
-
-def parse_ts(ts):
-    """ISO 8601 -> aware UTC datetime; None if malformed."""
-    m = TS_RE.match(ts or "")
-    if not m:
-        return None
-    y, mo, d, h, mi, s, frac, off = m.groups()
-    micro = int((frac or "0")[:6].ljust(6, "0"))
-    t = dt.datetime(int(y), int(mo), int(d), int(h), int(mi), int(s), micro, tzinfo=dt.timezone.utc)
-    if off and off != "Z":
-        sign = 1 if off[0] == "+" else -1
-        t -= sign * dt.timedelta(hours=int(off[1:3]), minutes=int(off[-2:]))
-    return t
-
 
 def tzinfo(name):
     if not name or name == "UTC" or ZoneInfo is None:
@@ -71,8 +61,10 @@ def local_date(t, tz):
     return t.astimezone(tzinfo(tz)).date().isoformat()
 
 
-def iso_utc(t):
-    return t.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+def tests_digest(times):
+    """Opaque watermark of a day's test answers: changes when a test answer is added, reveals no time."""
+    stamps = sorted(t.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f") for t in times)
+    return hashlib.sha256("\n".join(stamps).encode()).hexdigest()[:16]
 
 
 # --- report decision ------------------------------------------------------------
@@ -81,13 +73,14 @@ class Decision:
     """What to do with Progress Report issues after one sync.
 
     action: "create" | "update" | "none"; date: report day (YYYY-MM-DD); target: issue number
-    to update; close: open report issues to close; last_test_ts: watermark kept (hidden) in the
-    report body so a later run knows which tests it has already reported.
+    to update; close: open report issues to close; state: watermark kept (hidden) in the report
+    body so a later run knows which tests it has already reported — the report's date and an opaque
+    digest of that day's test answers, never a time of day.
     """
 
-    def __init__(self, action, date=None, target=None, close=(), last_test_ts=None):
+    def __init__(self, action, date=None, target=None, close=(), state=None):
         self.action, self.date, self.target = action, date, target
-        self.close, self.last_test_ts = list(close), last_test_ts
+        self.close, self.state = list(close), state
 
     def __repr__(self):
         return "Decision(%r, date=%r, target=%r, close=%r)" % (self.action, self.date, self.target, self.close)
@@ -121,64 +114,36 @@ def decide_report(observations, reports, tz):
     """
     reports = [r for r in reports if report_date(r)]
     latest = max(reports, key=lambda r: (report_date(r), r["number"]), default=None)
-    tests = [t for t in (parse_ts(o.get("ts")) for o in observations if o.get("source") == "test") if t]
+    tests = [t for t in (o.get("_t") or parse_ts(o.get("ts")) for o in observations if o.get("source") == "test") if t]
     open_reports = [r["number"] for r in reports if r.get("state") == "open"]
 
     def others(keep):
         return [n for n in open_reports if n != keep]
 
+    def on(day):
+        return [t for t in tests if local_date(t, tz) == day]
+
+    def state(day):
+        return {"date": day, "tests": tests_digest(on(day))}
+
+    if not tests:
+        return Decision("none", close=others(latest["number"] if latest else None))
+    newest_day = local_date(max(tests), tz)
     if latest is None:
-        new = tests
-    else:
-        mark = parse_ts(report_state(latest.get("body")).get("last_test_ts"))
-        if mark is not None:
-            new = [t for t in tests if t > mark]
-        else:  # no watermark (hand-made issue): anything after its day is new
-            new = [t for t in tests if local_date(t, tz) > report_date(latest)]
-    keep = latest["number"] if latest is not None else None
-    if not new:  # review-only (or nothing new): never create or update
-        return Decision("none", close=others(keep))
-    day = local_date(max(new), tz)
-    last_ts = iso_utc(max(tests))
-    if latest is not None and day == report_date(latest):
-        return Decision("update", day, keep, others(keep), last_ts)
-    if latest is not None and day < report_date(latest):  # late sync of an older day's test
-        return Decision("none", close=others(keep))
-    return Decision("create", day, None, open_reports, last_ts)
+        return Decision("create", newest_day, None, open_reports, state(newest_day))
+    keep, day = latest["number"], report_date(latest)
+    if newest_day > day:  # the first test of a new day
+        return Decision("create", newest_day, None, open_reports, state(newest_day))
+    # Same day: update when that day's tests changed since the report was written. Older days'
+    # late-synced tests and review-only syncs never touch a report. A hand-made issue without a
+    # watermark is only superseded by a later day's test.
+    mark = report_state(latest.get("body"))
+    if mark.get("date") == day and mark.get("tests") != tests_digest(on(day)):
+        return Decision("update", day, keep, others(keep), state(day))
+    return Decision("none", close=others(keep))
 
 
 # --- inputs ---------------------------------------------------------------------
-
-def load_observations(data_dir):
-    """All Observations under <data>/observations/**.jsonl (malformed lines skipped)."""
-    out = []
-    for path in sorted(glob.glob(os.path.join(data_dir, "observations", "**", "*.jsonl"), recursive=True)):
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    o = json.loads(line)
-                except ValueError:
-                    continue
-                if isinstance(o, dict):
-                    out.append(o)
-    return out
-
-
-def latest_plan(data_dir):
-    """(relative path, parsed JSON) of the newest plan/YYYY-MM-DD.json, or (None, None)."""
-    plans = sorted(p for p in glob.glob(os.path.join(data_dir, "plan", "*.json"))
-                   if re.fullmatch(r"\d{4}-\d{2}-\d{2}\.json", os.path.basename(p)))
-    for path in reversed(plans):
-        try:
-            with open(path, encoding="utf-8") as f:
-                return "plan/" + os.path.basename(path), json.load(f)
-        except ValueError:
-            continue  # a broken plan never blocks publishing; fall back to the previous one
-    return None, None
-
 
 def read_words(path):
     """words.tsv -> {lemma: {"band", "p", "rank"}}; {} if missing."""
@@ -232,32 +197,13 @@ def newly_mastered(prev_words, words, prev_entries, today):
     return sorted(entries.values(), key=lambda e: (-int(e["date"].replace("-", "")), e["rank"], e["lemma"]))
 
 
-def test_days(observations, tz):
-    return sorted({local_date(t, tz) for t in (parse_ts(o.get("ts")) for o in observations
-                                               if o.get("source") == "test") if t})
-
-
-def streak(days, today):
-    """Consecutive test days ending today or yesterday (0 once a full day is missed)."""
-    if not days:
-        return 0
-    have = set(days)
-    d = dt.date.fromisoformat(today)
-    if d.isoformat() not in have:
-        d -= dt.timedelta(days=1)
-    n = 0
-    while d.isoformat() in have:
-        n += 1
-        d -= dt.timedelta(days=1)
-    return n
-
-
 def upsert_history(history, today, summary):
+    """history.json: one entry per day with the vocabulary size (word families) — the README curve."""
     fam = summary["vocab_size"]["families"]
-    bands = summary["band_counts"]
-    entry = {"date": today, "families": fam["estimate"], "low": fam["low"], "high": fam["high"],
-             "mastered": bands["mastered"], "target": bands["target"], "distant": bands["distant"]}
-    return sorted([h for h in history if h.get("date") != today] + [entry], key=lambda h: h["date"])
+    entry = {"date": today, "families": fam["estimate"], "low": fam["low"], "high": fam["high"]}
+    keep = [{k: h[k] for k in ("date", "families", "low", "high") if k in h}
+            for h in history if h.get("date") != today]
+    return sorted(keep + [entry], key=lambda h: h["date"])
 
 
 def reports_url(owner):
@@ -307,10 +253,10 @@ def render_readme(summary, recent, history, last_test, streak_days, owner):
         lines.append("暂无。")
     lines += [
         "",
-        "## 测试",
+        "## 学习",
         "",
         "- 最近测试日期：%s" % (last_test or "暂无"),
-        "- 连续测试天数：%d 天" % streak_days,
+        "- 连续学习天数：%d 天" % streak_days,
         "",
         "## 最新 Progress Report",
         "",
@@ -321,7 +267,7 @@ def render_readme(summary, recent, history, last_test, streak_days, owner):
         "",
         "- `summary.json`：词汇量及区间、三类词数、更新时间",
         "- `words.tsv`：lemma、Word Band、P（认识概率）、词频排名",
-        "- `recent.json`：近期新掌握的词、当前学习重点 `focus_targets`",
+        "- `recent.json`：近一周新掌握的词、当前学习重点 `focus_targets`",
         "- `history.json`：每日词汇量（用于上面的曲线）",
         "",
         "## 数据来源与许可",
@@ -334,11 +280,11 @@ def render_readme(summary, recent, history, last_test, streak_days, owner):
     return "\n".join(lines)
 
 
-def run_engine(engine, lexicon, data_dir, out_dir, now):
-    # --as-of = publish time, so decay is measured to now and updated_at is not the time of
-    # the last (possibly review) Observation.
+def run_engine(engine, lexicon, data_dir, out_dir):
+    # No --as-of: like the App, the engine measures decay to the latest Observation, so the App and
+    # Actions publish the same profile from the same Observations (summary.json's updated_at is a date).
     cmd = [engine, "profile", "--lexicon", lexicon, "--observations",
-           os.path.join(data_dir, "observations"), "--out", out_dir, "--as-of", iso_utc(now)]
+           os.path.join(data_dir, "observations"), "--out", out_dir]
     r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     sys.stderr.write(r.stderr)
     if r.returncode != 0:
@@ -356,7 +302,7 @@ def build(data_dir, profile_dir, engine, lexicon, now, tz, owner):
 
     tmp = tempfile.mkdtemp(prefix="profile-")
     try:
-        run_engine(engine, lexicon, data_dir, tmp, now)
+        run_engine(engine, lexicon, data_dir, tmp)
         for name in ("summary.json", "words.tsv"):
             shutil.copyfile(os.path.join(tmp, name), os.path.join(profile_dir, name))
     finally:
@@ -365,22 +311,38 @@ def build(data_dir, profile_dir, engine, lexicon, now, tz, owner):
     summary = read_json(os.path.join(profile_dir, "summary.json"), None)
     words = read_words(os.path.join(profile_dir, "words.tsv"))
     observations = load_observations(data_dir)
-    plan_path, plan = latest_plan(data_dir)
+    warn_lexicon_mismatch(observations, lexicon)
+    _, plan = latest_plan(data_dir)
     recent = {
         "schema_version": SCHEMA_VERSION,
-        "updated_at": iso_utc(now),
+        "updated_at": today,
         "newly_mastered": newly_mastered(prev_words, words, prev_recent.get("newly_mastered", []), today),
         # Copied verbatim from the latest Study Plan (written by word-plan); empty without one.
         "focus_targets": (plan or {}).get("focus_targets", []),
-        "focus_targets_from": plan_path,
     }
     history = upsert_history(history, today, summary)
-    days = test_days(observations, tz)
+    zone = tzinfo(tz)
+    tests = sorted({o["_t"].astimezone(zone).date().isoformat() for o in observations if o.get("source") == "test"})
     write_json(os.path.join(profile_dir, "recent.json"), recent)
     write_json(os.path.join(profile_dir, "history.json"), history)
     write_text(os.path.join(profile_dir, "README.md"),
-               render_readme(summary, recent, history, days[-1] if days else None, streak(days, today), owner))
+               render_readme(summary, recent, history, tests[-1] if tests else None,
+                             streak(study_days(observations, zone), today), owner))
     return {"summary": summary, "recent": recent, "history": history, "observations": observations}
+
+
+def warn_lexicon_mismatch(observations, lexicon):
+    """The App stamps each Observation with its bundled lexicon version; if the latest one differs from
+    the lexicon this run built, the two sides may disagree, so say so in the workflow log."""
+    try:
+        with open(os.path.join(lexicon, "meta.json"), encoding="utf-8") as f:
+            version = json.load(f).get("version")
+    except (OSError, ValueError):
+        return
+    stamped = [o["lexicon"] for o in observations if o.get("lexicon")]
+    if stamped and version and stamped[-1] != version:
+        sys.stderr.write("::warning::latest Observation used lexicon %s but this run built %s\n"
+                         % (stamped[-1], version))
 
 
 # --- Progress Report --------------------------------------------------------------
@@ -397,7 +359,7 @@ def render_report(decision, built, commit, owner, now):
     bands = summary["band_counts"]
     data = {
         "schema_version": SCHEMA_VERSION,
-        "generated_at": iso_utc(now),
+        "date": decision.date,
         "profile_commit": commit,
         "vocab_size": {"unit": "word_families", "estimate": fam["estimate"], "low": fam["low"],
                        "high": fam["high"], "change": change},
@@ -423,7 +385,7 @@ def render_report(decision, built, commit, owner, now):
         json.dumps(data, ensure_ascii=False, indent=2),
         "```",
         "",
-        state_marker({"last_test_ts": decision.last_test_ts}),
+        state_marker(decision.state),
         "",
     ]
     return title, "\n".join(lines)

@@ -123,6 +123,45 @@ class BuildLexiconTest(unittest.TestCase):
             with open(os.path.join(self.out, name), "rb") as a, open(os.path.join(out2, name), "rb") as b:
                 self.assertEqual(a.read(), b.read(), name)
 
+    def meta(self, out):
+        with open(os.path.join(out, "meta.json"), encoding="utf-8") as f:
+            return json.load(f)
+
+    def test_wiktextract_content_does_not_change_the_version(self):
+        # GitHub Actions builds without Wiktextract (empty file); the App bundle has it.
+        bare = os.path.join(self.tmp.name, "bare")
+        with open(os.path.join(self.cache, build_lexicon.KAIKKI_FILE), "w") as f:
+            f.write("")
+        build_lexicon.build(cache=self.cache, out=bare, download=False)
+        self.assertEqual(read_tsv(os.path.join(bare, "words.tsv"))[2]["example"], "")
+        self.assertEqual(self.meta(bare)["version"], self.meta(self.out)["version"])
+        with open(os.path.join(bare, "forms.tsv"), "rb") as a, open(os.path.join(self.out, "forms.tsv"), "rb") as b:
+            self.assertEqual(a.read(), b.read())
+
+    def test_profile_relevant_changes_do_change_the_version(self):
+        zip_path = os.path.join(self.cache, build_lexicon.BASEWORDS_ZIP)
+        with zipfile.ZipFile(zip_path, "a") as z:
+            z.writestr("basewrd3.txt", "ZEBRA 3\r\n")
+        other = os.path.join(self.tmp.name, "other")
+        build_lexicon.build(cache=self.cache, out=other, download=False)
+        self.assertNotEqual(self.meta(other)["version"], self.meta(self.out)["version"])
+
+    def test_version_can_be_recomputed_from_a_built_directory(self):
+        self.assertEqual(build_lexicon.version_of(self.out), self.meta(self.out)["version"])
+
+    def test_committed_fixture_carries_its_content_version(self):
+        fixture = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "EnglishCore", "Fixtures",
+                               "lexicon")
+        self.assertEqual(build_lexicon.version_of(fixture), self.meta(fixture)["version"])
+
+    def test_profile_relevant_sources_are_pinned(self):
+        for name in (build_lexicon.BASEWORDS_ZIP, build_lexicon.ECDICT_FILE, build_lexicon.LEMMA_FILE):
+            self.assertRegex(build_lexicon.SHA256[name], r"^[0-9a-f]{64}$")
+        for name in (build_lexicon.ECDICT_FILE, build_lexicon.LEMMA_FILE):
+            self.assertIn(build_lexicon.ECDICT_COMMIT, build_lexicon.SOURCES[name])
+        with self.assertRaises(SystemExit):  # a cached file that is not the pinned one is refused
+            build_lexicon.verify_source(self.cache, build_lexicon.ECDICT_FILE)
+
     def test_sampling_keeps_true_ranks(self):
         out3 = os.path.join(self.tmp.name, "out3")
         build_lexicon.build(cache=self.cache, out=out3, download=False, sample_every=2)

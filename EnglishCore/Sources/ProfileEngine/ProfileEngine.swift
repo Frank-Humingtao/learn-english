@@ -12,14 +12,23 @@ import Musl
 /// Recomputes the Learner Profile from all Observations. Pure: no IO, no clock.
 ///
 /// Model: `P(known w) = σ(θ − δ_w + u_w)` with `δ_w = slope · ln(rank_w / referenceRank)`.
-/// θ and slope are fitted jointly (MAP, Newton) on all decayed evidence, i.e. the word
-/// difficulty is regressed on log frequency rank rather than hand-calibrated. Each
-/// observed word additionally gets its own deviation `u_w ~ N(0, wordSD²)`, so direct
-/// evidence about a word moves that word's P beyond what its frequency predicts.
+/// θ and slope are fitted jointly (MAP, Newton) on the decayed Vocabulary Test evidence (Yes/No
+/// answers and meaning checks), i.e. the word difficulty is regressed on log frequency rank rather
+/// than hand-calibrated. Each observed word additionally gets its own deviation `u_w ~ N(0, wordSD²)`,
+/// so direct evidence about a word moves that word's P beyond what its frequency predicts.
+///
+/// Card reviews only move `u_w` of the reviewed word: they have no guessing term and are selected
+/// (only planned words get cards), so letting them into (θ, slope) would inflate the whole curve.
+///
+/// Correction signals on Yes/No answers: the guessing rate comes from pseudoword false alarms,
+/// raised when meaning checks after a "yes" fail more often than expected; implausibly fast "yes"
+/// answers count less; a person-fit statistic (lz) flags answer patterns the model can't explain.
+///
+/// The reference time `asOf` (decay, Leech cooldown) is `config.asOf`, else the latest
+/// Observation, so the same Observations always give the same profile (App and Actions alike).
 public enum ProfileEngine {
     public static func compute(
-        observations: [Observation], lexicon: Lexicon, config: ProfileConfig = ProfileConfig(),
-        activeCards: Set<String>? = nil
+        observations: [Observation], lexicon: Lexicon, config: ProfileConfig = ProfileConfig()
     ) -> LearnerProfile {
         let entries = lexicon.entries
         let n = entries.count
@@ -27,11 +36,11 @@ public enum ProfileEngine {
         let x = entries.map { log(Double($0.rank)) - lnRef }
 
         // 1. Timestamps, ordering, reference time.
-        var stats = ObservationStats(total: observations.count)
+        var counts = ObservationCounts()
         var timed: [(t: Double, i: Int)] = []
         timed.reserveCapacity(observations.count)
         for (i, o) in observations.enumerated() {
-            if let t = Timestamp.epochSeconds(o.ts) { timed.append((t, i)) } else { stats.invalid += 1 }
+            if let t = Timestamp.epochSeconds(o.ts) { timed.append((t, i)) } else { counts.invalid += 1 }
         }
         timed.sort { $0.t != $1.t ? $0.t < $1.t : $0.i < $1.i }
         let latest = timed.last?.t ?? 0
@@ -40,80 +49,119 @@ public enum ProfileEngine {
 
         // 2. Evidence. Yes/No answers are "guessable": the Learner may say yes to a word
         // they don't know, at the false-alarm rate measured on pseudowords.
-        struct Evidence { var word: Int; var y: Double; var w: Double; var guessable: Bool }
+        struct Evidence { var word: Int; var y: Double; var w: Double; var guessable: Bool; var global: Bool }
         var evidence: [Evidence] = []
-        var reviewed: [Int: (first: String, lapses: Int)] = [:]
+        var reviewed = Set<Int>()
         var pseudoYes = 0.0, pseudoAll = 0.0
+        var lastYesNo: [Int: Bool] = [:]
+        var checkedAfterYes = 0.0, failedAfterYes = 0.0
         for (t, i) in timed {
             let o = observations[i]
             let ageDays = max(0, asOfSeconds - t) / 86400
             let decay = pow(0.5, ageDays / config.halfLifeDays)
             if o.pseudo == true {
-                stats.pseudo += 1
+                counts.pseudowords += 1
                 if o.result == ObservationResult.yes || o.result == ObservationResult.no {
                     pseudoAll += decay
-                    if o.result == ObservationResult.yes { pseudoYes += decay; stats.falseAlarms += 1 }
+                    if o.result == ObservationResult.yes { pseudoYes += decay; counts.falseAlarms += 1 }
                 }
                 continue
             }
             guard let lemma = lexicon.lemma(for: o.lemma), let wi = lexicon.index(of: lemma) else {
-                if isEvidence(o.source) { stats.outOfLexicon += 1 }
+                if isEvidence(o.source) { counts.outOfLexicon += 1 }
                 continue
             }
             var known: Bool
             var weight: Double
             var guessable = false
+            var global = true
             switch o.source {
             case .test, .spotcheck:
                 guard o.result == ObservationResult.yes || o.result == ObservationResult.no else { continue }
                 known = o.result == ObservationResult.yes
                 weight = config.testWeight
+                if known, let rt = o.rtMs, rt < config.fastYesMs { weight *= config.fastYesWeight }
                 guessable = true
+                lastYesNo[wi] = known
             case .verify:
                 known = o.result == ObservationResult.correct
                 weight = config.verifyWeight
+                if lastYesNo[wi] == true {
+                    checkedAfterYes += decay
+                    if !known { failedAfterYes += decay }
+                }
             case .review:
-                let isFirst = reviewed[wi] == nil
-                var card = reviewed[wi] ?? (o.result, 0)
-                if o.result == ObservationResult.again { card.lapses += 1 }
-                reviewed[wi] = card
+                let isFirst = reviewed.insert(wi).inserted
                 known = o.result != ObservationResult.again
                 weight = (isFirst && o.result == ObservationResult.easy) ? config.firstEasyWeight : config.reviewWeight
+                global = false
             default:
                 continue
             }
-            evidence.append(Evidence(word: wi, y: known ? 1 : 0, w: weight * decay, guessable: guessable))
-            stats.used += 1
+            evidence.append(Evidence(word: wi, y: known ? 1 : 0, w: weight * decay, guessable: guessable, global: global))
+            counts.evidence += 1
         }
-        // Posterior mean of the false-alarm rate under a Beta prior.
+        // Posterior mean of the false-alarm rate under a Beta prior, raised by meaning checks that
+        // fail after a "yes" more often than the prior expects (over-claiming).
         let a = config.falseAlarmPriorMean * config.falseAlarmPriorStrength
-        let guess = (pseudoYes + a) / (pseudoAll + config.falseAlarmPriorStrength)
+        let pseudoGuess = (pseudoYes + a) / (pseudoAll + config.falseAlarmPriorStrength)
+        let overclaim = (failedAfterYes + config.overclaimPriorMean * config.overclaimPriorStrength)
+            / (checkedAfterYes + config.overclaimPriorStrength)
+        let guess = min(config.maxGuessRate,
+                        pseudoGuess + config.overclaimGuessWeight * max(0, overclaim - config.overclaimPriorMean))
 
-        // 3. Global fit of (θ, slope).
-        let fit = fitGlobal(evidence.map { Datum(x: x[$0.word], y: $0.y, w: $0.w, g: $0.guessable ? guess : 0,
-                                                    s: $0.guessable ? config.slipRate : 0) },
-                            config: config)
-
-        // 4. Per-word deviation for observed words.
-        var byWord: [Int: [Datum]] = [:]
-        for e in evidence {
-            byWord[e.word, default: []].append(Datum(x: 0, y: e.y, w: e.w, g: e.guessable ? guess : 0,
-                                               s: e.guessable ? config.slipRate : 0))
+        func datum(_ e: Evidence, x: Double) -> Datum {
+            Datum(x: x, y: e.y, w: e.w, g: e.guessable ? guess : 0, s: e.guessable ? config.slipRate : 0)
         }
-        var eta = x.map { fit.theta - fit.slope * $0 }
+
+        // 3. Global fit of (θ, slope) on Vocabulary Test evidence only.
+        let fit = fitGlobal(evidence.filter(\.global).map { datum($0, x: x[$0.word]) }, config: config)
+
+        // 4. Per-word deviation for observed words (all evidence, reviews included).
+        var byWord: [Int: [Datum]] = [:]
+        for e in evidence { byWord[e.word, default: []].append(datum(e, x: 0)) }
+        let prior = x.map { fit.theta - fit.slope * $0 }
+        var eta = prior
         for wi in byWord.keys.sorted() {
             eta[wi] += fitWordDeviation(prior: eta[wi], evidence: byWord[wi]!, sd: config.wordSD)
         }
         let p = eta.map(sigmoid)
 
-        // 5. Active cards.
-        let active: Set<String> = activeCards ?? Set(reviewed.compactMap { wi, card in
-            card.first == ObservationResult.easy || card.lapses >= config.leechLapses ? nil : entries[wi].lemma
-        })
+        // 5. Person fit (lz) of the Yes/No answers to real words. As in IRT, item difficulties are
+        // held at the population curve (slope fixed at its prior mean) and only θ is fitted: a fitted
+        // slope would bend to any pattern, random answering included, and hide it.
+        let guessable = evidence.filter(\.guessable)
+        var personFit: Double?
+        if guessable.count >= config.personFitMinItems {
+            var fixedSlope = config
+            fixedSlope.slopePriorSD = 1e-6
+            let anchored = fitGlobal(guessable.map { datum($0, x: x[$0.word]) }, config: fixedSlope)
+            personFit = lz(guessable.map {
+                ($0.y, guess + (1 - guess - config.slipRate) * sigmoid(anchored.theta - anchored.slope * x[$0.word]))
+            })
+        }
+
+        // 6. Active cards: the shared card replay (first rating, Leech, cooldown, 重新学) at asOf.
+        let active = CardReplay(observations: observations, rule: config.leech, asOf: asOfSeconds).activeLemmas
 
         return LearnerProfile(lexicon: lexicon, config: config, asOf: asOfString, theta: fit.theta,
-                              slope: fit.slope, covariance: fit.covariance, falseAlarmRate: guess, x: x, p: p,
-                              activeCards: active, stats: stats, count: n)
+                              slope: fit.slope, covariance: fit.covariance, falseAlarmRate: guess, personFit: personFit,
+                              x: x, p: p, activeCards: active, counts: counts, count: n)
+    }
+
+    /// Standardized log-likelihood person-fit statistic lz (Drasgow, Levine and Williams 1985):
+    /// about N(0, 1) when answers follow the model; strongly negative (below about −2) for aberrant
+    /// patterns such as random answering.
+    static func lz(_ items: [(y: Double, p: Double)]) -> Double? {
+        var l0 = 0.0, e = 0.0, v = 0.0
+        for (y, p0) in items {
+            let p = min(max(p0, 1e-9), 1 - 1e-9)
+            let lp = log(p), lq = log(1 - p)
+            l0 += y * lp + (1 - y) * lq
+            e += p * lp + (1 - p) * lq
+            v += p * (1 - p) * (lp - lq) * (lp - lq)
+        }
+        return v > 0 ? (l0 - e) / sqrt(v) : nil
     }
 
     static func isEvidence(_ s: ObservationSource) -> Bool {
@@ -220,12 +268,11 @@ func softplus(_ z: Double) -> Double {
     z > 0 ? z + log1p(exp(-z)) : log1p(exp(z))
 }
 
-/// Bookkeeping about the input Observations.
-public struct ObservationStats: Sendable, Equatable {
-    public var total: Int
+/// Bookkeeping about the input Observations (not published: it would reveal study volume).
+public struct ObservationCounts: Sendable, Equatable {
     /// Vocabulary evidence that entered the model.
-    public var used = 0
-    public var pseudo = 0
+    public var evidence = 0
+    public var pseudowords = 0
     /// Evidence about words not in the lexicon (ignored).
     public var outOfLexicon = 0
     /// Pseudowords answered "yes".

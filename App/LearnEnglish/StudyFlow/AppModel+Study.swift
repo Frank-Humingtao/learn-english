@@ -14,11 +14,13 @@ extension AppModel {
         StudyComposer(scheduler: CardScheduler(config: sync.fsrsParams.config))
     }
 
-    /// The hand-written sample plan bundled with the app (same schema as `plan/YYYY-MM-DD.json`).
-    /// DEBUG only, and only with `LE_SAMPLE_PLAN=1` until a real plan has been pulled.
+    #if DEBUG
+    /// The hand-written sample plan (same schema as `plan/YYYY-MM-DD.json`), copied into Debug builds
+    /// only from `App/DebugResources/`; used only with `LE_SAMPLE_PLAN=1` until a real plan has been pulled.
     static let samplePlan: StudyPlan? = Bundle.main.url(forResource: "sample-plan", withExtension: "json")
         .flatMap { try? Data(contentsOf: $0) }
         .flatMap { try? JSONDecoder().decode(StudyPlan.self, from: $0) }
+    #endif
 
     /// Source of new cards: the newest `plan/YYYY-MM-DD.json` pulled from english-data.
     var studyPlan: StudyPlan? {

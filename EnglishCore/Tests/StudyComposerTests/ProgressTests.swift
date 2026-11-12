@@ -69,16 +69,19 @@ func testAnswer(_ lemma: String, _ yes: Bool, _ date: Date, session: String) -> 
         #expect(curve.map(\.session) == ["baseline-1", "short-3", "short-5"])
     }
 
-    /// Same rule as the public dashboard: consecutive test days ending today or yesterday.
-    @Test func streakCountsConsecutiveTestDays() {
-        let obs = [3, 5, 6, 7].map { testAnswer("a", true, at(day: $0), session: "d\($0)") }
-            + [review("a", .good, at(day: 8))]
-        let today = ProgressPage.testActivity(observations: obs, now: at(day: 8, hour: 20), calendar: utc)
-        #expect(today.lastTestDay == "2026-11-07")
-        #expect(today.streakDays == 3)
-        #expect(ProgressPage.testActivity(observations: obs, now: at(day: 7, hour: 23), calendar: utc).streakDays == 3)
-        #expect(ProgressPage.testActivity(observations: obs, now: at(day: 9), calendar: utc).streakDays == 0)
-        let none = ProgressPage.testActivity(observations: [], now: at(day: 9), calendar: utc)
+    /// Same rule as the public dashboard (连续学习天数): consecutive days with a test or a review,
+    /// ending today or yesterday.
+    @Test func streakCountsConsecutiveStudyDays() {
+        let obs = [3, 5, 6].map { testAnswer("a", true, at(day: $0), session: "d\($0)") }
+            + [review("a", .good, at(day: 7)), review("a", .good, at(day: 8)),
+               StudyObservations.wish("b", at: at(day: 9)), StudyObservations.dailyNewLimit(5, at: at(day: 10))]
+        let today = ProgressPage.activity(observations: obs, now: at(day: 8, hour: 20), calendar: utc)
+        #expect(today.lastTestDay == "2026-11-06")
+        #expect(today.streakDays == 4, "test days 5, 6 and review days 7, 8")
+        #expect(ProgressPage.activity(observations: obs, now: at(day: 9, hour: 23), calendar: utc).streakDays == 4)
+        #expect(ProgressPage.activity(observations: obs, now: at(day: 10), calendar: utc).streakDays == 0,
+                "wishes and settings are not study")
+        let none = ProgressPage.activity(observations: [], now: at(day: 9), calendar: utc)
         #expect(none.lastTestDay == nil && none.streakDays == 0)
     }
 

@@ -55,9 +55,13 @@ public struct LearnerProfile: Sendable {
     public let theta: Double
     /// Difficulty per unit of ln(rank).
     public let slope: Double
-    public let stats: ObservationStats
-    /// Estimated rate of "yes" to unknown words, from pseudowords (decayed, Beta prior).
+    public let counts: ObservationCounts
+    /// Estimated rate of "yes" to unknown words: pseudoword false alarms (decayed, Beta prior),
+    /// raised by meaning checks failed after a "yes".
     public let falseAlarmRate: Double
+    /// Person-fit statistic lz of the Yes/No answers (about 0 when consistent with the model; below
+    /// about −2 the answers look careless or random). nil with too few answers.
+    public let personFit: Double?
     /// P(known) per lexicon entry, in `lexicon.entries` order.
     public let probabilities: [Double]
     /// Word Band per lexicon entry, in `lexicon.entries` order.
@@ -68,17 +72,18 @@ public struct LearnerProfile: Sendable {
     public let levelMastery: [LevelMastery]
 
     init(lexicon: Lexicon, config: ProfileConfig, asOf: String, theta: Double, slope: Double,
-         covariance: (Double, Double, Double), falseAlarmRate: Double, x: [Double], p: [Double], activeCards: Set<String>,
-         stats: ObservationStats, count: Int) {
+         covariance: (Double, Double, Double), falseAlarmRate: Double, personFit: Double?, x: [Double], p: [Double],
+         activeCards: Set<String>, counts: ObservationCounts, count: Int) {
         self.lexicon = lexicon
         self.config = config
         self.asOf = asOf
         self.theta = theta
         self.slope = slope
         self.falseAlarmRate = falseAlarmRate
+        self.personFit = personFit
         self.probabilities = p
         self.activeCards = activeCards
-        self.stats = stats
+        self.counts = counts
 
         let entries = lexicon.entries
         let (ctt, ctb, cbb) = covariance

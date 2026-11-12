@@ -1,12 +1,9 @@
 import CoreModels
 import Foundation
 
-/// Leech and auto-reintroduction thresholds (initial values; see spec "阈值未定稿").
+/// Card study thresholds. The Leech rule is the shared `LeechRule` (also used by the Profile Engine).
 public struct CardRules: Sendable, Equatable {
-    /// "忘了" this many times since the card was (re)started makes it a Leech.
-    public var leechLapses = 8
-    /// A Leech restarts as a new card this long after it was paused.
-    public var leechCooldownDays = 30.0
+    public var leech = LeechRule()
     /// Learning-step cards due within this window count as due now (Anki's "learn ahead").
     public var learnAhead: TimeInterval = 20 * 60
 
@@ -17,7 +14,7 @@ public struct CardRules: Sendable, Equatable {
 public enum SuspendReason: Sendable, Equatable {
     /// A new card's first rating was 太简单.
     case firstEasy
-    /// Forgotten `leechLapses` times; paused until reintroduced.
+    /// Forgotten `LeechRule.lapses` times; paused until reintroduced.
     case leech
 }
 
@@ -50,61 +47,33 @@ public struct Leech: Sendable, Equatable {
     public var reintroduceAt: Date
 }
 
-/// Every Card's current state, replayed from review / relearn Observations with the scheduler.
+/// Every Card's current state: the shared `CardReplay` (first rating, lapses, Leech, cooldown,
+/// 重新学) plus FSRS memory from replaying each card's ratings since its (re)start.
 /// Cards are not stored anywhere else: Observations are the source of truth.
 public struct CardLedger: Sendable {
     public private(set) var cards: [String: CardRecord] = [:]
     public let now: Date
+    private let leechCooldown: TimeInterval
 
     public init(observations: [Observation], scheduler: CardScheduler, rules: CardRules = CardRules(), now: Date) {
         self.now = now
-        let events = observations.compactMap { o -> (Date, Observation)? in
-            guard o.source == .review || o.source == .relearn,
-                  let t = Timestamp.epochSeconds(o.ts), t <= now.timeIntervalSince1970 else { return nil }
-            return (Date(timeIntervalSince1970: t), o)
-        }
-        .enumerated().sorted { ($0.element.0, $0.offset) < ($1.element.0, $1.offset) }.map(\.element)
-
-        let cooldown = rules.leechCooldownDays * 86400
-        func restart(_ r: inout CardRecord, at t: Date) {
-            r = CardRecord(lemma: r.lemma, memory: scheduler.newCard(at: t), firstGrade: nil, firstReviewAt: nil,
-                           lapses: 0, suspended: nil, leechSince: nil, reintroduced: true, resetAt: t)
-        }
-
-        for (t, o) in events {
-            var r = cards[o.lemma] ?? CardRecord(lemma: o.lemma, memory: scheduler.newCard(at: t), firstGrade: nil,
-                                                 firstReviewAt: nil, lapses: 0, suspended: nil, leechSince: nil,
-                                                 reintroduced: false, resetAt: nil)
-            if let since = r.leechSince, t.timeIntervalSince(since) >= cooldown { restart(&r, at: since + cooldown) }
-            if o.source == .relearn {
-                if cards[o.lemma] != nil { restart(&r, at: t) }
-            } else if let g = Grade(result: o.result) {
-                r.memory = scheduler.review(r.memory, g, at: t)
-                if r.firstGrade == nil {
-                    r.firstGrade = g
-                    r.firstReviewAt = t
-                    if g == .easy { r.suspended = .firstEasy }
-                }
-                if g == .again {
-                    r.lapses += 1
-                    if r.lapses >= rules.leechLapses && r.leechSince == nil {
-                        r.leechSince = t
-                        r.suspended = .leech
-                    }
-                }
+        leechCooldown = rules.leech.cooldownSeconds
+        let replay = CardReplay(observations: observations, rule: rules.leech, asOf: now.timeIntervalSince1970)
+        func date(_ t: Double) -> Date { Date(timeIntervalSince1970: t) }
+        for (lemma, h) in replay.cards {
+            var memory = scheduler.newCard(at: date(h.startedAt))
+            for r in h.reviews { memory = scheduler.review(memory, Grade(rawValue: r.ease)!, at: date(r.t)) }
+            let suspended: SuspendReason? = switch h.paused {
+            case .firstEasy: .firstEasy
+            case .leech: .leech
+            case nil: nil
             }
-            if cards[o.lemma] != nil || o.source == .review { cards[o.lemma] = r }
+            cards[lemma] = CardRecord(lemma: lemma, memory: memory, firstGrade: h.firstEase.flatMap(Grade.init(rawValue:)),
+                                      firstReviewAt: h.firstReviewAt.map(date), lapses: h.lapses, suspended: suspended,
+                                      leechSince: h.leechSince.map(date), reintroduced: h.reintroduced,
+                                      resetAt: h.resetAt.map(date))
         }
-        for (lemma, var r) in cards {
-            if let since = r.leechSince, now.timeIntervalSince(since) >= cooldown {
-                restart(&r, at: since + cooldown)
-                cards[lemma] = r
-            }
-        }
-        leechCooldown = cooldown
     }
-
-    private var leechCooldown: TimeInterval = 0
 
     /// Paused Leeches, longest-paused first.
     public var leeches: [Leech] {

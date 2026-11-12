@@ -2,9 +2,9 @@ name: word-plan scripts
 
 on:
   push:
-    paths: ["english-data-template/scripts/word_plan/**", ".github/workflows/word-plan.yml"]
+    paths: ["english-data-template/scripts/word_plan/**", "english-data-template/scripts/obs_io.py", "EnglishCore/Fixtures/card-replay/**", ".github/workflows/word-plan.yml"]
   pull_request:
-    paths: ["english-data-template/scripts/word_plan/**", ".github/workflows/word-plan.yml"]
+    paths: ["english-data-template/scripts/word_plan/**", "english-data-template/scripts/obs_io.py", "EnglishCore/Fixtures/card-replay/**", ".github/workflows/word-plan.yml"]
 
 jobs:
   test:
@@ -15,3 +15,5 @@ jobs:
         with:
           python-version: "3.9" # oldest we support: macOS's /usr/bin/python3
       - run: python3 -m unittest discover -s english-data-template/scripts/word_plan/tests -v
+      # Shared reader + card replay (same fixture as the Swift CardReplay), on the oldest Python too.
+      - run: python3 -I english-data-template/scripts/test_obs_io.py

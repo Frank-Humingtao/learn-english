@@ -13,7 +13,9 @@ import profile_publish as pp  # noqa: E402
 
 TZ = "Asia/Shanghai"
 HERE = os.path.dirname(os.path.abspath(__file__))
-FIXTURE_REPO = os.path.join(HERE, "fixtures", "english-data")
+FIXTURE_REPO = os.path.join(HERE, "fixtures", "english-data")  # plan/ only
+# The Observations are EnglishCore's fixture (one copy, shared with the Swift tests).
+FIXTURE_OBSERVATIONS = os.path.join(HERE, "..", "..", "EnglishCore", "Fixtures", "observations")
 FAKE_ENGINE = os.path.join(HERE, "fixtures", "fake_engine.py")
 
 
@@ -21,10 +23,11 @@ def obs(ts, source="test", lemma="apple", result="yes"):
     return {"ts": ts, "lemma": lemma, "source": source, "result": result}
 
 
-def report(number, date, state="open", last_test_ts=None):
+def report(number, date, state="open", tests=None):
+    """A report issue whose hidden watermark covers the given test times (all on `date`)."""
     body = "summary"
-    if last_test_ts:
-        body += "\n" + pp.state_marker({"last_test_ts": last_test_ts})
+    if tests:
+        body += "\n" + pp.state_marker({"date": date, "tests": pp.tests_digest([pp.parse_ts(t) for t in tests])})
     return {"number": number, "title": "Progress Report %s · 约 100 词族" % date, "state": state, "body": body}
 
 
@@ -37,23 +40,26 @@ class DecideReportTests(unittest.TestCase):
 
     def test_first_test_of_a_new_day_creates_and_closes_the_previous_report(self):
         observations = [obs("2026-11-11T01:00:00Z"), obs("2026-11-12T01:00:00Z")]
-        reports = [report(7, "2026-11-11", last_test_ts="2026-11-11T01:00:00Z"),
-                   report(3, "2026-11-09", state="closed", last_test_ts="2026-11-09T01:00:00Z")]
+        reports = [report(7, "2026-11-11", tests=["2026-11-11T01:00:00Z"]),
+                   report(3, "2026-11-09", state="closed", tests=["2026-11-09T01:00:00Z"])]
         d = pp.decide_report(observations, reports, TZ)
         self.assertEqual((d.action, d.date, d.close), ("create", "2026-11-12", [7]))
-        self.assertEqual(d.last_test_ts, "2026-11-12T01:00:00Z")
+        self.assertEqual(d.state["date"], "2026-11-12")
+        self.assertNotIn("01:00", json.dumps(d.state), "the watermark reveals no time of day")
 
     def test_second_test_on_the_same_day_updates_that_days_report(self):
         observations = [obs("2026-11-12T01:00:00Z"), obs("2026-11-12T09:30:00.250Z")]
-        reports = [report(8, "2026-11-12", last_test_ts="2026-11-12T01:00:00Z")]
+        reports = [report(8, "2026-11-12", tests=["2026-11-12T01:00:00Z"])]
         d = pp.decide_report(observations, reports, TZ)
         self.assertEqual((d.action, d.date, d.target, d.close), ("update", "2026-11-12", 8, []))
-        self.assertEqual(d.last_test_ts, "2026-11-12T09:30:00Z")
+        # Written back, the new watermark makes the next identical sync a no-op.
+        again = [report(8, "2026-11-12", tests=["2026-11-12T01:00:00Z", "2026-11-12T09:30:00.250Z"])]
+        self.assertEqual(pp.decide_report(observations, again, TZ).action, "none")
 
     def test_review_only_sync_does_nothing(self):
         observations = [obs("2026-11-12T01:00:00Z"), obs("2026-11-13T02:00:00Z", source="review", result="good"),
                         obs("2026-11-13T02:01:00Z", source="verify", result="correct")]
-        reports = [report(8, "2026-11-12", last_test_ts="2026-11-12T01:00:00Z")]
+        reports = [report(8, "2026-11-12", tests=["2026-11-12T01:00:00Z"])]
         d = pp.decide_report(observations, reports, TZ)
         self.assertEqual((d.action, d.close), ("none", []))
 
@@ -64,13 +70,13 @@ class DecideReportTests(unittest.TestCase):
     def test_day_boundary_follows_the_learners_time_zone(self):
         # 2026-11-12T17:00Z is already 11-13 01:00 in Shanghai: a new day, so a new report.
         observations = [obs("2026-11-12T01:00:00Z"), obs("2026-11-12T17:00:00Z")]
-        reports = [report(8, "2026-11-12", last_test_ts="2026-11-12T01:00:00Z")]
+        reports = [report(8, "2026-11-12", tests=["2026-11-12T01:00:00Z"])]
         self.assertEqual(pp.decide_report(observations, reports, TZ).action, "create")
         self.assertEqual(pp.decide_report(observations, reports, "UTC").action, "update")
 
     def test_only_one_report_stays_open(self):
         observations = [obs("2026-11-12T01:00:00Z"), obs("2026-11-12T05:00:00Z")]
-        reports = [report(8, "2026-11-12", last_test_ts="2026-11-12T01:00:00Z"), report(5, "2026-11-10"),
+        reports = [report(8, "2026-11-12", tests=["2026-11-12T01:00:00Z"]), report(5, "2026-11-10"),
                    report(2, "2026-11-01")]
         d = pp.decide_report(observations, reports, TZ)
         self.assertEqual((d.action, d.target, sorted(d.close)), ("update", 8, [2, 5]))
@@ -81,7 +87,7 @@ class DecideReportTests(unittest.TestCase):
     def test_late_sync_of_an_older_test_does_not_reopen_the_past(self):
         # A test done offline on 11-11 arrives after the 11-12 report exists.
         observations = [obs("2026-11-12T01:00:00Z"), obs("2026-11-11T03:00:00Z")]
-        reports = [report(8, "2026-11-12", last_test_ts="2026-11-12T01:00:00Z")]
+        reports = [report(8, "2026-11-12", tests=["2026-11-12T01:00:00Z"])]
         self.assertEqual(pp.decide_report(observations, reports, TZ).action, "none")
 
 
@@ -92,6 +98,7 @@ class DryRunPipelineTests(unittest.TestCase):
         self.tmp = tempfile.mkdtemp()
         self.data = os.path.join(self.tmp, "english-data")
         shutil.copytree(FIXTURE_REPO, self.data)
+        shutil.copytree(FIXTURE_OBSERVATIONS, os.path.join(self.data, "observations"))
         self.out = os.path.join(self.tmp, "out")
 
     def tearDown(self):
@@ -133,14 +140,14 @@ class DryRunPipelineTests(unittest.TestCase):
 
         readme = self.profile("README.md")
         for needle in ("```mermaid", "xychart-beta", "已掌握", "近一周新掌握的词", "最近测试日期：2026-11-05",
-                       "连续测试天数", "label%3Aprogress-report", "CC BY 4.0", "数据来源"):
+                       "连续学习天数", "label%3Aprogress-report", "CC BY 4.0", "数据来源"):
             self.assertIn(needle, readme)
 
         [r] = self.open_reports()
         fam = summary["vocab_size"]["families"]["estimate"]
         self.assertEqual(r["title"], "Progress Report 2026-11-05 · 约 %d 词族" % fam)
         j = self.report_json(r)
-        self.assertEqual(sorted(j), ["band_counts", "focus_targets", "generated_at", "newly_mastered",
+        self.assertEqual(sorted(j), ["band_counts", "date", "focus_targets", "newly_mastered",
                                      "profile_commit", "schema_version", "vocab_size", "words_tsv_url"])
         self.assertEqual(j["vocab_size"]["estimate"], fam)
         self.assertIn("low", j["vocab_size"])
@@ -184,14 +191,17 @@ class DryRunPipelineTests(unittest.TestCase):
         self.run_pipeline("2026-11-05T12:00:00Z")
         public = "".join(self.profile(n) for n in os.listdir(os.path.join(self.out, "english-profile")))
         public += json.dumps(self.issues(), ensure_ascii=False)
-        with open(os.path.join(FIXTURE_REPO, "observations", "iphone", "2026-11.jsonl")) as f:
-            review_ts = [json.loads(l)["ts"] for l in f if '"review"' in l]
-        self.assertTrue(review_ts)
-        for ts in review_ts:
-            self.assertNotIn(ts, public)
+        with open(os.path.join(FIXTURE_OBSERVATIONS, "iphone", "2026-11.jsonl")) as f:
+            stamps = [json.loads(l)["ts"] for l in f if l.startswith("{")]
+        self.assertTrue(stamps)
+        for ts in stamps:  # no Observation time of day, test or review
             self.assertNotIn(ts[:16], public)
-        for word in ("review", "ease", "ivl", "wish", "想学", "偏好"):
+        self.assertNotRegex(public, r"T\d{2}:\d{2}", "public files carry dates only")
+        for word in ("review", "ease", "ivl", "wish", "想学", "偏好", "observations", "total", "model",
+                     "focus_targets_from", "generated_at"):
             self.assertNotIn('"%s"' % word, public)
+        history = json.loads(self.profile("history.json"))
+        self.assertEqual(sorted(history[0]), ["date", "families", "high", "low"])
 
     def test_focus_targets_empty_without_a_study_plan(self):
         shutil.rmtree(os.path.join(self.data, "plan"))
@@ -233,11 +243,16 @@ class TokenFailureTests(unittest.TestCase):
 
 
 class HelperTests(unittest.TestCase):
-    def test_streak_counts_consecutive_test_days_up_to_yesterday(self):
+    def test_streak_counts_consecutive_study_days_up_to_yesterday(self):
         days = ["2026-11-01", "2026-11-03", "2026-11-04", "2026-11-05"]
         self.assertEqual(pp.streak(days, "2026-11-05"), 3)
         self.assertEqual(pp.streak(days, "2026-11-06"), 3)
         self.assertEqual(pp.streak(days, "2026-11-07"), 0)
+
+    def test_review_days_keep_the_streak_going(self):
+        obs = [{"source": "test", "_t": pp.parse_ts("2026-11-04T01:00:00Z")},
+               {"source": "review", "_t": pp.parse_ts("2026-11-05T01:00:00Z")}]
+        self.assertEqual(pp.streak(pp.study_days(obs, pp.tzinfo(TZ)), "2026-11-05"), 2)
 
 
 if __name__ == "__main__":
