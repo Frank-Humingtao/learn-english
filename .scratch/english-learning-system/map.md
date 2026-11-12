@@ -40,6 +40,7 @@ Label: wayfinder:map
 - [仓库作为真相源还是需要后端](issues/10-repo-or-backend.md)：不买后端，私有 `english-data` 作最终一致的唯一真相源；iPhone 只追加自己的 observations 文件并按会话批量提交，派生数据只由 Actions 写；未同步数据靠「未同步 N 条」提示加 iCloud 整机备份兜底；iPhone 与 Actions 各用一个只授权单仓库的 fine-grained PAT，失效时显式报错。
 - [App 的屏幕与流程原型](issues/11-app-screens-prototype.md)：用底部标签栏（学习 / 测试 / 进度 / 设置），首次启动依次粘贴 PAT 和做基线测试；测试和复习是全屏流程；卡片评分用 4 档；同步状态平时隐藏，有未同步记录时才显示「未同步 N 条」，令牌出错时全局显示红条，断网只提示离线。
 - [Target 词的选取与排序](issues/12-target-word-selection.md)：不用固定算法也不接 API，由新写的 Claude skill「选词规划」（`word-plan`，本机每天定时、可手动）读私有仓库写出 Study Plan（有序新词加选词说明、重点词 ≤50 供 `focus_targets` 照抄）；每日新词数是设置里的上限；先复习后新卡；新卡首评「太简单」即视为认识；顽固词暂停、进度页列出、30 天后或手动重新学；支持手动加词；计划用完只复习不兜底。
+- [选词规划 skill 的设计](issues/13-word-plan-skill.md)：用 Claude 桌面 App 的定时任务每天 07:30 跑，也可手动 `/word-plan` 加一句临时要求；skill 放在 `english-data` 仓库里，先用脚本把记录汇总成精简摘要再交给 Claude；选词顺序依次是「想学」、似懂非懂（高频优先）、按词频，易混词不同天；选词说明为中文、不超过 40 字、不编造；`focus_targets` 先放正在学的难卡；输出经脚本校验，最多修 2 次，不过就不提交；计划超过 3 天未更新时 App「学习」标签显示黄字提醒，并附每次的中文摘要。
 
 ## Not yet specified
 
