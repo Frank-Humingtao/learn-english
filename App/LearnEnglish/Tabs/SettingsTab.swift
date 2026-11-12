@@ -7,6 +7,7 @@ struct SettingsTab: View {
     var body: some View {
         NavigationStack {
             List {
+                StudySettingsSection()
                 Section("本机数据") {
                     LabeledContent("本机记录", value: "\(model.observations.count) 条")
                     LabeledContent("词库版本", value: model.lexicon?.version ?? "加载中")

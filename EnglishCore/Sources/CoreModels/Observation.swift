@@ -64,8 +64,16 @@ public struct ObservationSource: RawRepresentable, Codable, Sendable, Hashable {
     public static let review = ObservationSource(rawValue: "review")
     /// Setting change (e.g. daily new-card limit). Not vocabulary evidence.
     public static let setting = ObservationSource(rawValue: "setting")
-    /// "I want to learn this word". Not vocabulary evidence.
+    /// "I want to learn this word". Not vocabulary evidence. Result: `add`.
     public static let wish = ObservationSource(rawValue: "wish")
+    /// Manual "重新学" on a Leech: the card restarts as a new card. Result: `reset`. Not vocabulary evidence.
+    public static let relearn = ObservationSource(rawValue: "relearn")
+}
+
+/// `lemma` values of `setting` Observations (the setting's name; `result` holds its value).
+public enum SettingKey {
+    /// Daily new-card limit; result is a decimal integer (e.g. `"15"`).
+    public static let dailyNewLimit = "daily_new_limit"
 }
 
 /// Canonical `result` strings.
@@ -79,13 +87,15 @@ public enum ObservationResult {
     public static let hard = "hard"
     public static let good = "good"
     public static let easy = "easy"
+    public static let add = "add"
+    public static let reset = "reset"
 }
 
 /// Review fields aligned with Anki's revlog table, plus FSRS memory state.
 public struct ReviewLog: Codable, Sendable, Equatable {
     /// 1 again, 2 hard, 3 good, 4 easy.
     public var ease: Int
-    /// New interval in days.
+    /// New interval: days when positive, seconds when negative (Anki revlog convention).
     public var ivl: Int?
     public var lastIvl: Int?
     /// 0 learn, 1 review, 2 relearn, 3 filtered, 4 manual.
