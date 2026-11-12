@@ -2,9 +2,9 @@ name: EnglishCore
 
 on:
   push:
-    paths: ["EnglishCore/**", "tools/lexicon-build/**", ".github/workflows/englishcore.yml"]
+    paths: ["EnglishCore/**", "tools/lexicon-build/**", "english-data-template/**", ".github/workflows/englishcore.yml"]
   pull_request:
-    paths: ["EnglishCore/**", "tools/lexicon-build/**", ".github/workflows/englishcore.yml"]
+    paths: ["EnglishCore/**", "tools/lexicon-build/**", "english-data-template/**", ".github/workflows/englishcore.yml"]
 
 jobs:
   # The CLI golden-file test (CLITests.profileOutputMatchesGoldenFiles) compares against
@@ -25,3 +25,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 -I tools/lexicon-build/test_build_lexicon.py
+  # Publish pipeline (english-data-template): unit tests, then a dry run of the whole
+  # pipeline with the real Linux profile-engine against the fixture english-data repo.
+  publish-dry-run:
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update -qq && apt-get install -y -qq python3 tzdata >/dev/null
+      - run: python3 -I english-data-template/scripts/test_profile_publish.py
+      - run: swift build -c release --package-path EnglishCore --product profile-engine
+      - run: |
+          python3 -I english-data-template/scripts/profile_publish.py dry-run \
+            --data english-data-template/scripts/fixtures/english-data \
+            --engine EnglishCore/.build/release/profile-engine --lexicon EnglishCore/Fixtures/lexicon \
+            --owner example --tz Asia/Shanghai --now 2026-11-05T12:00:00Z --out "$RUNNER_TEMP/dry-run"
+          cat "$RUNNER_TEMP/dry-run/report-decision.json"
+          grep -q '"action": "create"' "$RUNNER_TEMP/dry-run/report-decision.json"
