@@ -37,12 +37,13 @@ Label: wayfinder:map
 - [调研：间隔重复算法与 Anki 卡组格式](issues/03-srs-and-anki.md)：调度用 FSRS-6（官方 swift-fsrs，MIT），默认参数、期望保留率 0.9，攒够复习后在 Actions 里用 py-fsrs 训练参数；ReviewLog 字段与 Anki revlog 对齐；只给 Target 词发卡；AnkiWeb 共享卡组只在设备本地用，不进公开仓库；Anki 导入放到首版之后。
 - [学习档案的数据模型与文件布局](issues/07-learner-profile-model.md)：原始记录只追加，学习档案由 Actions 统一重算；私有 `english-data` 存原始记录，公开 `english-profile` 存派生档案、看板、Progress Report；一词一卡；Word Band 由认识概率 P（≥0.9 为 Mastered）加词频窗口划分；第一次做 30 分钟基线测试。
 - [进度汇报 issue 的格式](issues/08-progress-report-format.md)：当天第一次测试后由 Actions 自动发一份（同日只更新，只复习不发），上一份自动关闭，只有最新一份是打开的；正文是中文摘要加 JSON（词汇量与区间、三类词数、新掌握词 ≤30、重点 Target ≤50、固定到某次提交的 `words.tsv` 链接），不含偏好；不指定读取方，本系统到发布报告为止。
+- [仓库作为真相源还是需要后端](issues/10-repo-or-backend.md)：不买后端，私有 `english-data` 作最终一致的唯一真相源；iPhone 只追加自己的 observations 文件并按会话批量提交，派生数据只由 Actions 写；未同步数据靠「未同步 N 条」提示加 iCloud 整机备份兜底；iPhone 与 Actions 各用一个只授权单仓库的 fine-grained PAT，失效时显式报错。
 
 ## Not yet specified
 
 - **技术栈细节**：SwiftUI 之外的选型（本地存储、Git/GitHub 客户端库、是否接入 AI 服务）。
 - **卡片内容生成**：例句、发音、图片从哪里来，是否用 AI 生成，如何保证质量；词汇量测试中释义核验的中文释义和干扰项也属于这一块。
-- **隐私与备份**：公开仓库之外的数据备份，以及哪些数据绝不能入库；未同步的本地数据在设备丢失或 App 被删时如何兜底（iCloud 或本地备份、界面提示"未同步 N 条"）；复习记录进入公开 Git 历史后难以彻底删除。
+- **隐私与备份**：私有仓库 `english-data` 本身的异地备份，以及哪些数据绝不能入库。（未同步数据的兜底已在「仓库作为真相源还是需要后端」中定下；复习记录只在私有仓库，不进公开历史。）
 - **与网页版的格式兼容**：哪些约束要提前写进规格，让未来的网页版能直接读写同一份数据。
 - **中国大陆网络可达性**：readwise.io、GitHub API 及英文原站（新闻站、Medium 等）在大陆能否稳定访问，是否需要代理；影响设备端抓取和同步。
 - **数据许可与仓库许可证**：BNC/COCA 词表没有明确许可证，原文件能否入公开仓库待确认（备选：只放派生数据、构建时下载、写信问 Paul Nation）；代码与 CC BY-SA 数据目录需分开标注许可。
