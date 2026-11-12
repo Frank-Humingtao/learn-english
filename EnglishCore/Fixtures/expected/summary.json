@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-11-09T08:15:40Z",
+  "lexicon_version": "lex-8cd53fd628ed",
+  "vocab_size": {
+    "families": {"estimate": 51, "low": 32, "high": 69},
+    "lemmas": {"estimate": 141, "low": 109, "high": 173}
+  },
+  "band_counts": {"mastered": 29, "target": 38, "distant": 858},
+  "level_mastery": [
+    {"level": 1, "families": 20, "mastery": 0.9698},
+    {"level": 2, "families": 20, "mastery": 0.5204},
+    {"level": 3, "families": 20, "mastery": 0.2723},
+    {"level": 4, "families": 20, "mastery": 0.1171},
+    {"level": 5, "families": 20, "mastery": 0.1083},
+    {"level": 6, "families": 20, "mastery": 0.0877},
+    {"level": 7, "families": 20, "mastery": 0.0973},
+    {"level": 8, "families": 20, "mastery": 0.0452},
+    {"level": 9, "families": 20, "mastery": 0.0379},
+    {"level": 10, "families": 20, "mastery": 0.0329},
+    {"level": 11, "families": 20, "mastery": 0.0291},
+    {"level": 12, "families": 20, "mastery": 0.0258},
+    {"level": 13, "families": 20, "mastery": 0.0235},
+    {"level": 14, "families": 20, "mastery": 0.0212},
+    {"level": 15, "families": 20, "mastery": 0.0194},
+    {"level": 16, "families": 20, "mastery": 0.0177},
+    {"level": 17, "families": 20, "mastery": 0.0165},
+    {"level": 18, "families": 20, "mastery": 0.0153},
+    {"level": 19, "families": 20, "mastery": 0.0144},
+    {"level": 20, "families": 20, "mastery": 0.0136},
+    {"level": 21, "families": 20, "mastery": 0.0127},
+    {"level": 22, "families": 20, "mastery": 0.0120},
+    {"level": 23, "families": 20, "mastery": 0.0113},
+    {"level": 24, "families": 20, "mastery": 0.0109},
+    {"level": 25, "families": 20, "mastery": 0.0103}
+  ],
+  "observations": {"total": 298, "evidence": 230, "pseudowords": 66, "false_alarms": 4, "out_of_lexicon": 0, "invalid": 0},
+  "model": {"theta": 2.4001, "slope": 1.8566, "false_alarm_rate": 0.0383, "half_life_days": 180.0, "mastered_threshold": 0.90, "target_window": 2000}
+}
