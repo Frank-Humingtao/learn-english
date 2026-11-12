@@ -63,7 +63,7 @@ final class AppModel {
                     throw CocoaError(.fileNoSuchFile)
                 }
                 let lexicon = try Lexicon.load(directory: dir)
-                return (lexicon, ProfileEngine.compute(observations: observations, lexicon: lexicon))
+                return (lexicon, Self.computeProfile(observations: observations, lexicon: lexicon))
             }.value
             self.observations = observations
             self.lexicon = lexicon
@@ -95,7 +95,7 @@ final class AppModel {
         guard let lexicon else { return }
         let observations = observations
         profile = await Task.detached(priority: .userInitiated) {
-            ProfileEngine.compute(observations: observations, lexicon: lexicon)
+            Self.computeProfile(observations: observations, lexicon: lexicon)
         }.value
     }
 
