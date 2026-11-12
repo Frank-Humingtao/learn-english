@@ -219,3 +219,5 @@ Learner 想要三样东西：
 - **许可待确认**：BNC/COCA 词表没有明确许可证。目前的做法是只在构建时下载、不入库。如果日后要把原表放进公开仓库，需要先向 Paul Nation 确认。
 - **网络**：GitHub 在大陆网络下暂时连不上时，只会推迟同步。App 不内置代理。
 - **详细决策与依据**：见地图 Decisions so far 中各票的 Answer 部分，以及 `research/` 下的调研笔记。
+
+实现票：[../english-learning-app/issues/](../english-learning-app/issues/)（10 张）。
