@@ -13,7 +13,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] 构建脚本能从零生成词库；命令行能查到任意词的释义、音标、词频排名、例句；词库带版本号
 - [x] BNC/COCA 原表和 Wiktextract 原始内容都不进入仓库
@@ -40,3 +40,5 @@
 **未验证**
 
 - Linux 一致性：本机没有 docker 或 Linux。已新增 `.github/workflows/englishcore.yml`，在 `swift:6.0` 容器里跑同一个金标准测试，CI 变绿即可勾选。剩余风险是 libm 的 exp/log 在 glibc 和 Darwin 上最后一位可能不同，极少数情况下第 4 位小数会翻转；遇到时可以改为输出 3 位小数。
+
+- Orchestrator (2026-11-13): resolved on `integration/english-learning-app`. The macOS/Linux parity box stays open until `.github/workflows/englishcore.yml` runs green on GitHub (no Linux runner locally). Code-review fixes (merge 20572db) pinned lexicon sources and made the lexicon version independent of Wiktextract columns.
