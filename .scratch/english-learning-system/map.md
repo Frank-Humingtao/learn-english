@@ -4,6 +4,8 @@ Label: wayfinder:map
 
 ## Destination
 
+**已到达**：总规格见 [spec.md](spec.md)（Status: ready-for-agent）。
+
 一份可直接拆成实现任务的**总规格**，覆盖三块：
 1. iPhone App 做什么。
 2. 仓库的数据结构，以及仓库能否可靠地作为真相源。
