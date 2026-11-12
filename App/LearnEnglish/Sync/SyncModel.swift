@@ -49,6 +49,11 @@ final class SyncModel {
     }
 
     var status: SyncStatus { state.status(pending: pendingCount, hasToken: hasToken) }
+
+    /// Call after the token was saved or removed outside `replaceToken` (onboarding, ticket 04).
+    func tokenChanged() {
+        hasToken = tokenStore.readToken() != nil
+    }
     var repoDisplayName: String { "\(repoOwner ?? "…")/\(Self.defaultRepoName)" }
 
     /// Call after anything was written to `observation` (the outbox is filled by a DB trigger).

@@ -16,11 +16,13 @@ final class AppModel {
     enum Flow: Identifiable {
         case test(TestFlowModel)
         case study(StudyFlowModel)
+        case onboarding(OnboardingModel)
 
         var id: ObjectIdentifier {
             switch self {
             case .test(let m): ObjectIdentifier(m)
             case .study(let m): ObjectIdentifier(m)
+            case .onboarding(let m): ObjectIdentifier(m)
             }
         }
     }
@@ -35,10 +37,18 @@ final class AppModel {
     private(set) var observations: [LearnerObservation] = []
     private(set) var profile: LearnerProfile?
     private(set) var loadError: String?
+    /// GitHub PAT storage (Keychain, `Sync/TokenStore.swift`), shared with `sync`.
+    let tokenStore: any TokenStore
+    /// Latest Baseline Test checkpoint (nil: never started). See `AppModel+Baseline.swift`.
+    var baseline: TestCheckpoint?
+    let defaults: UserDefaults
 
-    init(database: AppDatabase) {
+    init(database: AppDatabase, tokenStore: any TokenStore = KeychainTokenStore(), defaults: UserDefaults = .standard) {
         self.database = database
-        sync = SyncModel(database: database)
+        self.tokenStore = tokenStore
+        self.defaults = defaults
+        Self.forgetTokenFromEarlierInstall(tokenStore, defaults: defaults)
+        sync = SyncModel(database: database, tokenStore: tokenStore, defaults: defaults)
     }
 
     var isLoaded: Bool { lexicon != nil && profile != nil }
@@ -47,6 +57,7 @@ final class AppModel {
     func load() async {
         do {
             let observations = try database.allObservations()
+            baseline = try database.latestCheckpoint(kind: .baseline)
             let (lexicon, profile) = try await Task.detached(priority: .userInitiated) {
                 guard let dir = Bundle.main.url(forResource: "lexicon", withExtension: nil) else {
                     throw CocoaError(.fileNoSuchFile)

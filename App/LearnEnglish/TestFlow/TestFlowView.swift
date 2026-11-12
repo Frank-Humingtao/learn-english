@@ -4,6 +4,7 @@ import TestEngine
 /// Full-screen test flow: ✕ top-left exits at any time; answers are saved as they are given.
 struct TestFlowView: View {
     let model: TestFlowModel
+    @State private var confirmingExit = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -24,7 +25,7 @@ struct TestFlowView: View {
                 ProgressView("正在计算结果…")
                 Spacer()
             case .result(let result):
-                TestResultView(result: result, recorded: model.recorded) { model.close() }
+                TestResultView(result: result, recorded: model.recorded, title: model.title + "完成") { model.close() }
             case .failed(let message):
                 Spacer()
                 ContentUnavailableView("出错了", systemImage: "exclamationmark.triangle", description: Text(message))
@@ -46,7 +47,7 @@ struct TestFlowView: View {
         } else {
             VStack(spacing: 8) {
                 HStack {
-                    Button { model.close() } label: {
+                    Button { if model.confirmsExit { confirmingExit = true } else { model.close() } } label: {
                         Image(systemName: "xmark").font(.title3.weight(.semibold))
                     }
                     .accessibilityLabel("退出测试")
@@ -60,6 +61,13 @@ struct TestFlowView: View {
             }
             .padding(.horizontal)
             .padding(.top, 8)
+            .alert("退出基线测试？", isPresented: $confirmingExit) {
+                Button("退出，下次继续") { model.close() }
+                    .accessibilityIdentifier("confirmExit")
+                Button("继续答题", role: .cancel) {}
+            } message: {
+                Text("退出后下次从这里继续，已答的题都会保留。")
+            }
         }
     }
 }

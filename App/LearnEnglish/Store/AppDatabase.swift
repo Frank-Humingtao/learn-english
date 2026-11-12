@@ -58,6 +58,7 @@ final class AppDatabase: Sendable {
                 BEGIN INSERT INTO outbox (observation_id) VALUES (NEW.id); END;
                 """)
         }
+        registerTestCheckpointMigration(&m)
         return m
     }
 }

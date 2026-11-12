@@ -13,6 +13,7 @@ struct SettingsTab: View {
                     LabeledContent("本机记录", value: "\(model.observations.count) 条")
                     LabeledContent("词库版本", value: model.lexicon?.version ?? "加载中")
                 }
+                RedoBaselineSection()
             }
             .navigationTitle("设置")
             .syncStatusChrome()
