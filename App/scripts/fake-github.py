@@ -5,6 +5,8 @@ Usage: python3 -I App/scripts/fake-github.py --port 8765 --out DIR [--token T] [
 Run the App (DEBUG) with LE_GITHUB_API=http://127.0.0.1:8765 and LE_GITHUB_TOKEN=T.
 Files committed by the App are mirrored under DIR (e.g. DIR/observations/iphone/2026-11.jsonl).
 Touch DIR/.reject-token to make every request answer 401, DIR/.fail-503 for 503.
+Files under --seed SEED (e.g. SEED/plan/2026-11-13.json) are served as if committed by another
+writer (the Mac's Word Planning); they are read live, so dropping a new plan file there works.
 The stale-head error format is the same assumption as SyncCore's GitHubErrors.isStaleHead.
 """
 import argparse
@@ -20,6 +22,7 @@ p.add_argument("--out", required=True)
 p.add_argument("--token", default="fake-token")
 p.add_argument("--login", default="learner")
 p.add_argument("--repo", default="english-data")
+p.add_argument("--seed", help="directory of extra repo files served read-only (e.g. plan/*.json)")
 args = p.parse_args()
 
 state = {"head": "oid0", "n": 0, "snapshots": {"oid0": {"README.md": b"# english-data\n"}}}
@@ -55,8 +58,18 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(404, {"message": "Not Found"})
         path = unquote(u.path[len(prefix):])
         ref = parse_qs(u.query).get("ref", [state["head"]])[0]
-        data = state["snapshots"].get(ref, {}).get(path)
+        files = dict(state["snapshots"].get(state["head"] if ref == "main" else ref, {}))
+        if args.seed:
+            for root, _, names in os.walk(args.seed):
+                for n in names:
+                    full = os.path.join(root, n)
+                    with open(full, "rb") as f:
+                        files.setdefault(os.path.relpath(full, args.seed), f.read())
+        data = files.get(path)
         if data is None:
+            children = sorted({k[len(path) + 1:].split("/")[0] for k in files if k.startswith(path + "/")})
+            if children:  # directory listing, as the Contents API returns it
+                return self.reply(200, [{"name": c, "path": f"{path}/{c}", "type": "file"} for c in children])
             return self.reply(404, {"message": "Not Found"})
         self.reply(200, raw=data)
 

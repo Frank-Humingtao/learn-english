@@ -12,12 +12,18 @@ extension AppModel {
     static let studyComposer = StudyComposer()
 
     /// The hand-written sample plan bundled with the app (same schema as `plan/YYYY-MM-DD.json`).
+    /// DEBUG only, and only with `LE_SAMPLE_PLAN=1` until a real plan has been pulled.
     static let samplePlan: StudyPlan? = Bundle.main.url(forResource: "sample-plan", withExtension: "json")
         .flatMap { try? Data(contentsOf: $0) }
         .flatMap { try? JSONDecoder().decode(StudyPlan.self, from: $0) }
 
-    /// Source of new cards. Ticket 08 replaces the sample with the latest synced plan.
-    var studyPlan: StudyPlan? { Self.samplePlan }
+    /// Source of new cards: the newest `plan/YYYY-MM-DD.json` pulled from english-data.
+    var studyPlan: StudyPlan? {
+        #if DEBUG
+        if plans.plan == nil, ProcessInfo.processInfo.environment["LE_SAMPLE_PLAN"] != nil { return Self.samplePlan }
+        #endif
+        return plans.plan
+    }
 
     /// 每日新词上限 (latest `setting` Observation, or the default).
     var dailyNewLimit: Int { StudySettings.dailyNewLimit(from: observations) }

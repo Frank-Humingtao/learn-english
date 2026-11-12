@@ -1,0 +1,17 @@
+name: word-plan scripts
+
+on:
+  push:
+    paths: ["english-data-template/scripts/word_plan/**", ".github/workflows/word-plan.yml"]
+  pull_request:
+    paths: ["english-data-template/scripts/word_plan/**", ".github/workflows/word-plan.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9" # oldest we support: macOS's /usr/bin/python3
+      - run: python3 -m unittest discover -s english-data-template/scripts/word_plan/tests -v

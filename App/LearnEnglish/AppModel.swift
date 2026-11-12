@@ -31,6 +31,8 @@ final class AppModel {
     let database: AppDatabase
     /// Outbox sync to english-data (ticket 05).
     let sync: SyncModel
+    /// Newest Study Plan pulled from english-data (ticket 08).
+    let plans = PlanStore()
     private(set) var lexicon: Lexicon?
     private(set) var observations: [LearnerObservation] = []
     private(set) var profile: LearnerProfile?
@@ -39,6 +41,7 @@ final class AppModel {
     init(database: AppDatabase) {
         self.database = database
         sync = SyncModel(database: database)
+        plans.attach(to: sync)
     }
 
     var isLoaded: Bool { lexicon != nil && profile != nil }

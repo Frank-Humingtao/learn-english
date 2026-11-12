@@ -58,12 +58,13 @@ public struct StudyComposer: Sendable {
         }
         newCards += candidates.prefix(remaining)
         let spare = Array(candidates.dropFirst(remaining))
+        let status = PlanStatus.evaluate(plan: plan, remaining: candidates.count, perDay: limit, now: now)
 
         var memories: [String: CardMemory] = [:]
         for l in reviews + newCards { memories[l] = cards[l]?.memory ?? scheduler.newCard(at: now) }
         return StudySession(reviews: reviews, newCards: newCards, spare: spare, memories: memories,
                             plan: plan, scheduler: scheduler, learnAhead: rules.learnAhead,
-                            sessionID: sessionID, lexiconVersion: lexiconVersion)
+                            sessionID: sessionID, lexiconVersion: lexiconVersion, planStatus: status)
     }
 
     /// Learning-step cards are due once within `learnAhead`; review cards are due all day on their due date.

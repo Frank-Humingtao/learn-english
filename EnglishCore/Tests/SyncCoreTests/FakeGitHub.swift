@@ -70,6 +70,12 @@ final class FakeGitHub: HTTPTransport, @unchecked Sendable {
             let ref = URLComponents(url: url, resolvingAgainstBaseURL: false)?
                 .queryItems?.first(where: { $0.name == "ref" })?.value ?? branch
             let snapshot = snapshots[ref == branch ? head : ref]
+            let children = (snapshot ?? [:]).keys.filter { $0.hasPrefix(path + "/") }
+                .map { String($0.dropFirst(path.count + 1).split(separator: "/")[0]) }
+            if snapshot?[path] == nil, !children.isEmpty { // directory listing
+                let names = Set(children).sorted()
+                return json(200, names.map { ["name": $0, "path": "\(path)/\($0)", "type": "file"] })
+            }
             guard let data = snapshot?[path] else { return json(404, ["message": "Not Found"]) }
             return HTTPResponse(status: 200, headers: baseHeaders, body: data)
         }

@@ -39,6 +39,8 @@ public struct StudySession: Sendable {
     public let plan: StudyPlan?
     public let sessionID: String?
     public let lexiconVersion: String?
+    /// The Study Plan's state when the session was composed (stale / running low / used up).
+    public let planStatus: PlanStatus
 
     private var queue: [String]
     private var pendingNew: [String]
@@ -49,7 +51,9 @@ public struct StudySession: Sendable {
     private let learnAhead: TimeInterval
 
     init(reviews: [String], newCards: [String], spare: [String], memories: [String: CardMemory], plan: StudyPlan?,
-         scheduler: CardScheduler, learnAhead: TimeInterval, sessionID: String?, lexiconVersion: String?) {
+         scheduler: CardScheduler, learnAhead: TimeInterval, sessionID: String?, lexiconVersion: String?,
+         planStatus: PlanStatus = .current) {
+        self.planStatus = planStatus
         self.reviews = reviews
         self.newCards = newCards
         self.spare = spare
