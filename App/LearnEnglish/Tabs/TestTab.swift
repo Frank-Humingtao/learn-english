@@ -36,6 +36,7 @@ struct TestTab: View {
                 }
             }
             .navigationTitle("测试")
+            .syncStatusChrome()
         }
     }
 }

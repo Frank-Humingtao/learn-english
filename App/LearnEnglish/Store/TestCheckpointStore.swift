@@ -38,7 +38,7 @@ struct TestCheckpoint: Codable, FetchableRecord, PersistableRecord, Equatable {
 
 extension AppDatabase {
     static func registerTestCheckpointMigration(_ m: inout DatabaseMigrator) {
-        m.registerMigration("v2-test-checkpoint") { db in
+        m.registerMigration("v3-test-checkpoint") { db in
             try db.create(table: "test_checkpoint") { t in
                 t.primaryKey("session", .text)
                 t.column("kind", .text).notNull()

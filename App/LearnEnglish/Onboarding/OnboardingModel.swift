@@ -17,7 +17,7 @@ final class OnboardingModel {
 
     init(app: AppModel) {
         self.app = app
-        tokenSaved = app.tokenStore.hasToken
+        tokenSaved = app.tokenStore.readToken() != nil
     }
 
     func next() {
@@ -33,7 +33,8 @@ final class OnboardingModel {
             return
         }
         do {
-            try app.tokenStore.save(token)
+            try app.tokenStore.saveToken(token)
+            app.sync.tokenChanged()
             tokenInput = ""
             tokenError = nil
             tokenSaved = true

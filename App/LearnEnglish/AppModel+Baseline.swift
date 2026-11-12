@@ -11,16 +11,18 @@ extension AppModel {
         set { defaults.set(newValue, forKey: Self.onboardingKey) }
     }
 
-    /// Presents onboarding on a fresh install; afterwards never again.
-    ///
     /// Keychain items outlive an uninstall, so on the first launch of a fresh install any token
     /// left behind by an earlier install is removed (UserDefaults are wiped with the app).
-    func presentOnboardingIfNeeded() {
+    /// Called from `init` before `SyncModel` reads the token.
+    static func forgetTokenFromEarlierInstall(_ tokenStore: any TokenStore, defaults: UserDefaults) {
         let installKey = "install.initialized"
-        if !defaults.bool(forKey: installKey) {
-            try? tokenStore.delete()
-            defaults.set(true, forKey: installKey)
-        }
+        guard !defaults.bool(forKey: installKey) else { return }
+        try? tokenStore.deleteToken()
+        defaults.set(true, forKey: installKey)
+    }
+
+    /// Presents onboarding on a fresh install; afterwards never again.
+    func presentOnboardingIfNeeded() {
         guard !onboardingCompleted, presentedFlow == nil else { return }
         presentedFlow = .onboarding(OnboardingModel(app: self))
     }

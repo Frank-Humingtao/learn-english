@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct LearnEnglishApp: App {
     @State private var model: AppModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let database: AppDatabase
@@ -22,7 +23,7 @@ struct LearnEnglishApp: App {
                     #if DEBUG
                     if ProcessInfo.processInfo.environment["LE_RESET_ONBOARDING"] != nil {
                         model.onboardingCompleted = false
-                        try? model.tokenStore.delete()
+                        try? model.tokenStore.deleteToken()
                     }
                     #endif
                     model.presentOnboardingIfNeeded()
@@ -36,6 +37,11 @@ struct LearnEnglishApp: App {
                         model.startBaseline()
                     }
                     #endif
+                    model.sync.startNetworkMonitor()
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    // Back in the foreground: push whatever is waiting (ticket 05).
+                    if phase == .active { model.sync.syncSoon() }
                 }
         }
     }

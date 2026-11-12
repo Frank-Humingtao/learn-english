@@ -29,11 +29,13 @@ final class AppModel {
     var presentedFlow: Flow?
 
     let database: AppDatabase
+    /// Outbox sync to english-data (ticket 05).
+    let sync: SyncModel
     private(set) var lexicon: Lexicon?
     private(set) var observations: [LearnerObservation] = []
     private(set) var profile: LearnerProfile?
     private(set) var loadError: String?
-    /// GitHub PAT storage (Keychain). The token itself is never held in app state.
+    /// GitHub PAT storage (Keychain, `Sync/TokenStore.swift`), shared with `sync`.
     let tokenStore: any TokenStore
     /// Latest Baseline Test checkpoint (nil: never started). See `AppModel+Baseline.swift`.
     var baseline: TestCheckpoint?
@@ -43,6 +45,8 @@ final class AppModel {
         self.database = database
         self.tokenStore = tokenStore
         self.defaults = defaults
+        Self.forgetTokenFromEarlierInstall(tokenStore, defaults: defaults)
+        sync = SyncModel(database: database, tokenStore: tokenStore, defaults: defaults)
     }
 
     var isLoaded: Bool { lexicon != nil && profile != nil }
@@ -71,6 +75,12 @@ final class AppModel {
     func record(_ observation: LearnerObservation) throws {
         try database.append(observation)
         observations.append(observation)
+        sync.refreshCount()
+    }
+
+    /// A test or study session ended (result shown or flow closed): push the outbox.
+    func sessionEnded() {
+        sync.syncSoon()
     }
 
     /// Replaces the profile after a flow recomputed it (e.g. on the test result screen).
@@ -106,6 +116,7 @@ final class AppModel {
 
     func dismissFlow() {
         presentedFlow = nil
+        sessionEnded()
     }
 }
 
