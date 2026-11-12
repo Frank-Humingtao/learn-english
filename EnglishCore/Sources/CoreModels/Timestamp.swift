@@ -48,6 +48,34 @@ public enum Timestamp {
         return Double(whole) + frac
     }
 
+    /// `YYYY-MM-DDTHH:MM:SS.mmmZ` for seconds since the epoch (UTC, sub-millisecond truncated).
+    public static func iso(_ epochSeconds: Double) -> String {
+        let ms = Int((epochSeconds * 1000).rounded(.down))
+        let secs = ms >= 0 ? ms / 1000 : (ms - 999) / 1000
+        let days = secs >= 0 ? secs / 86400 : (secs - 86399) / 86400
+        let sod = secs - days * 86400
+        let (y, m, d) = civilFromDays(days)
+        func pad(_ v: Int, _ w: Int) -> String {
+            let s = String(v)
+            return String(repeating: "0", count: max(0, w - s.count)) + s
+        }
+        return "\(pad(y, 4))-\(pad(m, 2))-\(pad(d, 2))T\(pad(sod / 3600, 2)):\(pad(sod / 60 % 60, 2)):"
+            + "\(pad(sod % 60, 2)).\(pad(ms - secs * 1000, 3))Z"
+    }
+
+    /// Howard Hinnant's civil_from_days.
+    static func civilFromDays(_ z0: Int) -> (Int, Int, Int) {
+        let z = z0 + 719468
+        let era = (z >= 0 ? z : z - 146096) / 146097
+        let doe = z - era * 146097
+        let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+        let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+        let mp = (5 * doy + 2) / 153
+        let d = doy - (153 * mp + 2) / 5 + 1
+        let m = mp < 10 ? mp + 3 : mp - 9
+        return (yoe + era * 400 + (m <= 2 ? 1 : 0), m, d)
+    }
+
     /// Howard Hinnant's days_from_civil.
     static func daysFromCivil(_ y0: Int, _ m: Int, _ d: Int) -> Int {
         let y = m <= 2 ? y0 - 1 : y0

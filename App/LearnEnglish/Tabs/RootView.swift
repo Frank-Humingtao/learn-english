@@ -24,6 +24,7 @@ struct RootView: View {
         .fullScreenCover(item: $model.presentedFlow) { flow in
             switch flow {
             case .test(let test): TestFlowView(model: test)
+            case .study(let study): StudyFlowView(model: study)
             }
         }
     }

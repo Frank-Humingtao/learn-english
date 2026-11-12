@@ -15,10 +15,12 @@ final class AppModel {
     /// A full-screen flow covering the tab bar. Later tickets add cases (study session, baseline...).
     enum Flow: Identifiable {
         case test(TestFlowModel)
+        case study(StudyFlowModel)
 
         var id: ObjectIdentifier {
             switch self {
             case .test(let m): ObjectIdentifier(m)
+            case .study(let m): ObjectIdentifier(m)
             }
         }
     }
