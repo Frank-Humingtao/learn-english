@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import Observation
+import StudyComposer
 import SyncCore
 import UIKit
 
@@ -30,6 +31,8 @@ final class SyncModel {
     @ObservationIgnored private var pendingRun = false
     /// Receives the newest `plan/YYYY-MM-DD.json` after each sync (ticket 08, see `PlanStore`).
     @ObservationIgnored var onStudyPlan: ((StudyPlanFile) -> Void)?
+    /// Personal FSRS weights pulled on each sync (ticket 10).
+    @ObservationIgnored let fsrsParams: FSRSParamsStore
 
     init(database: AppDatabase, tokenStore: any TokenStore = KeychainTokenStore(),
          transport: any HTTPTransport = URLSessionTransport(), defaults: UserDefaults = .standard) {
@@ -37,6 +40,7 @@ final class SyncModel {
         self.tokenStore = tokenStore
         self.transport = transport
         self.defaults = defaults
+        fsrsParams = FSRSParamsStore(defaults: defaults)
         var base = GitHubClient.defaultAPIBase
         #if DEBUG
         // Simulator verification against a local fake GitHub (see ticket 05 Comments).
@@ -51,6 +55,11 @@ final class SyncModel {
     }
 
     var status: SyncStatus { state.status(pending: pendingCount, hasToken: hasToken) }
+
+    /// Call after the token was saved or removed outside `replaceToken` (onboarding, ticket 04).
+    func tokenChanged() {
+        hasToken = tokenStore.readToken() != nil
+    }
     var repoDisplayName: String { "\(repoOwner ?? "…")/\(Self.defaultRepoName)" }
 
     /// Call after anything was written to `observation` (the outbox is filled by a DB trigger).
@@ -103,6 +112,16 @@ final class SyncModel {
             if batch.count < Self.batchSize { break }
         }
         await pullStudyPlan(token: token, owner: owner)
+        await pullFSRSParams(token: token, owner: owner)
+    }
+
+    /// Reads `fsrs/params.json` (ticket 10). A missing file clears the cache (back to defaults);
+    /// network or token errors keep the cached parameters.
+    private func pullFSRSParams(token: String, owner: String) async {
+        let repo = RepoRef(owner: owner, name: Self.defaultRepoName)
+        guard let data = try? await client(token).readFile(repo, path: PersonalFSRSParams.repoPath, ref: repo.branch)
+        else { return }
+        fsrsParams.update(fileData: data)
     }
 
     /// Reads the newest Study Plan. Failures are silent: the push status already tells the

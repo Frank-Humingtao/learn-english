@@ -4,8 +4,8 @@ import Security
 /// Where the GitHub fine-grained PAT for `english-data` lives. Only ever the Keychain:
 /// never SQLite, UserDefaults, logs or files.
 ///
-/// Ticket 05 defines this minimal store; ticket 04 (onboarding) owns first-launch paste.
-/// If 04 lands its own store, keep one of the two and point the other's callers at it.
+/// Ticket 05 defines this store; ticket 04 (onboarding) saves the first-launch paste through
+/// `AppModel.tokenStore`, the same instance `SyncModel` uses.
 protocol TokenStore: Sendable {
     func readToken() -> String?
     func saveToken(_ token: String) throws

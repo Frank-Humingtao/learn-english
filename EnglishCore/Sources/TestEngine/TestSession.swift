@@ -23,6 +23,9 @@ public struct TestConfig: Sendable, Equatable, Codable {
 
     /// 3–5 minutes: ~80 Yes/No items (~2 s each) plus 6 meaning checks.
     public static let short = TestConfig(yesNoCount: 80, meaningCheckCount: 6)
+
+    /// Baseline Test, ~30 minutes: 680 Yes/No items plus 30 meaning checks at ~2.5 s each.
+    public static let baseline = TestConfig(yesNoCount: 680, meaningCheckCount: 30)
 }
 
 public struct YesNoItem: Sendable, Equatable, Codable {
@@ -123,6 +126,32 @@ public struct TestSession: Sendable, Codable {
         observations.append(o)
         if !meaningChecksAdded && observations.count == meaningPlan.count { addMeaningChecks() }
         return o
+    }
+
+    /// Resumes an interrupted test: re-applies Observations already stored for this session, in
+    /// order, to a session restored from its checkpoint (as created, before any answer). Stops at
+    /// the first Observation that does not fit the next item. Returns how many were applied.
+    ///
+    /// The stored Observations are kept as they are (not re-created), so nothing is duplicated
+    /// or lost, and the items that follow are the same as in an uninterrupted run.
+    @discardableResult
+    public mutating func replay(_ stored: [Observation]) -> Int {
+        var applied = 0
+        for o in stored {
+            guard let item = current, o.session == sessionID else { break }
+            switch item {
+            case .yesNo(let q):
+                let source: ObservationSource = q.kind == .spotcheck ? .spotcheck : .test
+                guard o.lemma == q.word, o.source == source,
+                      o.result == ObservationResult.yes || o.result == ObservationResult.no else { return applied }
+            case .meaningCheck(let q):
+                guard o.lemma == q.lemma, o.source == .verify else { return applied }
+            }
+            observations.append(o)
+            applied += 1
+            if !meaningChecksAdded && observations.count == meaningPlan.count { addMeaningChecks() }
+        }
+        return applied
     }
 
     private mutating func addMeaningChecks() {

@@ -66,6 +66,10 @@ class Handler(BaseHTTPRequestHandler):
                     with open(full, "rb") as f:
                         files.setdefault(os.path.relpath(full, args.seed), f.read())
         data = files.get(path)
+        # Files placed in DIR by hand stand in for ones committed by Actions (e.g. fsrs/params.json).
+        if data is None and os.path.isfile(os.path.join(args.out, path)):
+            with open(os.path.join(args.out, path), "rb") as f:
+                data = f.read()
         if data is None:
             children = sorted({k[len(path) + 1:].split("/")[0] for k in files if k.startswith(path + "/")})
             if children:  # directory listing, as the Contents API returns it

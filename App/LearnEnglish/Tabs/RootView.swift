@@ -25,6 +25,7 @@ struct RootView: View {
             switch flow {
             case .test(let test): TestFlowView(model: test)
             case .study(let study): StudyFlowView(model: study)
+            case .onboarding(let onboarding): OnboardingView(model: onboarding)
             }
         }
     }

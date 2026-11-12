@@ -16,11 +16,13 @@ final class AppModel {
     enum Flow: Identifiable {
         case test(TestFlowModel)
         case study(StudyFlowModel)
+        case onboarding(OnboardingModel)
 
         var id: ObjectIdentifier {
             switch self {
             case .test(let m): ObjectIdentifier(m)
             case .study(let m): ObjectIdentifier(m)
+            case .onboarding(let m): ObjectIdentifier(m)
             }
         }
     }
@@ -37,10 +39,18 @@ final class AppModel {
     private(set) var observations: [LearnerObservation] = []
     private(set) var profile: LearnerProfile?
     private(set) var loadError: String?
+    /// GitHub PAT storage (Keychain, `Sync/TokenStore.swift`), shared with `sync`.
+    let tokenStore: any TokenStore
+    /// Latest Baseline Test checkpoint (nil: never started). See `AppModel+Baseline.swift`.
+    var baseline: TestCheckpoint?
+    let defaults: UserDefaults
 
-    init(database: AppDatabase) {
+    init(database: AppDatabase, tokenStore: any TokenStore = KeychainTokenStore(), defaults: UserDefaults = .standard) {
         self.database = database
-        sync = SyncModel(database: database)
+        self.tokenStore = tokenStore
+        self.defaults = defaults
+        Self.forgetTokenFromEarlierInstall(tokenStore, defaults: defaults)
+        sync = SyncModel(database: database, tokenStore: tokenStore, defaults: defaults)
         plans.attach(to: sync)
     }
 
@@ -50,12 +60,13 @@ final class AppModel {
     func load() async {
         do {
             let observations = try database.allObservations()
+            baseline = try database.latestCheckpoint(kind: .baseline)
             let (lexicon, profile) = try await Task.detached(priority: .userInitiated) {
                 guard let dir = Bundle.main.url(forResource: "lexicon", withExtension: nil) else {
                     throw CocoaError(.fileNoSuchFile)
                 }
                 let lexicon = try Lexicon.load(directory: dir)
-                return (lexicon, ProfileEngine.compute(observations: observations, lexicon: lexicon))
+                return (lexicon, Self.computeProfile(observations: observations, lexicon: lexicon))
             }.value
             self.observations = observations
             self.lexicon = lexicon
@@ -87,7 +98,7 @@ final class AppModel {
         guard let lexicon else { return }
         let observations = observations
         profile = await Task.detached(priority: .userInitiated) {
-            ProfileEngine.compute(observations: observations, lexicon: lexicon)
+            Self.computeProfile(observations: observations, lexicon: lexicon)
         }.value
     }
 
