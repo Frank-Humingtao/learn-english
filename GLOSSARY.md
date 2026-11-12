@@ -48,6 +48,18 @@ _Avoid_: Placement test, initial test
 A single word (lemma, not an individual sense) presented for spaced study, in the style of vocabulary apps and Anki decks.
 _Avoid_: Flashcard, entry
 
+**Study Plan**:
+The ordered list of words the Learner should start studying next, each with a short note on why, plus the current focus words; written by Word Planning and the only source of new Cards.
+_Avoid_: Queue, lesson plan, 备课
+
+**Word Planning**:
+The recurring act of reviewing the Learner's Observations and Learner Profile to choose and order Target words into a new Study Plan. Done by Claude, not by a fixed formula.
+_Avoid_: Scheduling (that is spaced repetition's job), 备课
+
+**Leech**:
+A Card the Learner has forgotten eight or more times. It is paused rather than reviewed further; its Word Band is unaffected.
+_Avoid_: Hard word, 难词
+
 **Progress Report**:
 A concise snapshot of the Learner Profile published as a GitHub issue for external agents to read. A new one supersedes the previous one after each day's first Vocabulary Test; only the newest is current. It describes the Learner's level, never their content preferences.
 _Avoid_: Status update, log, summary
