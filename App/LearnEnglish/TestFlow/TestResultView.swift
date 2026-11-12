@@ -5,6 +5,7 @@ import TestEngine
 struct TestResultView: View {
     let result: TestResult
     let recorded: Int
+    var title = "今日短测完成"
     let onDone: () -> Void
 
     var body: some View {
@@ -39,7 +40,7 @@ struct TestResultView: View {
             }
         }
         .safeAreaInset(edge: .top) {
-            Text("今日短测完成").font(.headline).padding(.top, 8)
+            Text(title).font(.headline).padding(.top, 8)
         }
     }
 

@@ -9,6 +9,7 @@ struct TestTab: View {
             Group {
                 if let profile = model.profile {
                     List {
+                        BaselineSection()
                         Section("今日短测") {
                             Text(model.testedToday ? "✓ 今天已测" : "3–5 分钟 · 约 80 题")
                             Button(model.testedToday ? "再测一次" : "开始短测") { model.startTest() }

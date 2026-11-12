@@ -16,6 +16,12 @@ final class TestFlowModel {
         case failed(String)
     }
 
+    /// Short test and Baseline Test share this flow; they differ in size (`TestConfig`) and in
+    /// that the Baseline is checkpointed so it can be resumed.
+    enum Kind { case short, baseline }
+
+    let kind: Kind
+
     private(set) var phase: Phase = .preparing
     private(set) var session: TestSession?
     /// Observations recorded in this flow.
@@ -27,16 +33,31 @@ final class TestFlowModel {
     private let history: [LearnerObservation]
     private let config: TestConfig
     private var shownAt = Date()
+    private var started = false
+    /// A checkpointed session plus the Observations already stored for it.
+    private let resume: (session: TestSession, stored: [LearnerObservation])?
 
-    init(app: AppModel, lexicon: Lexicon, profile: LearnerProfile, config: TestConfig = .short) {
+    /// `history`: Observations before this test (defaults to all; a resumed test passes the ones
+    /// not belonging to its own session).
+    init(app: AppModel, lexicon: Lexicon, profile: LearnerProfile, config: TestConfig = .short, kind: Kind = .short,
+         resume: (session: TestSession, stored: [LearnerObservation])? = nil, history: [LearnerObservation]? = nil) {
         self.app = app
         self.lexicon = lexicon
         self.profile = profile
-        self.history = app.observations
+        self.history = history ?? app.observations
         self.config = config
+        self.kind = kind
+        self.resume = resume
     }
 
-    var title: String { "今日短测" }
+    var title: String { kind == .baseline ? "基线测试" : "今日短测" }
+
+    /// Baseline answers survive ✕; the view asks before leaving.
+    var confirmsExit: Bool {
+        guard kind == .baseline else { return false }
+        if case .question = phase { return true }
+        return false
+    }
 
     var progress: Double {
         guard let p = session?.progress, p.total > 0 else { return 0 }
@@ -50,13 +71,30 @@ final class TestFlowModel {
     }
 
     func start() async {
-        guard session == nil else { return }
+        // `.task` can run again (e.g. when the cover is re-presented); start only once.
+        guard session == nil, !started else { return }
+        started = true
+        if var s = resume?.session, let stored = resume?.stored {
+            // Resume: replay what was already stored; these are not recorded again.
+            recorded = s.replay(stored)
+            session = s
+            advance()
+            return
+        }
         let (lexicon, profile, history, config) = (lexicon, profile, history, config)
         let id = Clock.sessionID(Date())
         let seed = UInt64.random(in: 0...UInt64.max)
         let s = await Task.detached(priority: .userInitiated) {
             TestSession(lexicon: lexicon, profile: profile, history: history, config: config, sessionID: id, seed: seed)
         }.value
+        if kind == .baseline {
+            do {
+                try app?.baselineCreated(s)
+            } catch {
+                phase = .failed("保存失败：\(error)")
+                return
+            }
+        }
         session = s
         advance()
     }
@@ -90,6 +128,7 @@ final class TestFlowModel {
     private func finish() async {
         guard let s = session else { return }
         phase = .computingResult
+        if kind == .baseline { try? app?.baselineFinished(session: s.sessionID) }
         let (history, lexicon) = (history, lexicon)
         let result = await Task.detached(priority: .userInitiated) {
             TestResult(history: history, session: s.observations, lexicon: lexicon)

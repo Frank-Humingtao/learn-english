@@ -48,6 +48,7 @@ final class AppDatabase: Sendable {
             }
             try db.create(index: "observation_on_session", on: "observation", columns: ["session"])
         }
+        registerTestCheckpointMigration(&m)
         return m
     }
 }
