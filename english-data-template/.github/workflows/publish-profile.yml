@@ -1,0 +1,132 @@
+# Recompute the Learner Profile from all Observations and publish it to the public
+# <owner>/english-profile repo (files, README dashboard, Progress Report issue).
+#
+# Secrets:   PROFILE_TOKEN  fine-grained PAT: english-profile → Contents + Issues read/write
+#            ENGINE_TOKEN   optional; only if the code repo (ENGINE_REPO) is private (Contents read)
+# Variables: ENGINE_REPO    code repo with EnglishCore + tools/lexicon-build (default <owner>/learn-english)
+#            ENGINE_REF     branch/tag/sha of it to build (default main); pin a tag for stability
+#            REPORT_TZ      Learner's time zone for "today" (default Asia/Shanghai)
+name: Publish profile
+
+on:
+  push:
+    branches: [main]
+    paths: ["observations/**"]
+  workflow_dispatch:
+
+# One run at a time, never cancelled midway. Each run recomputes from all Observations and the
+# report decision keeps its own watermark, so a pending run that GitHub drops loses nothing.
+concurrency:
+  group: publish-profile
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  OWNER: ${{ github.repository_owner }}
+  ENGINE_REPO: ${{ vars.ENGINE_REPO || format('{0}/learn-english', github.repository_owner) }}
+  ENGINE_REF: ${{ vars.ENGINE_REF || 'main' }}
+  REPORT_TZ: ${{ vars.REPORT_TZ || 'Asia/Shanghai' }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check PROFILE_TOKEN
+        env:
+          GH_TOKEN: ${{ secrets.PROFILE_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::PROFILE_TOKEN secret is not set (english-data → Settings → Secrets and variables → Actions)"
+            exit 1
+          fi
+          status=$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$OWNER/english-profile")
+          if [ "$status" != "200" ]; then
+            echo "::error::PROFILE_TOKEN rejected (HTTP $status): expired, revoked, or no access to $OWNER/english-profile. Create a new fine-grained PAT and update the secret."
+            exit 1
+          fi
+
+      - name: Check out english-data
+        uses: actions/checkout@v4
+        with:
+          path: data
+
+      - name: Check out Profile Engine source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ENGINE_REPO }}
+          ref: ${{ env.ENGINE_REF }}
+          token: ${{ secrets.ENGINE_TOKEN || github.token }}
+          path: engine
+          sparse-checkout: |
+            EnglishCore
+            tools/lexicon-build
+
+      - name: Engine cache key
+        id: key
+        run: echo "sha=$(git -C engine rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # The built CLI and lexicon are cached in Actions' cache (not in any repo). Raw BNC/COCA,
+      # ECDICT downloads are deleted right after the build; Wiktextract is never downloaded
+      # (examples/audio are App-only and do not affect the profile).
+      - name: Restore engine + lexicon
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .engine
+          key: profile-engine-${{ runner.os }}-${{ steps.key.outputs.sha }}
+
+      - name: Build profile-engine (Linux, static Swift stdlib)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          docker run --rm -v "$PWD/engine:/src" -w /src swift:6.0 \
+            swift build -c release --package-path EnglishCore --product profile-engine --static-swift-stdlib
+          mkdir -p .engine/bin
+          cp "$(find engine/EnglishCore/.build -path '*release/profile-engine' -type f | head -1)" .engine/bin/profile-engine
+          chmod +x .engine/bin/profile-engine
+
+      - name: Build lexicon
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/lexcache"
+          : > "$RUNNER_TEMP/lexcache/kaikki-English.jsonl"   # placeholder: skip the 3.4 GB Wiktextract download
+          python3 -I engine/tools/lexicon-build/build_lexicon.py --download \
+            --cache "$RUNNER_TEMP/lexcache" --out .engine/lexicon
+          rm -rf "$RUNNER_TEMP/lexcache"
+
+      - name: Check out english-profile
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.OWNER }}/english-profile
+          token: ${{ secrets.PROFILE_TOKEN }}
+          path: profile
+
+      - name: Recompute profile files
+        run: |
+          python3 -I data/scripts/profile_publish.py build --data data --profile-dir profile \
+            --engine .engine/bin/profile-engine --lexicon .engine/lexicon --owner "$OWNER" --tz "$REPORT_TZ"
+
+      - name: Commit and push english-profile
+        id: push
+        run: |
+          cd profile
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "no profile changes"
+          else
+            git commit -q -m "Update Learner Profile"
+            git push origin HEAD
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Progress Report
+        env:
+          GH_TOKEN: ${{ secrets.PROFILE_TOKEN }}
+        run: |
+          python3 -I data/scripts/profile_publish.py report --data data --profile-dir profile \
+            --commit "${{ steps.push.outputs.sha }}" --owner "$OWNER" --tz "$REPORT_TZ"
