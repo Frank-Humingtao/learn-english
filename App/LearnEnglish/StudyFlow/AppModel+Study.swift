@@ -8,8 +8,11 @@ import StudyComposer
 ///
 /// Everything here is derived from `observations`; the only writes go through `record(_:)`.
 extension AppModel {
-    /// FSRS-6 with default weights and retention 0.9. Ticket 10 swaps in personal weights.
-    static let studyComposer = StudyComposer()
+    /// FSRS-6, retention 0.9; personal weights from `fsrs/params.json` once synced (ticket 10),
+    /// FSRS-6 defaults until then.
+    var studyComposer: StudyComposer {
+        StudyComposer(scheduler: CardScheduler(config: sync.fsrsParams.config))
+    }
 
     /// The hand-written sample plan bundled with the app (same schema as `plan/YYYY-MM-DD.json`).
     static let samplePlan: StudyPlan? = Bundle.main.url(forResource: "sample-plan", withExtension: "json")
@@ -25,7 +28,7 @@ extension AppModel {
     /// What a study session started now would contain (nil until the lexicon and profile load).
     func composeStudy(now: Date = Date()) -> StudySession? {
         guard let lexicon, let profile else { return nil }
-        return Self.studyComposer.compose(
+        return studyComposer.compose(
             observations: observations, plan: studyPlan, dailyNewLimit: dailyNewLimit,
             isMastered: { profile.band(of: $0) == .mastered },
             isKnownLemma: { lexicon.entry(lemma: $0) != nil },
@@ -39,7 +42,7 @@ extension AppModel {
 
     /// Paused Leeches, for the 进度 tab (ticket 09).
     var leeches: [Leech] {
-        Self.studyComposer.ledger(observations: observations, now: Date()).leeches
+        studyComposer.ledger(observations: observations, now: Date()).leeches
     }
 
     /// 重新学: the Leech restarts as a new card at the front of today's new cards (counts toward the limit).

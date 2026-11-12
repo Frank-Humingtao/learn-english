@@ -1,0 +1,66 @@
+# Train personal FSRS-6 parameters from review Observations (py-fsrs optimizer) and commit
+# them to fsrs/params.json in this repo. The App reads that file on sync.
+#
+# Skips (successfully) while there are fewer than 600 review Observations, and afterwards
+# until 200 new reviews have arrived since the last training (see scripts/fsrs_train.py).
+# Uses only the built-in GITHUB_TOKEN. Its commit touches fsrs/ only, so publish-profile.yml
+# (paths: observations/**) is not triggered — and pushes made with GITHUB_TOKEN never trigger
+# workflows anyway.
+name: Train FSRS parameters
+
+on:
+  schedule:
+    - cron: "30 19 * * *"   # daily, 03:30 Asia/Shanghai
+  workflow_dispatch:
+
+concurrency:
+  group: train-fsrs
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Standard library only: decides before installing torch.
+      - name: Enough new reviews?
+        id: check
+        run: python3 -I scripts/fsrs_train.py check --data .
+
+      - name: Install py-fsrs optimizer (pinned, CPU torch)
+        if: steps.check.outputs.train == 'true'
+        run: |
+          python3 -m pip install --quiet --extra-index-url https://download.pytorch.org/whl/cpu \
+            -r scripts/requirements-fsrs.txt
+
+      - name: Train
+        if: steps.check.outputs.train == 'true'
+        run: python3 -I scripts/fsrs_train.py train --data .
+
+      - name: Commit fsrs/params.json
+        if: steps.check.outputs.train == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fsrs/params.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no new parameters"
+            exit 0
+          fi
+          git commit -q -m "Update personal FSRS parameters (${{ steps.check.outputs.review_count }} reviews)"
+          # The App may have pushed Observations meanwhile: rebase onto them (no overlap: fsrs/ only).
+          for i in 1 2 3; do
+            git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push -q origin HEAD:"${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
+          echo "::error::could not push fsrs/params.json"
+          exit 1

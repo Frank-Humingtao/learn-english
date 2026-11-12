@@ -55,7 +55,13 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(404, {"message": "Not Found"})
         path = unquote(u.path[len(prefix):])
         ref = parse_qs(u.query).get("ref", [state["head"]])[0]
+        if ref == "main":
+            ref = state["head"]
         data = state["snapshots"].get(ref, {}).get(path)
+        # Files placed in DIR by hand stand in for ones committed by Actions (e.g. fsrs/params.json).
+        if data is None and os.path.isfile(os.path.join(args.out, path)):
+            with open(os.path.join(args.out, path), "rb") as f:
+                data = f.read()
         if data is None:
             return self.reply(404, {"message": "Not Found"})
         self.reply(200, raw=data)
