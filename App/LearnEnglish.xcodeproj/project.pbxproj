@@ -12,6 +12,7 @@
 		AE0000000000000000000103 /* Lexicon in Frameworks */ = {isa = PBXBuildFile; productRef = AE0000000000000000000203 /* Lexicon */; };
 		AE0000000000000000000104 /* ProfileEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AE0000000000000000000204 /* ProfileEngine */; };
 		AE0000000000000000000105 /* TestEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AE0000000000000000000205 /* TestEngine */; };
+		AE0000000000000000000109 /* SyncCore in Frameworks */ = {isa = PBXBuildFile; productRef = AE0000000000000000000209 /* SyncCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 				AE0000000000000000000103 /* Lexicon in Frameworks */,
 				AE0000000000000000000104 /* ProfileEngine in Frameworks */,
 				AE0000000000000000000105 /* TestEngine in Frameworks */,
+				AE0000000000000000000109 /* SyncCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +86,7 @@
 				AE0000000000000000000203 /* Lexicon */,
 				AE0000000000000000000204 /* ProfileEngine */,
 				AE0000000000000000000205 /* TestEngine */,
+				AE0000000000000000000209 /* SyncCore */,
 			);
 			productName = LearnEnglish;
 			productReference = AE0000000000000000000301 /* LearnEnglish.app */;
@@ -315,6 +318,10 @@
 		AE0000000000000000000205 /* TestEngine */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TestEngine;
+		};
+		AE0000000000000000000209 /* SyncCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SyncCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

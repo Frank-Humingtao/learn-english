@@ -7,6 +7,7 @@ struct StudyTab: View {
             ContentUnavailableView("卡片学习即将上线", systemImage: "rectangle.on.rectangle",
                                    description: Text("先在「测试」里做一次短测，系统会据此挑选要学的词。"))
                 .navigationTitle("学习")
+            .syncStatusChrome()
         }
     }
 }

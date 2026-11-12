@@ -96,6 +96,7 @@ final class TestFlowModel {
         }.value
         app?.update(profile: result.profile)
         phase = .result(result)
+        app?.sessionEnded()
     }
 
     /// ✕ or 完成. Answers are already stored; the profile is refreshed if the test was cut short.
