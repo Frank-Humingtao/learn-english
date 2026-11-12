@@ -29,6 +29,8 @@ final class SyncModel {
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var monitor: NWPathMonitor?
     @ObservationIgnored private var pendingRun = false
+    /// Receives the newest `plan/YYYY-MM-DD.json` after each sync (ticket 08, see `PlanStore`).
+    @ObservationIgnored var onStudyPlan: ((StudyPlanFile) -> Void)?
     /// Personal FSRS weights pulled on each sync (ticket 10).
     @ObservationIgnored let fsrsParams: FSRSParamsStore
 
@@ -109,6 +111,7 @@ final class SyncModel {
             refreshCount()
             if batch.count < Self.batchSize { break }
         }
+        await pullStudyPlan(token: token, owner: owner)
         await pullFSRSParams(token: token, owner: owner)
     }
 
@@ -119,6 +122,14 @@ final class SyncModel {
         guard let data = try? await client(token).readFile(repo, path: PersonalFSRSParams.repoPath, ref: repo.branch)
         else { return }
         fsrsParams.update(fileData: data)
+    }
+
+    /// Reads the newest Study Plan. Failures are silent: the push status already tells the
+    /// Learner about tokens and connectivity, and the old plan stays in use.
+    private func pullStudyPlan(token: String, owner: String) async {
+        guard let onStudyPlan, !state.offline else { return }
+        let repo = RepoRef(owner: owner, name: Self.defaultRepoName)
+        if let file = try? await client(token).latestStudyPlan(repo) { onStudyPlan(file) }
     }
 
     /// Validates a new token with GitHub, stores it in the Keychain and catches up the outbox.

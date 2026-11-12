@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-10T07:30:00+08:00",
+  "daily_new": 2,
+  "new_words": [
+    {
+      "lemma": "abandon",
+      "note": "示例"
+    },
+    {
+      "lemma": "accurate",
+      "note": "示例"
+    },
+    {
+      "lemma": "acquire",
+      "note": "示例"
+    },
+    {
+      "lemma": "adapt",
+      "note": "示例"
+    },
+    {
+      "lemma": "adequate",
+      "note": "示例"
+    },
+    {
+      "lemma": "advocate",
+      "note": "示例"
+    }
+  ],
+  "focus_targets": [
+    "abandon"
+  ],
+  "summary": "上一期示例计划。",
+  "instruction": null
+}

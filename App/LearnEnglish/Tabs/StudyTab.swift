@@ -42,6 +42,17 @@ struct StudyTab: View {
                     stat("复习", session?.reviews.count ?? 0)
                     stat("新词", session?.newCards.count ?? 0)
                 }
+                if let plan = model.studyPlan, !plan.summary.isEmpty {
+                    Text(plan.summary)
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("planSummary")
+                }
+                if let warning = session.flatMap({ Self.planWarning($0.planStatus) }) {
+                    Label(warning, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(Self.warningYellow)
+                        .accessibilityIdentifier("planWarning")
+                }
                 if let session, !session.isEmpty {
                     Button("开始学习") { model.startStudy() }
                         .font(.headline)
@@ -52,7 +63,7 @@ struct StudyTab: View {
             }
             if let plan = model.studyPlan {
                 Section("学习计划") {
-                    Text(plan.summary)
+                    LabeledContent("生成于", value: String(plan.generatedAt.prefix(10)))
                     LabeledContent("计划每日", value: "\(plan.dailyNew) 个")
                     LabeledContent("我的上限", value: "\(model.dailyNewLimit) 个")
                 }
@@ -66,6 +77,20 @@ struct StudyTab: View {
                     Text(wishes.prefix(20).joined(separator: " · ")).font(.footnote)
                 }
             }
+        }
+    }
+
+    /// Dark yellow: readable on white, still reads as 黄字.
+    static let warningYellow = Color(red: 0.78, green: 0.56, blue: 0.0)
+
+    /// The yellow line under today's counts; nil when the plan is fine.
+    static func planWarning(_ status: PlanStatus) -> String? {
+        switch status {
+        case .current: nil
+        case .missing: "还没有学习计划，去跑一次选词规划"
+        case .usedUp: "学习计划已用完，去跑一次选词规划"
+        case .stale(let days): "学习计划 \(days) 天未更新，去检查选词规划"
+        case .runningLow(let n): "学习计划只剩 \(n) 个新词，不够 2 天，去检查选词规划"
         }
     }
 

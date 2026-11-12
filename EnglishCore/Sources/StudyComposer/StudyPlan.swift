@@ -11,10 +11,11 @@ public struct StudyPlan: Codable, Sendable, Equatable {
     public var focusTargets: [String]
     /// 1–3 sentences of Chinese, shown on the 学习 tab.
     public var summary: String
-    public var instruction: String
+    /// The one-off request given to a manual `/word-plan` run; nil for scheduled runs.
+    public var instruction: String?
 
     public init(schemaVersion: Int, generatedAt: String, dailyNew: Int, newWords: [PlannedWord],
-                focusTargets: [String], summary: String, instruction: String) {
+                focusTargets: [String], summary: String, instruction: String?) {
         self.schemaVersion = schemaVersion
         self.generatedAt = generatedAt
         self.dailyNew = dailyNew

@@ -60,18 +60,38 @@ public struct GitHubClient: Sendable {
     /// `ref` is a branch, tag or commit oid; nil = the repository's default branch.
     /// Returns nil when the file does not exist.
     public func readFile(_ repo: RepoRef, path: String, ref: String? = nil) async throws -> Data? {
+        let url = contentsURL(repo, path: path, ref: ref)
+        let response = try await send(HTTPRequest(method: "GET", url: url, headers: headers(accept: "application/vnd.github.raw+json")))
+        switch response.status {
+        case 200: return response.body
+        case 404: return nil
+        default: throw Self.httpError(response)
+        }
+    }
+
+    /// Names of the entries of a directory (REST Contents, up to 1,000 entries); nil when it does not exist.
+    public func listDirectory(_ repo: RepoRef, path: String, ref: String? = nil) async throws -> [String]? {
+        let url = contentsURL(repo, path: path, ref: ref)
+        let response = try await send(HTTPRequest(method: "GET", url: url, headers: headers(accept: "application/vnd.github+json")))
+        switch response.status {
+        case 200:
+            guard let entries = (try? JSONSerialization.jsonObject(with: response.body)) as? [[String: Any]] else {
+                return nil // a file, not a directory
+            }
+            return entries.compactMap { $0["name"] as? String }
+        case 404: return nil
+        default: throw Self.httpError(response)
+        }
+    }
+
+    private func contentsURL(_ repo: RepoRef, path: String, ref: String?) -> URL {
         var c = URLComponents(url: apiBase, resolvingAgainstBaseURL: false)!
         let encodedPath = path.split(separator: "/").map {
             $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(CharacterSet(charactersIn: "/"))) ?? String($0)
         }.joined(separator: "/")
         c.percentEncodedPath = "/repos/\(repo.owner)/\(repo.name)/contents/\(encodedPath)"
         if let ref { c.queryItems = [URLQueryItem(name: "ref", value: ref)] }
-        let response = try await send(HTTPRequest(method: "GET", url: c.url!, headers: headers(accept: "application/vnd.github.raw+json")))
-        switch response.status {
-        case 200: return response.body
-        case 404: return nil
-        default: throw Self.httpError(response)
-        }
+        return c.url!
     }
 
     // MARK: GraphQL
