@@ -34,7 +34,7 @@ struct ProgressTab: View {
     }
 
     private func content(_ p: LearnerProfile) -> some View {
-        let activity = model.testActivity
+        let activity = model.studyActivity
         return List {
             Section {
                 let v = p.vocabulary.families
@@ -64,7 +64,7 @@ struct ProgressTab: View {
             }
 
             Section("坚持") {
-                LabeledContent("连续测试天数", value: "\(activity.streakDays) 天")
+                LabeledContent("连续学习天数", value: "\(activity.streakDays) 天")
                 LabeledContent("最近测试", value: activity.lastTestDay ?? "还没有")
             }
 

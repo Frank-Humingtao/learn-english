@@ -1,3 +1,5 @@
+import CoreModels
+
 /// Tunable parameters of the Profile Engine. All defaults are initial values
 /// meant to be adjusted with real data (Observations are append-only, so a
 /// change just means recomputing).
@@ -8,8 +10,8 @@ public struct ProfileConfig: Sendable, Equatable {
     public var masteredThreshold: Double = 0.9
     /// Target window: lemma rank within (estimated lemma vocabulary + this).
     public var targetWindow: Int = 2000
-    /// A card with this many `again` ratings is a Leech and no longer active.
-    public var leechLapses: Int = 8
+    /// Leech lapses and cooldown (shared with card study); a Leech is not an active card.
+    public var leech = LeechRule()
     /// Reference point of the difficulty scale: δ_w = slope · (ln rank_w − ln referenceRank).
     public var referenceRank: Double = 1000
 
@@ -30,6 +32,22 @@ public struct ProfileConfig: Sendable, Equatable {
     public var falseAlarmPriorStrength: Double = 50
     /// Rate of "no" to a known word in Yes/No items (mis-taps, inattention).
     public var slipRate: Double = 0.03
+    /// Cap of the guessing rate of Yes/No answers.
+    public var maxGuessRate: Double = 0.5
+
+    // Correction signals (initial values, tunable).
+    /// A "yes" answered faster than this (ms) is implausibly fast for reading a word and deciding…
+    public var fastYesMs: Int = 400
+    /// …and counts only this much of a normal answer.
+    public var fastYesWeight: Double = 0.5
+    /// Beta prior on the rate of failed meaning checks after a "yes" (expected over-claiming).
+    public var overclaimPriorMean: Double = 0.15
+    public var overclaimPriorStrength: Double = 20
+    /// How much of the excess failure rate above `overclaimPriorMean` is added to the guessing rate.
+    public var overclaimGuessWeight: Double = 0.5
+    /// Person fit (lz) needs at least this many Yes/No answers to real words.
+    public var personFitMinItems: Int = 20
+
     /// SD of a word's own deviation from the frequency-based prediction.
     public var wordSD: Double = 2.5
 

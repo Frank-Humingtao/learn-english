@@ -6,9 +6,11 @@ Run by .github/workflows/train-fsrs.yml inside english-data:
   fsrs_train.py check --data . [--github-output $GITHUB_OUTPUT]   # stdlib only: train or skip?
   fsrs_train.py train --data . [--now ISO]                          # needs requirements-fsrs.txt
 
-Only Observations with `source == "review"` are used (never tests, spot checks, wishes,
-settings or relearn markers). Each lemma is one card; the rating is the revlog `ease`
-(1 again .. 4 easy), falling back to the `result` string.
+Only Observations with `source == "review"` are trained on (never tests, spot checks, wishes or
+settings). Cards come from the shared card replay (obs_io.replay_cards): a lemma is one card until
+it restarts (重新学, or a Leech's 30-day cooldown), after which its reviews belong to a new card.
+The rating is the `result` string, falling back to the revlog `ease` (1 again .. 4 easy).
+Malformed lines are skipped.
 
 Thresholds:
   MIN_REVIEWS = 600   below this the run is skipped (exit 0). FSRS docs say optimisation
@@ -27,10 +29,12 @@ The App reads it on sync and falls back to FSRS-6 defaults when it is absent or 
 import argparse
 import collections
 import datetime as dt
-import glob
 import json
 import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from obs_io import iso_utc, load_observations, parse_ts, rating_of, replay_cards  # noqa: E402
 
 PARAMS_PATH = os.path.join("fsrs", "params.json")
 MIN_REVIEWS = 600
@@ -38,57 +42,36 @@ RETRAIN_EVERY = 200
 PINNED_FSRS = "6.3.2"  # keep in sync with requirements-fsrs.txt
 FORMAT = 1
 
-RATINGS = {"again": 1, "hard": 2, "good": 3, "easy": 4}
-
 ReviewRow = collections.namedtuple("ReviewRow", "card_id rating review_datetime review_duration")
 Decision = collections.namedtuple("Decision", "train reason")
 
 
-def parse_ts(ts):
-    t = dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
-    return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)
-
-
-def iso_utc(t):
-    return t.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+def load_card_events(data_dir):
+    """Review and relearn Observations under observations/**.jsonl, oldest first (bad lines skipped)."""
+    return [o for o in load_observations(data_dir) if o.get("source") in ("review", "relearn")]
 
 
 def load_reviews(data_dir):
-    """All review Observations under observations/**.jsonl, oldest first."""
-    rows = []
-    for path in sorted(glob.glob(os.path.join(data_dir, "observations", "**", "*.jsonl"), recursive=True)):
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                o = json.loads(line)
-                if o.get("source") == "review":
-                    rows.append(o)
-    rows.sort(key=lambda o: parse_ts(o["ts"]))
-    return rows
+    """All review Observations under observations/**.jsonl, oldest first (bad lines skipped)."""
+    return [o for o in load_card_events(data_dir) if o.get("source") == "review"]
 
 
-def rating_of(o):
-    ease = (o.get("review") or {}).get("ease")
-    if ease in (1, 2, 3, 4):
-        return ease
-    return RATINGS.get(o.get("result"))
+def review_log_rows(observations):
+    """Review (and relearn) Observations -> optimizer rows. Card ids are 1, 2, ... in order of first
+    review; a card restarted by 重新学 or the Leech cooldown gets a new id."""
+    times = [t for t in (o.get("_t") or parse_ts(o.get("ts")) for o in observations) if t]
+    if not times:
+        return []
+    ids, out = {}, []
 
-
-def review_log_rows(reviews):
-    """Review Observations -> optimizer rows. Card ids are 1, 2, ... in order of first review."""
-    ids = {}
-    out = []
-    for o in reviews:
-        rating = rating_of(o)
-        if rating is None:
-            continue
-        card_id = ids.setdefault(o["lemma"], len(ids) + 1)
+    def add(o, card):
+        card_id = ids.setdefault((card.lemma, card.generation), len(ids) + 1)
         duration = o.get("rt_ms")
         if duration is None:
             duration = (o.get("review") or {}).get("time")
-        out.append(ReviewRow(card_id, rating, parse_ts(o["ts"]), duration))
+        out.append(ReviewRow(card_id, rating_of(o), card.reviews[-1][0], duration))
+
+    replay_cards(observations, max(times), on_review=add)
     return out
 
 
@@ -135,12 +118,13 @@ def installed_fsrs_version():
 
 
 def train(data_dir, now):
-    reviews = load_reviews(data_dir)
+    events = load_card_events(data_dir)
+    reviews = [o for o in events if o.get("source") == "review"]
     d = decide(len(reviews), read_params(data_dir))
     print(d.reason)
     if not d.train:
         return None
-    w = optimize(review_log_rows(reviews))
+    w = optimize(review_log_rows(events))
     if w is None:
         print("optimizer returned the defaults (too few cross-day reviews): nothing written")
         return None

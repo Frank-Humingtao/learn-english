@@ -11,11 +11,12 @@ public struct VocabPoint: Sendable, Equatable {
     public var families: Estimate
 }
 
-/// Test days as the public dashboard counts them (`source == test` only).
-public struct TestActivity: Sendable, Equatable {
+/// Study days as the public dashboard counts them (same rule as `profile_publish.py`).
+public struct StudyActivity: Sendable, Equatable {
     /// Local calendar day (yyyy-MM-dd) of the latest test answer.
     public var lastTestDay: String?
-    /// Consecutive test days ending today or yesterday (0 once a full day is missed).
+    /// 连续学习天数: consecutive study days (a day with any test or review answer) ending today or
+    /// yesterday (0 once a full day is missed).
     public var streakDays: Int
 }
 
@@ -23,20 +24,18 @@ public struct TestActivity: Sendable, Equatable {
 public struct ProgressReport: Sendable {
     public var profile: LearnerProfile
     public var leeches: [Leech]
-    public var activity: TestActivity
+    public var activity: StudyActivity
 }
 
 /// The 进度 tab's numbers. Pure: Observations in, report out.
 public enum ProgressPage {
-    /// The current profile with the card ledger's active cards (so 重新学 and the Leech cooldown
-    /// are respected), the Leech list and the test streak.
+    /// The current profile (exactly what `profile-engine profile` computes from the same Observations),
+    /// the Leech list as of `now` and the study streak.
     public static func report(observations: [Observation], lexicon: Lexicon, composer: StudyComposer,
                               config: ProfileConfig = ProfileConfig(), now: Date, calendar: Calendar) -> ProgressReport {
-        let ledger = composer.ledger(observations: observations, now: now)
-        let profile = ProfileEngine.compute(observations: observations, lexicon: lexicon, config: config,
-                                            activeCards: ledger.activeCards)
-        return ProgressReport(profile: profile, leeches: ledger.leeches,
-                              activity: testActivity(observations: observations, now: now, calendar: calendar))
+        let profile = ProfileEngine.compute(observations: observations, lexicon: lexicon, config: config)
+        return ProgressReport(profile: profile, leeches: composer.ledger(observations: observations, now: now).leeches,
+                              activity: activity(observations: observations, now: now, calendar: calendar))
     }
 
     /// One point per test session (by `session` id; Observations without one are grouped by day),
@@ -63,12 +62,16 @@ public enum ProgressPage {
         }
     }
 
-    public static func testActivity(observations: [Observation], now: Date, calendar: Calendar) -> TestActivity {
-        let days = Set(observations.compactMap { o -> Date? in
-            guard o.source == .test, let t = Timestamp.epochSeconds(o.ts) else { return nil }
-            return calendar.startOfDay(for: Date(timeIntervalSince1970: t))
-        })
-        let last = days.max().map { d -> String in
+    /// Observation sources that make a day a study day.
+    public static let studySources: Set<ObservationSource> = [.test, .spotcheck, .verify, .review]
+
+    public static func activity(observations: [Observation], now: Date, calendar: Calendar) -> StudyActivity {
+        func day(_ o: Observation) -> Date? {
+            Timestamp.epochSeconds(o.ts).map { calendar.startOfDay(for: Date(timeIntervalSince1970: $0)) }
+        }
+        let testDays = observations.filter { $0.source == .test }.compactMap(day)
+        let days = Set(observations.filter { studySources.contains($0.source) }.compactMap(day))
+        let last = testDays.max().map { d -> String in
             let c = calendar.dateComponents([.year, .month, .day], from: d)
             return String(format: "%04d-%02d-%02d", c.year!, c.month!, c.day!)
         }
@@ -79,6 +82,6 @@ public enum ProgressPage {
             streak += 1
             day = calendar.date(byAdding: .day, value: -1, to: day)!
         }
-        return TestActivity(lastTestDay: last, streakDays: streak)
+        return StudyActivity(lastTestDay: last, streakDays: streak)
     }
 }

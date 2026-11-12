@@ -71,7 +71,9 @@ jobs:
 
       # The built CLI and lexicon are cached in Actions' cache (not in any repo). Raw BNC/COCA,
       # ECDICT downloads are deleted right after the build; Wiktextract is never downloaded
-      # (examples/audio are App-only and do not affect the profile).
+      # (examples/audio are App-only and do not affect the profile). BNC/COCA and ECDICT are pinned
+      # by sha256 in build_lexicon.py and the lexicon version leaves out Wiktextract columns, so this
+      # lexicon has the same version and profile-relevant content as the App's bundled one.
       - name: Restore engine + lexicon
         id: cache
         uses: actions/cache@v4

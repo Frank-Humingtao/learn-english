@@ -6,7 +6,9 @@
 public enum ProfileFiles {
     public static let schemaVersion = 1
 
-    /// `summary.json`: vocabulary size with interval, Word Band counts, level mastery, update time.
+    /// `summary.json`: vocabulary size with interval, Word Band counts, level mastery, update date.
+    /// Public, so nothing that reveals study volume or times finer than the day (no Observation
+    /// counts, no model internals).
     public static func summaryJSON(_ p: LearnerProfile) -> String {
         func estimate(_ e: Estimate) -> String {
             "{\"estimate\": \(Int(e.estimate.rounded())), \"low\": \(Int(e.low.rounded())), \"high\": \(Int(e.high.rounded()))}"
@@ -14,11 +16,10 @@ public enum ProfileFiles {
         let levels = p.levelMastery.map {
             "    {\"level\": \($0.level), \"families\": \($0.families), \"mastery\": \(fixed($0.mastery, 4))}"
         }.joined(separator: ",\n")
-        let c = p.config
         return """
         {
           "schema_version": \(schemaVersion),
-          "updated_at": \(quote(p.asOf)),
+          "updated_at": \(quote(String(p.asOf.prefix(10)))),
           "lexicon_version": \(quote(p.lexicon.version)),
           "vocab_size": {
             "families": \(estimate(p.vocabulary.families)),
@@ -27,9 +28,7 @@ public enum ProfileFiles {
           "band_counts": {"mastered": \(p.bandCounts.mastered), "target": \(p.bandCounts.target), "distant": \(p.bandCounts.distant)},
           "level_mastery": [
         \(levels)
-          ],
-          "observations": {"total": \(p.stats.total), "evidence": \(p.stats.used), "pseudowords": \(p.stats.pseudo), "false_alarms": \(p.stats.falseAlarms), "out_of_lexicon": \(p.stats.outOfLexicon), "invalid": \(p.stats.invalid)},
-          "model": {"theta": \(fixed(p.theta, 4)), "slope": \(fixed(p.slope, 4)), "false_alarm_rate": \(fixed(p.falseAlarmRate, 4)), "half_life_days": \(fixed(c.halfLifeDays, 1)), "mastered_threshold": \(fixed(c.masteredThreshold, 2)), "target_window": \(c.targetWindow)}
+          ]
         }
 
         """

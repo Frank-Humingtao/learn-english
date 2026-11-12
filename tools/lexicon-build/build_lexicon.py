@@ -10,8 +10,13 @@ Merges:
   * Wiktextract English (kaikki.org, CC BY-SA 4.0 / GFDL): one example sentence and a
     pronunciation audio URL per lemma. Streamed; only the selected fields are kept.
 
+BNC/COCA and ECDICT are pinned (ECDICT to a commit; both by sha256, checked on --download), so
+every machine — the developer's App bundle and the GitHub Actions run — builds the same lexicon.
+The version hashes everything except the Wiktextract-derived columns (phonetic, example, audio):
+Wiktextract is unpinned and Actions skips it, and none of it affects the Learner Profile.
+
 Output directory (load with `Lexicon.load(directory:)` in EnglishCore):
-  meta.json          version (content hash), sources, counts
+  meta.json          version (hash of the profile-relevant content), sources, counts
   words.tsv          one row per lemma, sorted by rank
   forms.tsv          inflected form -> lemma
   supplementary.txt  proper names / marginal words / compounds / acronyms (known for Coverage)
@@ -21,6 +26,7 @@ TSV fields escape backslash, tab and newline as \\\\, \\t, \\n.
 Usage:
   python3 -I tools/lexicon-build/build_lexicon.py --download            # full build
   python3 -I tools/lexicon-build/build_lexicon.py --wiktextract-limit 200000 --sample-every 50 --out X
+  python3 -I tools/lexicon-build/build_lexicon.py --restamp DIR       # recompute DIR's meta version
 """
 import argparse
 import csv
@@ -43,11 +49,19 @@ ECDICT_FILE = "ecdict.csv"
 LEMMA_FILE = "lemma.en.txt"
 KAIKKI_FILE = "kaikki-English.jsonl"
 
+ECDICT_COMMIT = "39cfb9672c0906b63569e0453c2e6abfb9ab182a"
 SOURCES = {
     BASEWORDS_ZIP: "https://laurenceanthony.net/software/wordfamilyfinder/downloads/basewords_130.zip",
-    ECDICT_FILE: "https://raw.githubusercontent.com/skywind3000/ECDICT/master/ecdict.csv",
-    LEMMA_FILE: "https://raw.githubusercontent.com/skywind3000/ECDICT/master/lemma.en.txt",
+    ECDICT_FILE: "https://raw.githubusercontent.com/skywind3000/ECDICT/%s/ecdict.csv" % ECDICT_COMMIT,
+    LEMMA_FILE: "https://raw.githubusercontent.com/skywind3000/ECDICT/%s/lemma.en.txt" % ECDICT_COMMIT,
     KAIKKI_FILE: "https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl",
+}
+# Profile-relevant sources must be byte-identical everywhere. Wiktextract is not pinned (kaikki.org
+# only serves the latest dump) and is excluded from the version instead.
+SHA256 = {
+    BASEWORDS_ZIP: "156a563114bbdef2a9b526e50309baa93bac0809f28643a11830126cdf0a08ee",
+    ECDICT_FILE: "d1ecbdf9ee2b920afb6f430ca6b6bb9f559588cf0dff86e04bd255f9390843cc",
+    LEMMA_FILE: "e255b097404e3e0052060e2ddf6e15a1414f577071d63d51d2ca0ce9dacee0fc",
 }
 
 MAX_LEVEL = 25
@@ -58,10 +72,31 @@ WORD_RE = re.compile(r'"word": "((?:[^"\\]|\\.)*)", "lang": "([^"]*)", "lang_cod
 
 COLUMNS = ["lemma", "rank", "family", "family_rank", "level", "freq", "phonetic", "pos", "tags",
            "definition", "translation", "example", "audio"]
+# Filled (or, for phonetic, completed) from Wiktextract: not part of the version.
+UNVERSIONED_COLUMNS = {"phonetic", "example", "audio"}
 
 
 def log(msg):
     print(msg, file=sys.stderr, flush=True)
+
+
+def sha256_of(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def verify_source(cache, name):
+    """Raises if a pinned source in the cache is not the pinned file."""
+    want = SHA256.get(name)
+    if want is None:
+        return
+    got = sha256_of(os.path.join(cache, name))
+    if got != want:
+        raise SystemExit(f"{name}: sha256 {got} is not the pinned {want}; delete it from the cache "
+                         "and download again (or update the pin deliberately)")
 
 
 def download_sources(cache):
@@ -69,6 +104,7 @@ def download_sources(cache):
     for name, url in SOURCES.items():
         path = os.path.join(cache, name)
         if os.path.exists(path):
+            verify_source(cache, name)
             continue
         tmp = path + ".part"
         # Some hosts reject urllib's default User-Agent (HTTP 406); send a generic one.
@@ -89,6 +125,7 @@ def download_sources(cache):
                     raise
                 time.sleep(5 * attempt)
         os.replace(tmp, path)
+        verify_source(cache, name)
 
 
 def escape(s):
@@ -210,6 +247,53 @@ def read_wiktextract(cache, wanted, limit=None):
     return found
 
 
+# --- version ------------------------------------------------------------------
+
+def content_version(words_text, forms_text, supp_text):
+    """`lex-` + 12 hex digits of SHA-256 over words.tsv without the Wiktextract-derived columns,
+    forms.tsv and supplementary.txt."""
+    lines = words_text.split("\n")
+    header = lines[0].split("\t")
+    keep = [i for i, c in enumerate(header) if c not in UNVERSIONED_COLUMNS]
+    digest = hashlib.sha256()
+    for line in lines:
+        if line:
+            cells = line.split("\t")
+            digest.update(("\t".join(cells[i] for i in keep if i < len(cells)) + "\n").encode("utf-8"))
+    digest.update(forms_text.encode("utf-8"))
+    digest.update(supp_text.encode("utf-8"))
+    return "lex-" + digest.hexdigest()[:12]
+
+
+def version_of(directory):
+    texts = []
+    for name in ("words.tsv", "forms.tsv", "supplementary.txt"):
+        with open(os.path.join(directory, name), encoding="utf-8", newline="") as f:
+            texts.append(f.read())
+    return content_version(*texts)
+
+
+def restamp(directory):
+    """Rewrites meta.json's version from the directory's content (e.g. the committed fixture)."""
+    path = os.path.join(directory, "meta.json")
+    with open(path, encoding="utf-8") as f:
+        meta = json.load(f)
+    meta["version"] = version_of(directory)
+    meta["sources"] = SOURCE_NOTES
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    return meta["version"]
+
+
+SOURCE_NOTES = {
+    "bnc_coca": "BNC/COCA word family lists (Nation), basewords 1.3.0; levels 1-25; lists 31-35 as supplementary; "
+                "sha256 " + SHA256[BASEWORDS_ZIP],
+    "ecdict": "ECDICT (skywind3000), MIT; commit " + ECDICT_COMMIT,
+    "wiktextract": "Wiktextract English via kaikki.org; examples and audio URLs, CC BY-SA 4.0 / GFDL; "
+                   "not part of the version",
+}
+
+
 # --- build --------------------------------------------------------------------
 
 def select_lemmas(families, form_to_lemmas, ecdict):
@@ -321,23 +405,15 @@ def build(cache=DEFAULT_CACHE, out=DEFAULT_OUT, download=False, wiktextract_limi
         forms_buf.write(f"{escape(f)}\t{escape(forms[f])}\n")
     supp_text = "".join(f"{w}\n" for w in sorted(supplementary))
 
-    digest = hashlib.sha256()
-    for part in (words_buf.getvalue(), forms_buf.getvalue(), supp_text):
-        digest.update(part.encode("utf-8"))
     meta = {
         "schema": 1,
-        "version": "lex-" + digest.hexdigest()[:12],
+        "version": content_version(words_buf.getvalue(), forms_buf.getvalue(), supp_text),
         "counts": {"lemmas": len(rows), "families": len({r["family"] for r in rows}), "forms": len(forms),
                    "supplementary": len(supplementary),
                    "with_example": sum(1 for r in rows if wik.get(r["lemma"], {}).get("example")),
                    "with_audio": sum(1 for r in rows if wik.get(r["lemma"], {}).get("audio"))},
         "build": {"sample_every": sample_every, "wiktextract_limit": wiktextract_limit},
-        "sources": {
-            "bnc_coca": "BNC/COCA word family lists (Nation), basewords 1.3.0; levels 1-25; "
-                        "lists 31-35 as supplementary",
-            "ecdict": "ECDICT (skywind3000), MIT",
-            "wiktextract": "Wiktextract English via kaikki.org; examples and audio URLs, CC BY-SA 4.0 / GFDL",
-        },
+        "sources": SOURCE_NOTES,
     }
     for name, text in (("words.tsv", words_buf.getvalue()), ("forms.tsv", forms_buf.getvalue()),
                        ("supplementary.txt", supp_text),
@@ -355,7 +431,11 @@ def main(argv=None):
     p.add_argument("--download", action="store_true", help="download missing sources into --cache")
     p.add_argument("--wiktextract-limit", type=int, default=None, help="read at most N Wiktextract lines")
     p.add_argument("--sample-every", type=int, default=1, help="keep every Nth family (test fixtures)")
+    p.add_argument("--restamp", metavar="DIR", help="only recompute DIR/meta.json's version and exit")
     a = p.parse_args(argv)
+    if a.restamp:
+        print(restamp(a.restamp))
+        return
     build(cache=a.cache, out=a.out, download=a.download, wiktextract_limit=a.wiktextract_limit,
           sample_every=a.sample_every)
 

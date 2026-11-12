@@ -19,7 +19,7 @@ for path in sorted(glob.glob(os.path.join(obs_dir, "**", "*.jsonl"), recursive=T
             known.add(o["lemma"])
 n = len(known)
 os.makedirs(out, exist_ok=True)
-json.dump({"schema_version": 1, "updated_at": args[args.index("--as-of") + 1],
+json.dump({"schema_version": 1, "updated_at": last[:10],
            "vocab_size": {"families": {"estimate": n * 10, "low": n * 8, "high": n * 12}},
            "band_counts": {"mastered": n, "target": len(seen) - n, "distant": 0}},
           open(os.path.join(out, "summary.json"), "w"))

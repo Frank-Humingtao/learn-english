@@ -29,6 +29,11 @@ public struct TestResult: Sendable {
     public var spotcheck: (correct: Int, wrong: Int)
     /// Pseudowords answered "yes" out of those shown.
     public var pseudowords: (falseAlarms: Int, total: Int)
+    /// Person-fit statistic lz of all Yes/No answers so far (nil with too few); below
+    /// `aberrantPersonFit` the result screen warns that the answers look careless or random.
+    public var personFit: Double? { profile.personFit }
+    public var looksAberrant: Bool { (personFit ?? 0) < Self.aberrantPersonFit }
+    public static let aberrantPersonFit = -2.0
     /// The recomputed Learner Profile.
     public var profile: LearnerProfile
 
@@ -38,7 +43,7 @@ public struct TestResult: Sendable {
         profile = after
         vocabulary = Range(after.vocabulary.families)
         let before = ProfileEngine.compute(observations: history, lexicon: lexicon, config: config)
-        change = before.stats.used > 0 ? vocabulary.estimate - Range(before.vocabulary.families).estimate : nil
+        change = before.counts.evidence > 0 ? vocabulary.estimate - Range(before.vocabulary.families).estimate : nil
 
         var unknown = Set<String>()
         var spot = (correct: 0, wrong: 0)

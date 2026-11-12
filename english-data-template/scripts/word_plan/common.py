@@ -4,39 +4,28 @@ Reads the raw inputs of Word Planning:
   - every Observation under `observations/**/*.jsonl` of an `english-data` clone,
   - the latest `words.tsv` (lemma, Word Band, P, frequency rank) published to `english-profile`,
   - the Study Plans under `plan/YYYY-MM-DD.json`.
-Card rules mirror the App's StudyComposer (CardLedger): a lemma with any review Observation has a
-card; 8 "忘了" since the card (re)started make it a Leech, paused until a `relearn` Observation or
-30 days later; a first rating of 太简单 pauses the card.
+Card states come from the shared card replay (scripts/obs_io.py, the same rules as the App's
+CardReplay and checked against the same fixture): a lemma with any review Observation has a card;
+8 "忘了" since the card (re)started make it a Leech, paused until a `relearn` Observation or 30 days
+later; a first rating of 太简单 pauses the card.
 """
 from __future__ import annotations
 
-import glob
-import json
 import os
 import re
 import subprocess
+import sys
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
-LEECH_LAPSES = 8
-LEECH_COOLDOWN = timedelta(days=30)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import obs_io  # noqa: E402
+from obs_io import parse_ts, rating_of  # noqa: E402,F401  (parse_ts re-exported for validate.py)
+
 DEFAULT_DAILY_NEW_LIMIT = 10
 TARGET, MASTERED = "Target", "Mastered"
-EASE_NAMES = ("again", "hard", "good", "easy")
-PLAN_NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})\.json$")
-
-
-def parse_ts(s: str) -> datetime:
-    """ISO 8601 with `Z` or an offset, optional fractional seconds; returns an aware datetime."""
-    s = s.strip().replace("Z", "+00:00")
-    m = re.match(r"^(.*T\d{2}:\d{2}:\d{2})(\.\d+)?(.*)$", s)
-    if m and m.group(2):  # Python 3.9 only accepts 3 or 6 fractional digits
-        frac = (m.group(2)[1:] + "000000")[:6]
-        s = f"{m.group(1)}.{frac}{m.group(3)}"
-    d = datetime.fromisoformat(s)
-    return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
 
 
 @dataclass
@@ -60,14 +49,7 @@ class Card:
     stability: Optional[float] = None
     leech_since: Optional[datetime] = None
     reset_at: Optional[datetime] = None
-
-    @property
-    def paused(self) -> Optional[str]:
-        if self.leech_since is not None:
-            return "leech"
-        if self.first_ease == 4 and self.reset_at is None:
-            return "easy"
-        return None
+    paused: Optional[str] = None  # None | "leech" | "easy" (first rating 太简单)
 
 
 @dataclass
@@ -153,79 +135,46 @@ def default_words_url(repo: str) -> str:
 
 
 def load_observations(repo: str) -> List[dict]:
-    out = []
-    for path in sorted(glob.glob(os.path.join(repo, "observations", "**", "*.jsonl"), recursive=True)):
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    o = json.loads(line)
-                    o["_t"] = parse_ts(o["ts"])
-                except (ValueError, KeyError):
-                    continue
-                out.append(o)
-    out.sort(key=lambda o: o["_t"])
-    return out
+    return obs_io.load_observations(repo)
 
 
 def latest_plan(repo: str) -> Optional[Plan]:
-    names = sorted(n for n in os.listdir(os.path.join(repo, "plan")) if PLAN_NAME.match(n)) \
-        if os.path.isdir(os.path.join(repo, "plan")) else []
-    if not names:
-        return None
-    path = os.path.join(repo, "plan", names[-1])
-    try:
-        with open(path, encoding="utf-8") as f:
-            return Plan(os.path.relpath(path, repo), json.load(f))
-    except ValueError:
-        return None
+    path, data = obs_io.latest_plan(repo)
+    return Plan(path, data) if path is not None else None
 
 
 def build_cards(observations: List[dict], now: datetime) -> Dict[str, Card]:
-    cards: Dict[str, Card] = {}
+    """Card states from the shared replay, plus rating counts, last review and FSRS due/stability."""
     recent_from = now - timedelta(days=14)
+    cards: Dict[str, Card] = {}
 
-    def restart(c: Card, at: datetime):
-        c.lapses, c.leech_since, c.reset_at = 0, None, at
-        c.due = at
-
-    for o in observations:
-        src, lemma, t = o.get("source"), o.get("lemma"), o["_t"]
-        if src == "relearn" and lemma in cards:
-            restart(cards[lemma], t)
-            continue
-        if src != "review":
-            continue
-        ease = (o.get("review") or {}).get("ease") or (EASE_NAMES.index(o["result"]) + 1
-                                                        if o.get("result") in EASE_NAMES else None)
-        if ease not in (1, 2, 3, 4):
-            continue
-        c = cards.setdefault(lemma, Card(lemma))
-        if c.leech_since and t - c.leech_since >= LEECH_COOLDOWN:
-            restart(c, c.leech_since + LEECH_COOLDOWN)
-        if c.first_ease is None:
-            c.first_ease, c.first_review = ease, t
+    def on_review(o: dict, h: obs_io.CardHistory):
+        c = cards.setdefault(h.lemma, Card(h.lemma))
+        ease, t = h.reviews[-1][1], h.reviews[-1][0]
         c.ratings[ease - 1] += 1
         if t >= recent_from:
             c.recent[ease - 1] += 1
         c.last_review = t
         rv = o.get("review") or {}
-        c.due = parse_ts(rv["due"]) if rv.get("due") else c.due
+        if rv.get("due"):
+            c.due = parse_ts(rv["due"]) or c.due
         c.stability = rv.get("stability", c.stability)
-        if ease == 1:
-            c.lapses += 1
-            if c.lapses >= LEECH_LAPSES and c.leech_since is None:
-                c.leech_since = t
-    for c in cards.values():
-        if c.leech_since and now - c.leech_since >= LEECH_COOLDOWN:
-            restart(c, c.leech_since + LEECH_COOLDOWN)
+
+    replay = obs_io.replay_cards(observations, now, on_review=on_review)
+    for lemma, h in replay.items():
+        c = cards[lemma]
+        c.lapses, c.first_ease, c.first_review = h.lapses, h.first_ease, h.first_review
+        c.leech_since, c.reset_at = h.leech_since, h.reset_at
+        c.paused = {"leech": "leech", "first_easy": "easy"}.get(h.paused)
+        if h.reset_at is not None and h.is_new:  # restarted, not reviewed since: due at the restart
+            c.due = h.reset_at
     return cards
 
 
 def load_context(repo: str, words_spec: Optional[str], now: Optional[str] = None) -> Context:
     now_dt = parse_ts(now) if now else datetime.now(timezone.utc)
+    if now_dt is None:
+        raise SystemExit(f"bad --now {now!r}: expected ISO 8601")
     words = load_words(words_spec, repo)
     observations = [o for o in load_observations(repo) if o["_t"] <= now_dt]
     cards = build_cards(observations, now_dt)

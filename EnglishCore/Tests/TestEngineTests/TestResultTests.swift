@@ -43,10 +43,11 @@ import Testing
         let families = (summary["vocab_size"] as! [String: Any])["families"] as! [String: Int]
         #expect(result.vocabulary == TestResult.Range(estimate: families["estimate"]!, low: families["low"]!,
                                                       high: families["high"]!))
-        let obs = summary["observations"] as! [String: Int]
+        #expect(summary["observations"] == nil, "observation counts are not published")
         let pseudoInSession = session.observations.filter { $0.pseudo == true }
         #expect(result.pseudowords.total == pseudoInSession.count)
-        #expect(result.pseudowords.falseAlarms == obs["false_alarms"]! - history.filter { $0.pseudo == true && $0.result == "yes" }.count)
+        #expect(result.pseudowords.falseAlarms == pseudoInSession.filter { $0.result == "yes" }.count)
+        #expect(result.personFit == result.profile.personFit && result.personFit != nil)
     }
 
     @Test func changeIsMeasuredAgainstTheProfileBeforeThisTest() {

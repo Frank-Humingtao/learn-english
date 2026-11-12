@@ -16,7 +16,7 @@ struct TestTab: View {
                                 .font(.headline)
                                 .accessibilityIdentifier("startTest")
                         }
-                        if profile.stats.used > 0 {
+                        if profile.counts.evidence > 0 {
                             Section("上次结果") {
                                 let v = profile.vocabulary.families
                                 VStack(alignment: .leading, spacing: 4) {

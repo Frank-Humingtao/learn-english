@@ -103,9 +103,7 @@ def check_fields(plan) -> List[Problem]:
         return bad(f"missing fields: {', '.join(missing)}")
     if plan["schema_version"] != 1:
         return bad("schema_version must be 1")
-    try:
-        parse_ts(str(plan["generated_at"]))
-    except ValueError:
+    if parse_ts(str(plan["generated_at"])) is None:
         return bad("generated_at must be ISO 8601 with a time zone")
     if type(plan["daily_new"]) is not int:
         return bad("daily_new must be an integer")

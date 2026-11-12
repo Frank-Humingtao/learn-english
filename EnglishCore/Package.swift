@@ -43,6 +43,7 @@ let package = Package(
                                    .product(name: "FSRS", package: "swift-fsrs")]),
         .testTarget(name: "SyncCoreTests", dependencies: ["SyncCore", "CoreModels"]),
         .testTarget(name: "LexiconTests", dependencies: ["Lexicon"]),
-        .testTarget(name: "CLITests", dependencies: ["ProfileEngineCLI", "Lexicon"]),
+        .testTarget(name: "CLITests",
+                    dependencies: ["ProfileEngineCLI", "Lexicon", "ProfileEngine", "StudyComposer", "CoreModels"]),
     ]
 )
