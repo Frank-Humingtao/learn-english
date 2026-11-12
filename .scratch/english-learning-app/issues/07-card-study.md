@@ -36,6 +36,7 @@
 - App：
   - `StudyFlow/`：`AppModel+Study.swift` 提供 `composeStudy`、`startStudy`、`leeches`、`relearn(_:)`（给 09 号票用）、`addWish`、`setDailyNewLimit`、`studyPlan`。目前读内置的 `sample-plan.json`（08 号票的 schema，35 个词，每天 5 个），08 号票替换 `studyPlan` 即可。
   - `StudyFlowView` / `StudyFlowModel`：卡片正面显示词、音标和发音按钮（有 Wiktextract 音频就用 AVPlayer 播放，没有或失败时用 TTS），点击翻面后显示英文释义、例句、中文和选词说明。四个按钮下显示间隔。另有分隔页和完成页。
+  - 学习结束（完成页点"完成"）时走 `dismissFlow()`，它会调用 05 号票的 `sessionEnded()` 触发同步，之后重算 Profile。
   - "学习"标签显示今日复习数、新词数、计划摘要和上限，右上角"+"是加词入口；"设置"里加了"学习 › 每日新词上限"（`StudySettingsSection`）。对共享文件只做了小的追加改动：Flow 加了 `.study`，RootView、SettingsTab 各加一行，pbxproj 加了 StudyComposer 产品（ID 用 `…07A1/07A2`）。
 - 模拟器验证（新建的 LE-ticket07，iPhone 17，iOS 27）：DEBUG 环境变量 `LE_SEED_REVIEWS=1` 写入 3 张 5 天前学过的卡，`LE_START_STUDY=1`、`LE_AUTOPLAY=1`（可选 `LE_AUTOPLAY_MS`、`LE_AUTOPLAY_STOP_AT_SEPARATOR`）调用与按钮相同的 model 方法。完整走了一遍：复习 3 张（其中 1 张"忘了"后 10 分钟内在本次再出现）→ 分隔页"开始 5 个新词"（单独截图确认）→ 新卡（第一张评太简单，从计划补一张）→ 完成页（复习 3 / 新学 5 / 太简单 1 / 评分 15）。用 sqlite3 读出的 review 行带有完整的 revlog 字段。
 

@@ -18,6 +18,7 @@ struct StudyTab: View {
                 }
             }
             .navigationTitle("学习")
+            .syncStatusChrome()
             .toolbar {
                 Button { addingWord = true } label: { Label("加词", systemImage: "plus") }
                     .accessibilityIdentifier("addWord")

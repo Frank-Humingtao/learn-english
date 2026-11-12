@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "ProfileEngine", targets: ["ProfileEngine"]),
         .library(name: "TestEngine", targets: ["TestEngine"]),
         .library(name: "StudyComposer", targets: ["StudyComposer"]),
+        .library(name: "SyncCore", targets: ["SyncCore"]),
         .executable(name: "profile-engine", targets: ["profile-engine"]),
     ],
     dependencies: [
@@ -28,6 +29,9 @@ let package = Package(
         // Card study: FSRS scheduling, card states from review Observations, session composition. Pure.
         .target(name: "StudyComposer", dependencies: ["CoreModels", "Lexicon", "ProfileEngine",
                                                      .product(name: "FSRS", package: "swift-fsrs")]),
+        // GitHub client (GraphQL createCommitOnBranch + REST Contents) and outbox sync logic,
+        // over an injectable HTTP transport. No third-party Git/GitHub libraries.
+        .target(name: "SyncCore", dependencies: ["CoreModels"]),
         // Command-line front end, kept as a library so tests can drive it in-process.
         .target(name: "ProfileEngineCLI", dependencies: ["CoreModels", "Lexicon", "ProfileEngine"]),
         .executableTarget(name: "profile-engine", dependencies: ["ProfileEngineCLI"]),
@@ -37,6 +41,7 @@ let package = Package(
         .testTarget(name: "StudyComposerTests",
                     dependencies: ["StudyComposer", "ProfileEngine", "CoreModels", "Lexicon",
                                    .product(name: "FSRS", package: "swift-fsrs")]),
+        .testTarget(name: "SyncCoreTests", dependencies: ["SyncCore", "CoreModels"]),
         .testTarget(name: "LexiconTests", dependencies: ["Lexicon"]),
         .testTarget(name: "CLITests", dependencies: ["ProfileEngineCLI", "Lexicon"]),
     ]

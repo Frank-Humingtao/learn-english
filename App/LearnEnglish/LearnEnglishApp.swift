@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct LearnEnglishApp: App {
     @State private var model: AppModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let database: AppDatabase
@@ -27,6 +28,11 @@ struct LearnEnglishApp: App {
                     model.seedReviewsIfRequested()
                     if ProcessInfo.processInfo.environment["LE_START_STUDY"] != nil { model.startStudy() }
                     #endif
+                    model.sync.startNetworkMonitor()
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    // Back in the foreground: push whatever is waiting (ticket 05).
+                    if phase == .active { model.sync.syncSoon() }
                 }
         }
     }

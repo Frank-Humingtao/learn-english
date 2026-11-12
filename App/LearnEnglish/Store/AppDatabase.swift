@@ -48,6 +48,16 @@ final class AppDatabase: Sendable {
             }
             try db.create(index: "observation_on_session", on: "observation", columns: ["session"])
         }
+        m.registerMigration("v2-outbox") { db in
+            // Ticket 05: Observations not yet committed to english-data. Filled by a trigger so every
+            // insert into `observation` is queued; rows that existed before were never synced.
+            try db.execute(sql: """
+                CREATE TABLE outbox (observation_id INTEGER PRIMARY KEY REFERENCES observation(id));
+                INSERT INTO outbox (observation_id) SELECT id FROM observation;
+                CREATE TRIGGER observation_into_outbox AFTER INSERT ON observation
+                BEGIN INSERT INTO outbox (observation_id) VALUES (NEW.id); END;
+                """)
+        }
         return m
     }
 }

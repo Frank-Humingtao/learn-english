@@ -13,6 +13,7 @@
 		AE0000000000000000000104 /* ProfileEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AE0000000000000000000204 /* ProfileEngine */; };
 		AE0000000000000000000105 /* TestEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AE0000000000000000000205 /* TestEngine */; };
 		AE00000000000000000007A1 /* StudyComposer in Frameworks */ = {isa = PBXBuildFile; productRef = AE00000000000000000007A2 /* StudyComposer */; };
+		AE0000000000000000000109 /* SyncCore in Frameworks */ = {isa = PBXBuildFile; productRef = AE0000000000000000000209 /* SyncCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 				AE0000000000000000000104 /* ProfileEngine in Frameworks */,
 				AE0000000000000000000105 /* TestEngine in Frameworks */,
 				AE00000000000000000007A1 /* StudyComposer in Frameworks */,
+				AE0000000000000000000109 /* SyncCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +89,7 @@
 				AE0000000000000000000204 /* ProfileEngine */,
 				AE0000000000000000000205 /* TestEngine */,
 				AE00000000000000000007A2 /* StudyComposer */,
+				AE0000000000000000000209 /* SyncCore */,
 			);
 			productName = LearnEnglish;
 			productReference = AE0000000000000000000301 /* LearnEnglish.app */;
@@ -322,6 +325,10 @@
 		AE00000000000000000007A2 /* StudyComposer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = StudyComposer;
+		};
+		AE0000000000000000000209 /* SyncCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SyncCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
