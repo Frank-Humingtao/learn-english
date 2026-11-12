@@ -9,6 +9,7 @@ let package = Package(
         .library(name: "Lexicon", targets: ["Lexicon"]),
         .library(name: "ProfileEngine", targets: ["ProfileEngine"]),
         .library(name: "TestEngine", targets: ["TestEngine"]),
+        .library(name: "SyncCore", targets: ["SyncCore"]),
         .executable(name: "profile-engine", targets: ["profile-engine"]),
     ],
     targets: [
@@ -20,12 +21,16 @@ let package = Package(
         .target(name: "ProfileEngine", dependencies: ["CoreModels", "Lexicon"]),
         // Vocabulary Test item selection, pseudowords, meaning checks, result summary. Pure.
         .target(name: "TestEngine", dependencies: ["CoreModels", "Lexicon", "ProfileEngine"]),
+        // GitHub client (GraphQL createCommitOnBranch + REST Contents) and outbox sync logic,
+        // over an injectable HTTP transport. No third-party Git/GitHub libraries.
+        .target(name: "SyncCore", dependencies: ["CoreModels"]),
         // Command-line front end, kept as a library so tests can drive it in-process.
         .target(name: "ProfileEngineCLI", dependencies: ["CoreModels", "Lexicon", "ProfileEngine"]),
         .executableTarget(name: "profile-engine", dependencies: ["ProfileEngineCLI"]),
         .testTarget(name: "ProfileEngineTests", dependencies: ["ProfileEngine", "CoreModels", "Lexicon"]),
         .testTarget(name: "TestEngineTests",
                     dependencies: ["TestEngine", "ProfileEngine", "ProfileEngineCLI", "CoreModels", "Lexicon"]),
+        .testTarget(name: "SyncCoreTests", dependencies: ["SyncCore", "CoreModels"]),
         .testTarget(name: "LexiconTests", dependencies: ["Lexicon"]),
         .testTarget(name: "CLITests", dependencies: ["ProfileEngineCLI", "Lexicon"]),
     ]

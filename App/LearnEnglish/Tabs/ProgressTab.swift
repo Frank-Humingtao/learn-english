@@ -26,6 +26,7 @@ struct ProgressTab: View {
                 }
             }
             .navigationTitle("进度")
+            .syncStatusChrome()
         }
     }
 }

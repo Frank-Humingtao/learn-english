@@ -27,6 +27,8 @@ final class AppModel {
     var presentedFlow: Flow?
 
     let database: AppDatabase
+    /// Outbox sync to english-data (ticket 05).
+    let sync: SyncModel
     private(set) var lexicon: Lexicon?
     private(set) var observations: [LearnerObservation] = []
     private(set) var profile: LearnerProfile?
@@ -34,6 +36,7 @@ final class AppModel {
 
     init(database: AppDatabase) {
         self.database = database
+        sync = SyncModel(database: database)
     }
 
     var isLoaded: Bool { lexicon != nil && profile != nil }
@@ -61,6 +64,12 @@ final class AppModel {
     func record(_ observation: LearnerObservation) throws {
         try database.append(observation)
         observations.append(observation)
+        sync.refreshCount()
+    }
+
+    /// A test or study session ended (result shown or flow closed): push the outbox.
+    func sessionEnded() {
+        sync.syncSoon()
     }
 
     /// Replaces the profile after a flow recomputed it (e.g. on the test result screen).
@@ -96,6 +105,7 @@ final class AppModel {
 
     func dismissFlow() {
         presentedFlow = nil
+        sessionEnded()
     }
 }
 
