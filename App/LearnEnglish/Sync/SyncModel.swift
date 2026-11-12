@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import Observation
+import StudyComposer
 import SyncCore
 import UIKit
 
@@ -28,6 +29,8 @@ final class SyncModel {
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var monitor: NWPathMonitor?
     @ObservationIgnored private var pendingRun = false
+    /// Personal FSRS weights pulled on each sync (ticket 10).
+    @ObservationIgnored let fsrsParams: FSRSParamsStore
 
     init(database: AppDatabase, tokenStore: any TokenStore = KeychainTokenStore(),
          transport: any HTTPTransport = URLSessionTransport(), defaults: UserDefaults = .standard) {
@@ -35,6 +38,7 @@ final class SyncModel {
         self.tokenStore = tokenStore
         self.transport = transport
         self.defaults = defaults
+        fsrsParams = FSRSParamsStore(defaults: defaults)
         var base = GitHubClient.defaultAPIBase
         #if DEBUG
         // Simulator verification against a local fake GitHub (see ticket 05 Comments).
@@ -105,6 +109,16 @@ final class SyncModel {
             refreshCount()
             if batch.count < Self.batchSize { break }
         }
+        await pullFSRSParams(token: token, owner: owner)
+    }
+
+    /// Reads `fsrs/params.json` (ticket 10). A missing file clears the cache (back to defaults);
+    /// network or token errors keep the cached parameters.
+    private func pullFSRSParams(token: String, owner: String) async {
+        let repo = RepoRef(owner: owner, name: Self.defaultRepoName)
+        guard let data = try? await client(token).readFile(repo, path: PersonalFSRSParams.repoPath, ref: repo.branch)
+        else { return }
+        fsrsParams.update(fileData: data)
     }
 
     /// Validates a new token with GitHub, stores it in the Keychain and catches up the outbox.
