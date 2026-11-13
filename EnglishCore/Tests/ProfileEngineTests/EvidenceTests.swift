@@ -59,14 +59,17 @@ import Testing
         config.asOf = ts(day: 5)
         let profileGuesser = ProfileEngine.compute(observations: background() + guesser, lexicon: lexicon, config: config)
         let profileHonest = ProfileEngine.compute(observations: background() + honest, lexicon: lexicon, config: config)
-        #expect(profileGuesser.falseAlarmRate > 0.2)
-        #expect(profileHonest.falseAlarmRate < 0.02)
+        #expect(profileGuesser.pseudowordFalseAlarmRate > 0.15, "\(profileGuesser.pseudowordFalseAlarmRate)")
+        #expect(profileHonest.pseudowordFalseAlarmRate < 0.02, "\(profileHonest.pseudowordFalseAlarmRate)")
+        // Real-word false alarms are tied to pseudoword ones (logit f = logit f₀ + δ).
+        #expect(profileGuesser.falseAlarmRate > profileHonest.falseAlarmRate + 0.05)
         #expect(profileGuesser.vocabulary.lemmas.estimate < profileHonest.vocabulary.lemmas.estimate)
     }
 
     @Test func pFallsWithFrequencyRankForUnobservedWords() {
         let profile = ProfileEngine.compute(observations: background(), lexicon: lexicon)
-        let ps = [10, 1000, 3000, 6000, 9999].map { profile.probability(of: word($0))! }
+        // The background observes every 100th rank; these are not observed.
+        let ps = [10, 1050, 3050, 6050, 9999].map { profile.probability(of: word($0))! }
         #expect(ps == ps.sorted(by: >))
         #expect(ps.first! > 0.9)
         #expect(ps.last! < 0.1)

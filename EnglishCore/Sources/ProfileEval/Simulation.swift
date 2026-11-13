@@ -52,8 +52,17 @@ public struct SimulatedLearner: Sendable {
 
     public var trueLemmas: Int { knows.filter { $0 }.count }
 
+    /// Families whose most frequent member (lowest rank) is known. Every model publishes
+    /// P(family) = max over its members, i.e. the chance of knowing the family's best-known word;
+    /// "any member known" would count a family through a rare derived form drawn independently of
+    /// its base, which the simulation allows but no real Learner does (ticket 02).
     public func trueFamilies(_ lexicon: Lexicon) -> Int {
-        Set(lexicon.entries.indices.filter { knows[$0] }.map { lexicon.entries[$0].family }).count
+        var seen = Set<String>()
+        var count = 0
+        for (i, e) in lexicon.entries.enumerated() where seen.insert(e.family).inserted {
+            if knows[i] { count += 1 } // entries are in rank order: the first member seen is the most frequent
+        }
+        return count
     }
 
     /// Generates one Learner and its baseline + short test.

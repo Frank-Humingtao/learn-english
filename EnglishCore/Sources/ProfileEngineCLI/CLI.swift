@@ -14,7 +14,7 @@ public enum ProfileEngineCLI {
       profile-engine lookup   --lexicon DIR WORD...
       profile-engine coverage --lexicon DIR --observations PATH... [--text FILE]   (text from stdin if omitted)
       profile-engine version  --lexicon DIR
-      profile-engine eval     --lexicon DIR --observations PATH... [--out DIR] [--models current,frequency]
+      profile-engine eval     --lexicon DIR --observations PATH... [--out DIR] [--models legacy,frequency,twolayer]
                               [--folds N] [--sim-learners N] [--sim-seed N]
           Offline evaluation of each model side by side (held-out prediction, calibration, interval
           width, split-half and retest consistency, simulated Learners). Prints a Markdown table;
@@ -166,13 +166,48 @@ public enum ProfileEngineCLI {
         return 0
     }
 
-    /// Models `eval` can compare, by name.
-    static func evalModels(_ names: String, config: ProfileConfig) throws -> [any VocabularyModel] {
-        try names.split(separator: ",").map { name -> any VocabularyModel in
+    /// Models `eval` can compare, by name. `twolayer` takes variants for ablations:
+    /// `twolayer:rank+examTags` sets the features (first = main frequency scale), and
+    /// `@key=value` pairs set numeric priors, e.g. `twolayer:rank@featurePriorSD=0.3`.
+    static func evalModels(_ names: String, config: ProfileConfig, legacy: LegacyProfileConfig) throws -> [any VocabularyModel] {
+        try names.split(separator: ",").map { spec -> any VocabularyModel in
+            let name = String(spec)
             switch name {
-            case "current": return CurrentProfileModel(config: config)
+            case "legacy", "current": return LegacyProfileModel(name: name, config: legacy)
             case "frequency": return FrequencyBaselineModel()
-            default: throw UsageError(message: "unknown model \(name) (known: current, frequency)")
+            default:
+                guard name.hasPrefix("twolayer") else {
+                    throw UsageError(message: "unknown model \(name) (known: legacy, frequency, twolayer[:features][@key=value...])")
+                }
+                var c = config
+                var parts = name.split(separator: "@").map(String.init)
+                let head = parts.removeFirst()
+                if let colon = head.firstIndex(of: ":") {
+                    c.features = try head[head.index(after: colon)...].split(separator: "+").map {
+                        guard let f = WordFeature(rawValue: String($0)) else {
+                            throw UsageError(message: "unknown feature \($0) (known: \(WordFeature.allCases.map(\.rawValue)))")
+                        }
+                        return f
+                    }
+                }
+                for kv in parts {
+                    let pair = kv.split(separator: "=").map(String.init)
+                    guard pair.count == 2, let v = Double(pair[1]) else { throw UsageError(message: "bad \(kv)") }
+                    switch pair[0] {
+                    case "featurePriorSD": c.featurePriorSD = v
+                    case "mainSlopePriorMean": c.mainSlopePriorMean = v
+                    case "mainSlopePriorSD": c.mainSlopePriorSD = v
+                    case "realWordExtraPriorMean": c.realWordExtraPriorMean = v
+                    case "realWordExtraPriorSD": c.realWordExtraPriorSD = v
+                    case "verifyGuessPrior": c.verifyGuessPrior = v
+                    case "verifyGuessPriorSD": c.verifyGuessPriorSD = v
+                    case "slipRate": c.slipRate = v
+                    case "verifySlipRate": c.verifySlipRate = v
+                    case "gateWeight": c.gateWeight = v
+                    default: throw UsageError(message: "unknown setting \(pair[0])")
+                    }
+                }
+                return TwoLayerModel(name: name, config: c)
             }
         }
     }
@@ -180,7 +215,11 @@ public enum ProfileEngineCLI {
     static func eval(_ o: Options, stdout: (String) -> Void, stderr: (String) -> Void) throws -> Int32 {
         let paths = try o.observationPaths()
         let lexicon = try o.lexicon()
-        let models = try evalModels(o.values["models"]?.first ?? "current,frequency", config: o.config())
+        var legacy = LegacyProfileConfig()
+        let config = try o.config()
+        legacy.asOf = config.asOf
+        legacy.halfLifeDays = config.halfLifeDays
+        let models = try evalModels(o.values["models"]?.first ?? "legacy,frequency,twolayer", config: config, legacy: legacy)
         var options = EvalOptions()
         if let s = o.values["folds"]?.first {
             guard let k = Int(s), k >= 0 else { throw UsageError(message: "bad --folds \(s)") }

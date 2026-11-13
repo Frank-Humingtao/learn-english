@@ -81,9 +81,10 @@ import Testing
         #expect((5...8).contains(checks.count))
         for q in checks {
             let pos = MeaningChecks.gloss(lex.entry(lemma: q.lemma)!)!.pos
-            let byText = Dictionary(lex.entries.compactMap { e in MeaningChecks.gloss(e).map { ($0.text, $0.pos) } },
-                                    uniquingKeysWith: { a, _ in a })
-            for opt in q.options { #expect(byText[opt] == pos, "\(q.lemma) [\(pos)] option \(opt)") }
+            // A gloss text can belong to words of several parts of speech (现代化: n and v).
+            let byText = Dictionary(lex.entries.compactMap { e in MeaningChecks.gloss(e).map { ($0.text, Set([$0.pos])) } },
+                                    uniquingKeysWith: { $0.union($1) })
+            for opt in q.options { #expect(byText[opt]?.contains(pos) == true, "\(q.lemma) [\(pos)] option \(opt)") }
         }
     }
 

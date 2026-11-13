@@ -42,7 +42,9 @@ import Testing
         let honest = profile(background() + claimed("correct"))
         let overclaiming = profile(background() + claimed("wrong"))
         let plain = profile(background())
-        #expect(honest.falseAlarmRate == plain.falseAlarmRate)
+        // Meaning checks enter the same likelihood as the Yes/No answers: correct ones barely move the
+        // real-word false-alarm rate, failed ones raise it.
+        #expect(abs(honest.falseAlarmRate - plain.falseAlarmRate) < 0.02, "\(honest.falseAlarmRate) vs \(plain.falseAlarmRate)")
         #expect(overclaiming.falseAlarmRate > plain.falseAlarmRate + 0.1, "\(overclaiming.falseAlarmRate)")
         // The extra guessing discounts every "yes", so an unchecked "yes" word ends lower.
         let target = word(4321)

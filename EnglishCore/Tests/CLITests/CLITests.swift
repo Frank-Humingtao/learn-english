@@ -90,12 +90,12 @@ func contents(_ url: URL) -> String {
                     "--folds", "3", "--sim-learners", "0"]
         let r = run(args)
         #expect(r.code == 0, "\(r.err)")
-        #expect(r.out.contains("| 指标 | 目标 | current | frequency |"))
+        #expect(r.out.contains("| 指标 | 目标 | legacy | frequency | twolayer |"))
         #expect(contents(out.appendingPathComponent("eval.md")) == r.out)
         let json = contents(out.appendingPathComponent("eval.json"))
         let parsed = try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]
         let models = parsed?["models"] as? [[String: Any]]
-        #expect(models?.compactMap { $0["model"] as? String } == ["current", "frequency"])
+        #expect(models?.compactMap { $0["model"] as? String } == ["legacy", "frequency", "twolayer"])
         #expect(models?.allSatisfy { $0["crossValidation"] != nil } == true)
         // Repeatable.
         let again = tempDir()

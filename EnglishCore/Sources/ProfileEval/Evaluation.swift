@@ -91,6 +91,9 @@ public struct ModelReport: Codable, Sendable, Equatable {
     /// Fitted on all Observations.
     public var lemmas: Interval?
     public var families: Interval?
+    /// Families at BNC/COCA levels ≤ 14 / above (models that report the split).
+    public var coreFamilies: Interval?
+    public var tailFamilies: Interval?
     public var splitHalf: [SplitHalfResult]
     public var retest: [SessionRetestResult]
     public var simulation: SimulationReport?
@@ -137,6 +140,7 @@ public enum Evaluation {
                 holdout: holdout(model, observations, lexicon, sessions),
                 crossValidation: options.folds > 1 ? crossValidation(model, observations, lexicon, folds: options.folds) : nil,
                 lemmas: full?.lemmas, families: full?.families,
+                coreFamilies: full?.coreFamilies, tailFamilies: full?.tailFamilies,
                 splitHalf: splitHalf(model, observations, lexicon, sessions, minItems: options.minItems),
                 retest: sessionRetest(model, observations, lexicon, sessions, options: options),
                 simulation: simulated.isEmpty ? nil : simulation(model, simulated, lexicon))

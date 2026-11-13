@@ -29,6 +29,10 @@ extension Lexicon {
                      level: col("level"), phonetic: col("phonetic"), pos: col("pos"), tags: col("tags"),
                      definition: col("definition"), translation: col("translation"), example: col("example"),
                      audio: col("audio"))
+        // Optional numeric columns (older lexicon builds lack them): 0 when absent.
+        let optional = (freq: words.header.firstIndex(of: "freq"), bnc: words.header.firstIndex(of: "bnc"),
+                        coca: words.header.firstIndex(of: "frq"))
+        func int(_ r: [String], _ i: Int?) -> Int { i.flatMap { Int(r[$0]) } ?? 0 }
         var entries: [LexiconEntry] = []
         entries.reserveCapacity(words.rows.count)
         for (n, r) in words.rows.enumerated() {
@@ -37,6 +41,7 @@ extension Lexicon {
             else { throw LexiconError.malformed(file: "words.tsv", line: n + 2, reason: "bad row") }
             entries.append(LexiconEntry(
                 lemma: r[c.lemma], rank: rank, family: r[c.family], familyRank: fr, level: level,
+                freq: int(r, optional.freq), bncRank: int(r, optional.bnc), cocaRank: int(r, optional.coca),
                 phonetic: r[c.phonetic], pos: r[c.pos], tags: r[c.tags], definition: r[c.definition],
                 translation: r[c.translation], example: r[c.example], audio: r[c.audio]))
         }
