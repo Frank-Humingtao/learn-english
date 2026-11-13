@@ -1,0 +1,366 @@
+<title>词汇测试原型</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- PROTOTYPE (throwaway, ticket #13). Three variants of the test UI, switchable via ?variant=A|B|C or the dark bar at the top. Data is fake; nothing is saved. -->
+<style>
+/* Layout: one phone-sized app column (max 430px) with an iOS tab bar; screens swap inside it. */
+:root{
+  --bg:#f4f5f8; --surface:#ffffff; --fg:#14161c; --muted:#7a7f8c; --line:#e3e5eb;
+  --accent:#2f6bff; --accent-soft:#e6eeff; --good:#1fa463; --bad:#e5484d; --good-soft:#e3f6ec; --bad-soft:#fdeaea;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;
+  --num:"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1015; --surface:#1a1d24; --fg:#f2f3f6; --muted:#8b90a0; --line:#2a2e38;
+  --accent:#5b8cff; --accent-soft:#1c2740; --good:#34c77b; --bad:#ff6369; --good-soft:#14301f; --bad-soft:#3a1719; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1015; --surface:#1a1d24; --fg:#f2f3f6; --muted:#8b90a0; --line:#2a2e38;
+  --accent:#5b8cff; --accent-soft:#1c2740; --good:#34c77b; --bad:#ff6369; --good-soft:#14301f; --bad-soft:#3a1719; color-scheme:dark}
+/* Variant C commits to its own dark look */
+body.v-C{--bg:#0b0d1a; --surface:#161a2e; --fg:#f4f5ff; --muted:#8a8fb3; --line:#262b45; --accent:#8b7bff; --accent-soft:#221f45; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg); color:var(--fg); font-family:var(--font); -webkit-font-smoothing:antialiased; overflow:hidden}
+button{font:inherit; color:inherit; border:0; background:none; cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.num{font-family:var(--num); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+
+/* prototype bar (not part of the design) */
+#proto{position:fixed; top:0; left:0; right:0; z-index:50; display:flex; gap:8px; align-items:center; justify-content:center;
+  padding:6px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px)); padding-top:calc(6px + env(safe-area-inset-top,0px));
+  background:#000; color:#fff; font:600 12px/1 ui-monospace,Menlo,monospace}
+#proto button{color:#fff; background:#333; border-radius:999px; padding:6px 10px}
+#proto .on{background:#ffd60a; color:#000}
+
+#app{position:relative; max-width:430px; height:100%; margin:0 auto; display:flex; flex-direction:column; padding-top:34px}
+.screen{flex:1; min-height:0; display:none; flex-direction:column; padding:12px max(16px,env(safe-area-inset-left,0px)) 12px max(16px,env(safe-area-inset-right,0px)); overflow:auto}
+.screen.show{display:flex}
+#tabbar{display:flex; border-top:1px solid var(--line); background:var(--surface); padding-bottom:env(safe-area-inset-bottom,0px)}
+#tabbar button{flex:1; padding:8px 0 10px; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; color:var(--muted)}
+#tabbar button.on{color:var(--accent)}
+#tabbar svg{width:24px; height:24px}
+body.testing #tabbar{display:none}
+
+/* sync error banner */
+#syncerr{display:none; margin:0 max(16px,env(safe-area-inset-left,0px)); margin-top:8px; padding:10px 12px; border-radius:12px; background:var(--bad-soft); color:var(--bad); font-size:14px; font-weight:600; align-items:center; gap:8px}
+body.err #syncerr{display:flex}
+body.testing #syncerr{display:none}
+
+/* ---------- HOME ---------- */
+.home{flex:1; display:flex; flex-direction:column}
+.home .top{display:flex; justify-content:flex-end}
+.link{color:var(--accent); font-weight:600; font-size:15px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; padding:6px 0}
+.home .mid{flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px}
+.big{font-size:76px; font-weight:700; line-height:1}
+.unit{font-size:17px; color:var(--muted); font-weight:600}
+.range{color:var(--muted); font-size:17px}
+.cta{width:100%; padding:17px; border-radius:16px; background:var(--accent); color:#fff; font-size:18px; font-weight:700; display:flex; justify-content:center; gap:10px; align-items:baseline}
+.cta small{font-weight:600; opacity:.8; font-size:14px}
+/* A: centred */
+.v-A .home .mid{align-items:center; text-align:center}
+/* B: left, with interval bar */
+.v-B .home .mid{align-items:flex-start}
+.v-B .big{font-size:96px}
+.ibar{width:100%; height:10px; border-radius:5px; background:var(--line); position:relative; margin-top:6px}
+.ibar i{position:absolute; top:0; bottom:0; border-radius:5px; background:var(--accent-soft)}
+.ibar b{position:absolute; top:-5px; width:4px; height:20px; border-radius:2px; background:var(--accent)}
+.ibar-l{display:flex; justify-content:space-between; width:100%; color:var(--muted); font-size:13px}
+.v-A .ibar,.v-A .ibar-l,.v-C .ibar,.v-C .ibar-l{display:none}
+.v-B .range{display:none}
+/* C: ring */
+.ring{display:none}
+.v-C .home .mid{align-items:center; text-align:center}
+.v-C .ring{display:block; position:relative; width:270px; height:270px; margin:0 auto}
+.v-C .ring svg{position:absolute; inset:0}
+.v-C .ring .in{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px}
+.home .plain{display:contents}
+.v-C .home .plain{display:none}
+.v-C .big{font-size:64px}
+.v-C .cta{background:linear-gradient(135deg,#8b7bff,#5ec8ff)}
+
+/* ---------- TEST ---------- */
+#test{padding-top:6px}
+.tbar{display:flex; align-items:center; gap:12px}
+.x{width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:var(--muted); font-size:20px; background:var(--surface)}
+.prog{flex:1; display:flex; gap:3px}
+.prog i{flex:1; height:6px; border-radius:3px; background:var(--line); overflow:hidden; position:relative}
+.prog i b{position:absolute; inset:0; width:0; background:var(--accent); border-radius:3px; transition:width .25s}
+.prog i.done{animation:pop .35s}
+@keyframes pop{50%{transform:scaleY(2)}}
+.live{display:flex; align-items:baseline; gap:6px; position:relative}
+.live .n{font-weight:700}
+.delta{font-size:13px; font-weight:700; opacity:0; transition:opacity .2s}
+.delta.up{color:var(--good)} .delta.down{color:var(--bad)} .delta.show{opacity:1}
+.stage{flex:1; position:relative; display:flex; align-items:center; justify-content:center; touch-action:none; user-select:none; -webkit-user-select:none}
+.card{position:relative; width:100%; max-width:360px; aspect-ratio:3/3.6; max-height:100%; border-radius:28px; background:var(--surface); box-shadow:0 10px 30px rgba(20,30,60,.10); display:flex; align-items:center; justify-content:center; transition:transform .25s, background .2s; will-change:transform}
+.card.drag{transition:none}
+.card.enter{animation:flip .32s ease-out}
+@keyframes flip{from{transform:perspective(800px) rotateY(80deg); opacity:.2}}
+.card.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.word{font-size:44px; font-weight:700; letter-spacing:-.01em; text-align:center; padding:0 16px; word-break:break-word}
+.tint{position:absolute; inset:0; border-radius:inherit; opacity:0; pointer-events:none}
+.tint.r{background:var(--good)} .tint.l{background:var(--bad)}
+.verdict{position:absolute; top:22px; left:0; right:0; text-align:center; font-weight:800; font-size:15px; letter-spacing:.06em; opacity:0}
+.answers{display:flex; gap:14px; padding-top:14px}
+.answers button{flex:1; padding:18px; border-radius:18px; font-size:18px; font-weight:700; background:var(--surface)}
+.answers .yes{background:var(--accent); color:#fff}
+/* feedback overlay */
+.fb{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border-radius:28px; pointer-events:none; opacity:0; transition:opacity .15s}
+.fb.show{opacity:1}
+.fb.ok{background:var(--good-soft); color:var(--good)} .fb.no{background:var(--bad-soft); color:var(--bad)}
+.fb .mark{font-size:64px; font-weight:800; line-height:1}
+.fb .ans{font-size:20px; font-weight:700; color:var(--fg); text-align:center; padding:0 20px}
+/* meaning check */
+.mc{position:absolute; inset:0; display:none; flex-direction:column; gap:10px; justify-content:center; padding:0 4px; background:var(--bg)}
+.mc.show{display:flex}
+.mc .w{font-size:32px; font-weight:700; text-align:center; padding-bottom:10px}
+.mc button{padding:15px 16px; border-radius:14px; background:var(--surface); font-size:17px; text-align:left; border:2px solid transparent}
+.mc button.dk{text-align:center; color:var(--muted); background:transparent}
+.mc button.right{border-color:var(--good); background:var(--good-soft)}
+.mc button.wrong{border-color:var(--bad); background:var(--bad-soft)}
+
+/* B: number is the hero, no card */
+.hero{display:none}
+.v-B .hero{display:flex; flex-direction:column; align-items:center; padding:18px 0 0}
+.v-B .hero .n{font-size:72px; font-weight:800; line-height:1}
+.v-B .tbar .live{display:none}
+.v-B .card{background:transparent; box-shadow:none; aspect-ratio:auto; height:100%}
+.v-B .answers button{border-radius:50%; width:84px; height:84px; flex:0 0 84px; padding:0; font-size:30px}
+.v-B .answers{justify-content:center; gap:60px; padding-bottom:10px}
+.v-B .answers .no{background:var(--bad-soft); color:var(--bad)} .v-B .answers .yes{background:var(--good-soft); color:var(--good)}
+.v-B .lbl{display:none}
+.sym{display:none} .v-B .sym{display:inline}
+/* C: immersive, swipe-first, bottom ring */
+.v-C .card{background:transparent; box-shadow:none; aspect-ratio:auto; height:100%}
+.v-C .word{font-size:56px; background:linear-gradient(135deg,#fff,#b9b2ff); -webkit-background-clip:text; background-clip:text; color:transparent}
+.v-C .tbar .prog{display:none}
+.v-C .tbar .live{display:none}
+.v-C .answers{display:none}
+.v-C .edge{display:flex}
+.edge{display:none; justify-content:space-between; align-items:center; padding:10px 0 4px}
+.edge button{padding:12px 18px; border-radius:999px; font-weight:700; font-size:15px; background:var(--surface)}
+.cring{position:relative; width:96px; height:96px}
+.cring svg{position:absolute; inset:0; transform:rotate(-90deg)}
+.cring .n{position:absolute; inset:0; display:grid; place-items:center; font-weight:800; font-size:20px}
+
+/* ---------- RESULT ---------- */
+#result{align-items:center; justify-content:center; text-align:center; gap:12px}
+#result .big{font-size:84px}
+.chg{font-size:22px; font-weight:700}
+.chg.up{color:var(--good)} .chg.down{color:var(--bad)}
+.warn{color:var(--bad); font-size:15px; font-weight:600; background:var(--bad-soft); padding:8px 12px; border-radius:10px}
+#result .cta{margin-top:auto}
+#result .spacer{flex:1}
+
+/* ---------- PROGRESS ---------- */
+h2{font-size:28px; font-weight:800; margin:6px 0 12px}
+.sec{background:var(--surface); border-radius:18px; padding:14px; display:flex; flex-direction:column; gap:8px}
+.sec h3{margin:0; font-size:15px; color:var(--muted); font-weight:600}
+.stack{display:flex; flex-direction:column; gap:12px; padding-bottom:16px}
+svg text{fill:var(--muted); font-size:10px; font-family:var(--font)}
+.bands{display:flex; height:28px; border-radius:8px; overflow:hidden}
+.bands i{display:block}
+.bl{display:flex; justify-content:space-between; font-size:13px}
+.bl span{display:flex; align-items:center; gap:6px}
+.dot{width:9px; height:9px; border-radius:50%; display:inline-block}
+.kpi{display:flex; gap:10px}
+.kpi div{flex:1; display:flex; flex-direction:column; gap:2px}
+.kpi b{font-size:24px}
+.kpi span{color:var(--muted); font-size:13px}
+
+/* ---------- SETTINGS ---------- */
+.row{display:flex; justify-content:space-between; align-items:center; padding:14px; background:var(--surface); border-radius:14px; font-size:16px}
+.row span:last-child{color:var(--muted)}
+.danger{color:var(--bad); font-weight:600; text-align:center; width:100%; padding:14px; background:var(--surface); border-radius:14px; font-size:16px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div id="proto">
+  <span>原型</span>
+  <button data-v="A">A 卡片</button><button data-v="B">B 数字</button><button data-v="C">C 沉浸</button>
+  <button id="errT">同步出错</button>
+</div>
+
+<div id="app">
+  <div id="syncerr">⚠︎ 同步失败 · 令牌已过期</div>
+
+  <!-- HOME -->
+  <section class="screen show" id="home"><div class="home">
+    <div class="top"><a class="link" href="https://github.com/Frank-Humingtao/english-profile/issues/1" target="_blank" rel="noopener">报告 ↗</a></div>
+    <div class="mid">
+      <div class="ring">
+        <svg viewBox="0 0 270 270"><circle cx="135" cy="135" r="120" fill="none" stroke="var(--line)" stroke-width="14"/>
+          <circle cx="135" cy="135" r="120" fill="none" stroke="url(#g)" stroke-width="14" stroke-linecap="round" stroke-dasharray="754" stroke-dashoffset="460" transform="rotate(-90 135 135)"/>
+          <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#8b7bff"/><stop offset="1" stop-color="#5ec8ff"/></linearGradient></defs></svg>
+        <div class="in"><div class="big num hv">6,375</div><div class="range num hr">2,531 – 10,219</div></div>
+      </div>
+      <div class="plain">
+        <div class="big num hv">6,375</div>
+        <div class="unit">词族</div>
+        <div class="range num hr">2,531 – 10,219</div>
+        <div class="ibar"><i style="left:12%;width:39%"></i><b style="left:31%"></b></div>
+        <div class="ibar-l num"><span>2,531</span><span>10,219</span></div>
+      </div>
+    </div>
+    <button class="cta" id="start">继续基线 <small class="num">212 / 450</small></button>
+  </div></section>
+
+  <!-- TEST -->
+  <section class="screen" id="test">
+    <div class="tbar">
+      <button class="x" id="quit" aria-label="退出">✕</button>
+      <div class="prog" id="prog"></div>
+      <div class="live num"><span class="n" id="liveA">6,375</span><span class="delta" id="dA"></span></div>
+    </div>
+    <div class="hero"><div class="n num" id="liveB">6,375</div><div class="delta" id="dB"></div></div>
+    <div class="stage" id="stage">
+      <div class="card" id="card"><div class="tint r" id="tr"></div><div class="tint l" id="tl"></div><div class="word" id="word">meticulous</div>
+        <div class="fb" id="fb"><div class="mark" id="fbm"></div><div class="ans" id="fba"></div></div>
+      </div>
+      <div class="mc" id="mc"></div>
+    </div>
+    <div class="answers">
+      <button class="no" id="bNo"><span class="sym">✕</span><span class="lbl">不认识</span></button>
+      <button class="yes" id="bYes"><span class="sym">✓</span><span class="lbl">认识</span></button>
+    </div>
+    <div class="edge">
+      <button id="cNo">← 不认识</button>
+      <div class="cring"><svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42" fill="none" stroke="var(--line)" stroke-width="6"/><circle id="cr" cx="48" cy="48" r="42" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264" style="transition:stroke-dashoffset .3s"/></svg><div class="n num" id="liveC">6,375</div></div>
+      <button id="cYes">认识 →</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="result">
+    <div class="spacer"></div>
+    <div class="big num" id="rN">6,612</div>
+    <div class="chg num" id="rD">+237</div>
+    <div class="warn" id="rW" hidden>假词点了 3 次认识，这次可能偏高</div>
+    <div class="spacer"></div>
+    <button class="cta" id="done">完成</button>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="screen" id="progress"><div class="stack">
+    <h2>进度</h2>
+    <div class="sec"><h3>词汇量</h3>
+      <svg viewBox="0 0 340 150" id="curve" width="100%"></svg>
+      <div class="kpi"><div><b class="num">4,738</b><span>≤14k</span></div><div><b class="num">1,638</b><span>&gt;14k</span></div><div><b class="num">5</b><span>连续测试天数</span></div></div>
+    </div>
+    <div class="sec"><h3>三类词</h3>
+      <div class="bands"><i style="flex:5821;background:var(--good)"></i><i style="flex:2140;background:var(--accent)"></i><i style="flex:8400;background:var(--line)"></i></div>
+      <div class="bl num"><span><i class="dot" style="background:var(--good)"></i>熟词 5,821</span><span><i class="dot" style="background:var(--accent)"></i>目标 2,140</span><span><i class="dot" style="background:var(--line)"></i>远词 8,400</span></div>
+    </div>
+    <div class="sec"><h3>各频段掌握率</h3><svg viewBox="0 0 340 150" id="levels" width="100%"></svg></div>
+  </div></section>
+
+  <!-- SETTINGS -->
+  <section class="screen" id="settings"><div class="stack">
+    <h2>设置</h2>
+    <div class="row"><span>令牌</span><span>ghp_••••••3fQk</span></div>
+    <button class="danger" id="redo">重做基线测试</button>
+  </div></section>
+
+  <nav id="tabbar">
+    <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></svg>测试</button>
+    <button data-tab="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg>进度</button>
+    <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>设置</button>
+  </nav>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+
+// ---------- variant switcher ----------
+const params=new URLSearchParams(location.search);
+let variant=(params.get('variant')||'A').toUpperCase();
+function setVariant(v){variant=v; document.body.classList.remove('v-A','v-B','v-C'); document.body.classList.add('v-'+v);
+  document.querySelectorAll('#proto [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  try{const u=new URL(location.href); u.searchParams.set('variant',v); history.replaceState(null,'',u);}catch(e){} }
+document.querySelectorAll('#proto [data-v]').forEach(b=>b.onclick=()=>setVariant(b.dataset.v));
+document.addEventListener('keydown',e=>{ if(document.body.classList.contains('testing')){ if(e.key==='ArrowRight')answer(true); if(e.key==='ArrowLeft')answer(false); return;}
+  const vs=['A','B','C'],i=vs.indexOf(variant); if(e.key==='ArrowRight')setVariant(vs[(i+1)%3]); if(e.key==='ArrowLeft')setVariant(vs[(i+2)%3]);});
+$('#errT').onclick=()=>{document.body.classList.toggle('err'); $('#errT').classList.toggle('on');};
+setVariant(variant);
+
+// ---------- tabs ----------
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id));}
+document.querySelectorAll('#tabbar button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tabbar button').forEach(x=>x.classList.toggle('on',x===b)); show(b.dataset.tab);});
+
+// ---------- sound & haptics ----------
+let ac;
+function tone(freqs,dur=.08,type='sine',gain=.08){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)(); let t=ac.currentTime;
+  freqs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(); o.type=type; o.frequency.value=f; g.gain.setValueAtTime(gain,t+i*dur); g.gain.exponentialRampToValueAtTime(.0001,t+i*dur+dur*1.6); o.connect(g).connect(ac.destination); o.start(t+i*dur); o.stop(t+i*dur+dur*1.7);});}catch(e){} }
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+const sTap=()=>{tone([520],.05,'triangle',.05);buzz(8)};
+const sOk=()=>{tone([660,990],.07);buzz(15)};
+const sNo=()=>{tone([180,140],.1,'square',.05);buzz([30,40,30])};
+const sSeg=()=>{tone([523,659,784],.06,'sine',.06);buzz(20)};
+
+// ---------- fake item bank ----------
+const real=[["abandon",3,"放弃"],["candid",8,"坦率的"],["meticulous",10,"一丝不苟的"],["ubiquitous",11,"无处不在的"],["lethargic",13,"无精打采的"],
+ ["harbor",4,"港口；怀有"],["sparse",7,"稀少的"],["obfuscate",18,"使模糊"],["garrulous",22,"喋喋不休的"],["frugal",9,"节俭的"],["solemn",6,"庄严的"],
+ ["quench",9,"解渴；扑灭"],["wistful",12,"惆怅的"],["pragmatic",8,"务实的"],["brittle",8,"易碎的"],["insipid",16,"乏味的"],["cajole",17,"哄骗"],
+ ["thrive",5,"兴旺"],["rebuke",11,"斥责"],["ostensible",15,"表面上的"],["deft",14,"灵巧的"],["vex",13,"使烦恼"],["placid",15,"平静的"],["exquisite",9,"精致的"],["truncate",14,"截短"]];
+const pseudo=["brendical","fornity","plimsate","dorrent","mucklish"];
+let items=[],idx=0,est=6375,last=6375,pfa=0,mcFail=0,lastAnswered=null;
+const N=30, SEG=10;
+function build(){const r=[...real].sort(()=>Math.random()-.5), p=[...pseudo]; items=[];
+  for(let i=0;i<N;i++){ if(i%6===3&&p.length) items.push({w:p.pop(),pseudo:true}); else {const x=r.pop()||real[i%real.length]; items.push({w:x[0],rank:x[1],gloss:x[2]});}}}
+function renderProg(){const pg=$('#prog'); pg.innerHTML=''; const per=N/SEG;
+  for(let s=0;s<SEG;s++){const i=document.createElement('i'),b=document.createElement('b'); const f=Math.max(0,Math.min(1,(idx-s*per)/per)); b.style.width=(f*100)+'%'; if(f===1)i.className='seg-full'; i.appendChild(b); pg.appendChild(i);}
+  $('#cr').style.strokeDashoffset=264*(1-idx/N);}
+function setLive(){['#liveA','#liveB','#liveC'].forEach(s=>$(s).textContent=fmt(est));}
+function tween(to){const from=est,t0=performance.now(); const step=t=>{const k=Math.min(1,(t-t0)/350); est=from+(to-from)*(1-Math.pow(1-k,3)); setLive(); if(k<1)requestAnimationFrame(step)}; requestAnimationFrame(step);}
+function flashDelta(d){[$('#dA'),$('#dB')].forEach(el=>{el.textContent=(d>0?'+':'')+d; el.className='delta show '+(d>0?'up':'down'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),700);});}
+function nextCard(){ if(idx>=N){finish();return;} const it=items[idx]; const c=$('#card'); $('#word').textContent=it.w; c.style.transform=''; c.classList.remove('enter'); void c.offsetWidth; c.classList.add('enter'); $('#tl').style.opacity=0; $('#tr').style.opacity=0; }
+let busy=false;
+function feedback(ok,text,after){const fb=$('#fb'); fb.className='fb show '+(ok?'ok':'no'); $('#fbm').textContent=ok?'✓':'✗'; $('#fba').textContent=text||''; ok?sOk():sNo(); if(!ok){$('#card').classList.remove('shake');void $('#card').offsetWidth;$('#card').classList.add('shake');}
+  setTimeout(()=>{fb.className='fb'; after();}, ok?450:1300);}
+function advance(){const before=Math.floor(idx/(N/SEG)); idx++; renderProg(); if(Math.floor(idx/(N/SEG))>before) sSeg(); busy=false; nextCard();}
+function move(d){ if(d){const to=Math.max(1000,Math.round(est+d)); flashDelta(Math.round(to-est)); tween(to);} }
+function answer(yes){ if(busy||idx>=N) return; busy=true; const it=items[idx]; const c=$('#card');
+  c.style.transform=`translateX(${yes?420:-420}px) rotate(${yes?18:-18}deg)`;
+  if(it.pseudo){ if(yes){pfa++; setTimeout(()=>{c.style.transform=''; feedback(false,'假词',advance)},180);} else {setTimeout(()=>{c.style.transform=''; feedback(true,'',advance)},180);} return; }
+  sTap();
+  const d = yes ? Math.round(12+it.rank*6*Math.random()) : -Math.round(8+(20-it.rank)*3*Math.random());
+  if(yes && Math.random()<.3){ setTimeout(()=>meaning(it,d),220); return; }
+  move(d); setTimeout(advance,220);
+}
+function meaning(it,d){const mc=$('#mc'); const opts=[it.gloss,...real.filter(x=>x[2]!==it.gloss).sort(()=>Math.random()-.5).slice(0,3).map(x=>x[2])].sort(()=>Math.random()-.5);
+  mc.innerHTML=`<div class="w">${it.w}</div>`+opts.map(o=>`<button>${o}</button>`).join('')+`<button class="dk">不认识</button>`; mc.classList.add('show');
+  mc.querySelectorAll('button').forEach(b=>b.onclick=()=>{ const right=b.textContent===it.gloss;
+    mc.querySelectorAll('button').forEach(x=>{x.onclick=null; if(x.textContent===it.gloss)x.classList.add('right');}); if(!right&&!b.classList.contains('dk'))b.classList.add('wrong');
+    if(right){sOk(); move(d+10); setTimeout(()=>{mc.classList.remove('show'); advance();},500);}
+    else {sNo(); mcFail++; move(-Math.abs(d)-15); setTimeout(()=>{mc.classList.remove('show'); advance();},1300);} });}
+
+// swipe
+(function(){const st=$('#stage'),c=$('#card'); let x0=null,dx=0;
+  st.addEventListener('pointerdown',e=>{ if(busy||$('#mc').classList.contains('show'))return; x0=e.clientX; dx=0; c.classList.add('drag'); st.setPointerCapture(e.pointerId);});
+  st.addEventListener('pointermove',e=>{ if(x0===null)return; dx=e.clientX-x0; c.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`; $('#tr').style.opacity=Math.max(0,Math.min(.25,dx/400)); $('#tl').style.opacity=Math.max(0,Math.min(.25,-dx/400));});
+  const end=()=>{ if(x0===null)return; c.classList.remove('drag'); x0=null; if(Math.abs(dx)>90) answer(dx>0); else {c.style.transform=''; $('#tr').style.opacity=0; $('#tl').style.opacity=0; } };
+  st.addEventListener('pointerup',end); st.addEventListener('pointercancel',end);})();
+$('#bYes').onclick=()=>answer(true); $('#bNo').onclick=()=>answer(false); $('#cYes').onclick=()=>answer(true); $('#cNo').onclick=()=>answer(false);
+
+function startTest(){build(); idx=0; est=last; pfa=0; mcFail=0; busy=false; setLive(); renderProg(); document.body.classList.add('testing'); show('test'); nextCard(); sTap();}
+function finish(){document.body.classList.remove('testing'); const d=Math.round(est-last); $('#rN').textContent=fmt(est); $('#rD').textContent=(d>=0?'+':'')+fmt(d); $('#rD').className='chg num '+(d>=0?'up':'down');
+  const w=$('#rW'); if(pfa>=2){w.hidden=false; w.textContent=`假词点了 ${pfa} 次认识，这次可能偏高`;} else if(mcFail>=3){w.hidden=false; w.textContent=`释义错了 ${mcFail} 次，这次可能偏高`;} else w.hidden=true;
+  show('result'); sSeg();}
+$('#start').onclick=startTest; $('#redo').onclick=()=>{document.querySelector('#tabbar [data-tab=home]').click(); startTest();};
+$('#quit').onclick=()=>{document.body.classList.remove('testing'); show('home');};
+$('#done').onclick=()=>{last=Math.round(est); document.querySelectorAll('.hv').forEach(e=>e.textContent=fmt(last)); $('#start').innerHTML='短测 <small class="num">300 题</small>'; show('home');};
+
+// ---------- progress charts ----------
+(function(){const pts=[["10/02",5200,2400,8000],["10/16",5732,3100,8400],["10/30",4293,2300,6300],["11/13",6375,2531,10219]];
+  const W=340,H=150,L=36,R=10,T=10,B=22, y=v=>T+(H-T-B)*(1-(v-1000)/11000), x=i=>L+(W-L-R)*i/(pts.length-1);
+  let s=''; [2000,6000,10000].forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+3}" text-anchor="end">${v/1000}k</text>`;});
+  s+=`<path d="M${pts.map((p,i)=>x(i)+','+y(p[3])).join('L')}L${pts.map((p,i)=>x(i)+','+y(p[2])).reverse().join('L')}Z" fill="var(--accent-soft)"/>`;
+  s+=`<path d="M${pts.map((p,i)=>x(i)+','+y(p[1])).join('L')}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`;
+  pts.forEach((p,i)=>{s+=`<circle cx="${x(i)}" cy="${y(p[1])}" r="${i===pts.length-1?5:3}" fill="var(--accent)"/><text x="${x(i)}" y="${H-6}" text-anchor="${i===pts.length-1?'end':'middle'}">${p[0]}</text>`;});
+  $('#curve').innerHTML=s;
+  const lv=[.98,.95,.9,.84,.76,.68,.6,.52,.45,.39,.34,.3,.27,.24,.22,.2,.19,.17,.16,.15,.15,.14,.14,.13,.13];
+  const bw=(W-L-R)/lv.length; let t=''; [0,.5,1].forEach(v=>{const yy=T+(H-T-B)*(1-v); t+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-6}" y="${yy+3}" text-anchor="end">${v*100}%</text>`;});
+  lv.forEach((v,i)=>{const hh=(H-T-B)*v; t+=`<rect x="${L+i*bw+1}" y="${H-B-hh}" width="${bw-2}" height="${hh}" rx="2" fill="${i<8?'var(--good)':'var(--accent)'}" opacity="${i<8?1:.75}"/>`; if((i+1)%5===0||i===0)t+=`<text x="${L+i*bw+bw/2}" y="${H-6}" text-anchor="middle">${i+1}k</text>`;});
+  $('#levels').innerHTML=t;})();
+</script>
