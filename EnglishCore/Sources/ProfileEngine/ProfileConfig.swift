@@ -10,17 +10,12 @@ public struct ProfileConfig: Sendable, Equatable {
     public var masteredThreshold: Double = 0.9
     /// Target window: lemma rank within (estimated lemma vocabulary + this).
     public var targetWindow: Int = 2000
-    /// Leech lapses and cooldown (shared with card study); a Leech is not an active card.
-    public var leech = LeechRule()
     /// Reference point of the difficulty scale: δ_w = slope · (ln rank_w − ln referenceRank).
     public var referenceRank: Double = 1000
 
     // Evidence weights.
     public var testWeight: Double = 1.0
     public var verifyWeight: Double = 1.5
-    public var reviewWeight: Double = 1.0
-    /// A new card's first rating of "too easy".
-    public var firstEasyWeight: Double = 4.0
 
     // Priors of the global fit (θ = logit P at referenceRank; slope per ln rank).
     public var thetaPriorMean: Double = 2.0

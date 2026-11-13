@@ -43,7 +43,7 @@ final class AppDatabase: Sendable {
                 t.column("session", .text)
                 t.column("pseudo", .boolean)
                 t.column("lexicon", .text)
-                /// `ReviewLog` as JSON, review Observations only.
+                /// Retired with card study (ADR 0002); kept so existing databases need no migration.
                 t.column("review", .text)
             }
             try db.create(index: "observation_on_session", on: "observation", columns: ["session"])

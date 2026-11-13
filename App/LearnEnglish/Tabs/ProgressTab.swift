@@ -1,17 +1,15 @@
 import Charts
 import CoreModels
 import ProfileEngine
-import StudyComposer
 import SwiftUI
 
 /// 进度 tab (ticket 09): vocabulary size and its curve, Word Bands, level mastery, streak,
-/// Leeches with 重新学, and links to the public dashboard. All numbers are recomputed on device.
+/// and links to the public dashboard. All numbers are recomputed on device.
 struct ProgressTab: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
     @State private var curve: [VocabPoint] = []
     @State private var ownerDraft = ""
-    @State private var relearnError: String?
 
     var body: some View {
         NavigationStack {
@@ -25,16 +23,11 @@ struct ProgressTab: View {
             .navigationTitle("进度")
             .syncStatusChrome()
             .task(id: curveKey) { await refreshCurve() }
-            .alert("重新学失败", isPresented: Binding(get: { relearnError != nil }, set: { if !$0 { relearnError = nil } })) {
-                Button("好", role: .cancel) {}
-            } message: {
-                Text(relearnError ?? "")
-            }
         }
     }
 
     private func content(_ p: LearnerProfile) -> some View {
-        let activity = model.studyActivity
+        let activity = model.testActivity
         return List {
             Section {
                 let v = p.vocabulary.families
@@ -64,50 +57,11 @@ struct ProgressTab: View {
             }
 
             Section("坚持") {
-                LabeledContent("连续学习天数", value: "\(activity.streakDays) 天")
+                LabeledContent("连续测试天数", value: "\(activity.streakDays) 天")
                 LabeledContent("最近测试", value: activity.lastTestDay ?? "还没有")
             }
 
-            leechSection
-
             linksSection
-        }
-    }
-
-    // MARK: Leeches
-
-    private var leechSection: some View {
-        let leeches = model.leeches
-        return Section {
-            if leeches.isEmpty {
-                Text("没有。").foregroundStyle(.secondary)
-            }
-            ForEach(leeches, id: \.lemma) { leech in
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(leech.lemma).font(.headline)
-                        Text("忘了 \(leech.lapses) 次 · \(leech.reintroduceAt.formatted(date: .abbreviated, time: .omitted)) 自动回来")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Button("重新学") { relearn(leech.lemma) }
-                        .buttonStyle(.bordered)
-                        .accessibilityIdentifier("relearn-\(leech.lemma)")
-                }
-            }
-        } header: {
-            Text("Leech（反复忘记，已暂停）")
-        } footer: {
-            Text("点“重新学”后，这个词会排在今天新词的最前面，占用每日新词名额。")
-        }
-    }
-
-    private func relearn(_ lemma: String) {
-        do {
-            try model.relearn(lemma)
-            Task { await model.recomputeProfile() }
-        } catch {
-            relearnError = error.localizedDescription
         }
     }
 

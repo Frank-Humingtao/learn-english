@@ -1,5 +1,7 @@
 # 08: 选词规划 skill 与计划同步
 
+Status: wontfix
+
 **What to build:** Mac 上的 Claude 每天定时运行一次选词规划 skill `word-plan`，根据学习者的测试和复习表现写出 Study Plan 并提交到私有仓库；App 拉取最新计划作为新卡来源，在"学习"标签显示计划摘要，计划停更或用完时给出提醒。
 
 - skill 放在 `english-data` 仓库里。定时：Claude 桌面 App 定时任务每天 07:30，在 Mac 上本地 clone 的 `english-data` 里运行；也可手动 `/word-plan [临时要求]`。
@@ -13,7 +15,6 @@
 
 **Blocked by:** 05, 07
 
-**Status:** resolved
 
 - [x] 校验脚本对每条规则都有合格和不合格的夹具测试
 - [ ] 在真实 `english-data` 上手动运行 `/word-plan` 一次，生成并提交一份合格计划
@@ -49,3 +50,5 @@
 - 定时任务（第三个框）：Claude 桌面 App → 定时任务 → 新建：每天 07:30，工作目录选上面的 clone，提示词 `/word-plan`，模型默认即可；macOS 设置里允许 Claude 发通知。验证失败通知：把 clone 的 origin 暂时改成不存在的地址后"立即运行"一次，应收到失败通知，App 里几天后出现黄字；改回 origin。
 - 06 的 `recent.json` 照抄最新计划的 `focus_targets`：属于 06 的流水线。合并后看过代码：`profile_publish.py` 的 `latest_plan` 取 `plan/` 中文件名日期最大的一份（与 App 同一规则），原样写 `focus_targets`；真实仓库上随 06 的端到端一起确认。
 - 观察到的现象（不属于本票）：全新安装、没做过测试只做复习时，Profile 会把几乎所有词判为 Mastered，计划立刻显示"已用完"。正常流程先做基准测试（04）就不会出现。
+
+- 2026-11-13：按 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md) 作废。系统只做词汇测量，背词交给墨墨背单词；本票的代码已删除（commit a2ca384）。

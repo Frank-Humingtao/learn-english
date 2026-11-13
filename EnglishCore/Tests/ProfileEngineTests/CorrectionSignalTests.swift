@@ -3,7 +3,7 @@ import Lexicon
 import ProfileEngine
 import Testing
 
-/// Review evidence vs the global fit, and the correction signals on Yes/No answers.
+/// The correction signals on Yes/No answers.
 @Suite struct CorrectionSignalTests {
     let lexicon = syntheticLexicon(count: 10000)
 
@@ -17,40 +17,6 @@ import Testing
         var config = ProfileConfig()
         config.asOf = ts(day: 20)
         return ProfileEngine.compute(observations: observations, lexicon: lexicon, config: config)
-    }
-
-    /// 30 cards on words ranked 3000–4000, 69 reviews, about 90% remembered, and no test at all.
-    func reviewsOnly() -> [Observation] {
-        var out: [Observation] = []
-        var n = 0
-        for k in 0..<30 {
-            let lemma = word(3000 + 33 * k)
-            for r in 0..<(k < 9 ? 3 : 2) {
-                n += 1
-                out.append(obs(lemma, .review, n % 10 == 0 ? "again" : "good", day: 1 + r * 3, minute: k))
-            }
-        }
-        precondition(n == 69)
-        return out
-    }
-
-    @Test func reviewsAloneDoNotMoveTheGlobalCurve() {
-        let none = profile([])
-        let reviewed = profile(reviewsOnly())
-        #expect(reviewed.theta == none.theta && reviewed.slope == none.slope)
-        // Only the 30 reviewed words themselves can change band; the rest of the lexicon cannot.
-        #expect(reviewed.bandCounts.mastered <= none.bandCounts.mastered + 30,
-                "mastered \(none.bandCounts.mastered) -> \(reviewed.bandCounts.mastered)")
-        #expect(reviewed.levelMastery[3].mastery < 0.5, "level 4 mastery \(reviewed.levelMastery[3].mastery)")
-        // The reviewed words do move: each is better known than its unreviewed neighbour.
-        #expect(reviewed.probability(of: word(3033))! > none.probability(of: word(3033))!)
-    }
-
-    @Test func reviewsOnTopOfTestsLeaveThetaAndSlopeAlone() {
-        let tests = profile(background())
-        let both = profile(background() + reviewsOnly() + [obs(word(8000), .review, "easy", day: 9)])
-        #expect(both.theta == tests.theta && both.slope == tests.slope)
-        #expect(both.probability(of: word(8000))! > tests.probability(of: word(8000))!)
     }
 
     @Test func implausiblyFastYesCountsLess() {

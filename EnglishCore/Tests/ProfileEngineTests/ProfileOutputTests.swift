@@ -60,7 +60,8 @@ import Testing
             observations: background(knownUpTo: 3000) + [
                 obs("x" + distantFamily, .test, "yes", day: 0, minute: 200),
                 obs("x" + distantFamily, .verify, "correct", day: 0, minute: 201),
-                obs("x" + distantFamily, .review, "easy", day: 0, minute: 202),
+                obs("x" + distantFamily, .test, "yes", day: 1, minute: 202),
+                obs("x" + distantFamily, .verify, "correct", day: 1, minute: 203),
             ],
             lexicon: lexicon2)
         #expect(base.familyProbability(of: distantFamily)! < 0.1)
@@ -71,11 +72,7 @@ import Testing
 
     @Test func wordBandsFollowThresholds() {
         let lexicon = syntheticLexicon(count: 10000)
-        let farCard = word(9900)
-        let leech = word(9800)
-        var observations = background(knownUpTo: 3000)
-        observations.append(obs(farCard, .review, "again", day: 1))
-        for k in 0..<8 { observations.append(obs(leech, .review, "again", day: 1, minute: k)) }
+        let observations = background(knownUpTo: 3000)
         let profile = ProfileEngine.compute(observations: observations, lexicon: lexicon)
         let window = Int(profile.vocabulary.lemmas.estimate) + 2000
 
@@ -84,15 +81,12 @@ import Testing
             let band = profile.band(of: e.lemma)!
             if p >= 0.9 {
                 #expect(band == .mastered, "\(e.lemma) p=\(p)")
-            } else if e.lemma == farCard {
-                #expect(band == .target, "active card is Target")
             } else if e.rank <= window - 1 {
                 #expect(band == .target, "\(e.lemma) p=\(p)")
             } else if e.rank > window + 1 {
                 #expect(band == .distant, "\(e.lemma) p=\(p)")
             }
         }
-        #expect(profile.band(of: leech) == .distant, "a Leech is no longer an active card")
         let counts = profile.bandCounts
         #expect(counts.mastered + counts.target + counts.distant == 10000)
         #expect(counts.mastered > 1000 && counts.mastered < 3000, "\(counts) theta=\(profile.theta) slope=\(profile.slope) v=\(profile.vocabulary.lemmas)")

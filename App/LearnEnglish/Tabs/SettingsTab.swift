@@ -1,13 +1,12 @@
 import SwiftUI
 
-/// 设置 tab. Token, sync and study settings arrive with tickets 04, 05 and 07.
+/// 设置 tab: token, sync, redo baseline.
 struct SettingsTab: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         NavigationStack {
             List {
-                StudySettingsSection()
                 SyncSettingsSection()
                 Section("本机数据") {
                     LabeledContent("本机记录", value: "\(model.observations.count) 条")

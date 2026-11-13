@@ -19,3 +19,7 @@ FSRS 是否适合作为卡片调度算法，在 Swift/iOS 上有哪些现成实�
 - Anki 导入放在 MVP 之后，只导入笔记内容，不导入调度。首版只支持旧格式包（schema 11、JSON、无 zstd）；新版 `anki21b` 需要 zstd 和 protobuf。解析时要先找 anki21b 再找 anki21，否则会读到「请升级」的占位集合。
 
 [调研笔记](../research/03-srs-and-anki.md)
+
+## Comments
+
+- 2026-11-13：已被 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md) 取代：卡片学习、选词规划都移出本系统。

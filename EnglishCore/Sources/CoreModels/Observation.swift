@@ -17,13 +17,11 @@ public struct Observation: Codable, Sendable, Equatable {
     public var pseudo: Bool?
     /// Version of the reference lexicon the writer used.
     public var lexicon: String?
-    /// Review-only scheduling fields, aligned with Anki's revlog.
-    public var review: ReviewLog?
 
     public init(
         ts: String, lemma: String, source: ObservationSource, result: String,
         rtMs: Int? = nil, session: String? = nil, pseudo: Bool? = nil,
-        lexicon: String? = nil, review: ReviewLog? = nil
+        lexicon: String? = nil
     ) {
         self.ts = ts
         self.lemma = lemma
@@ -33,16 +31,16 @@ public struct Observation: Codable, Sendable, Equatable {
         self.session = session
         self.pseudo = pseudo
         self.lexicon = lexicon
-        self.review = review
     }
 
     enum CodingKeys: String, CodingKey {
-        case ts, lemma, source, result, session, pseudo, lexicon, review
+        case ts, lemma, source, result, session, pseudo, lexicon
         case rtMs = "rt_ms"
     }
 }
 
-/// Where an Observation came from. String-backed so unknown future sources decode.
+/// Where an Observation came from. String-backed so unknown sources (including the retired
+/// card-study ones, `review` / `setting` / `wish` / `relearn`, in older files) still decode; they are ignored.
 public struct ObservationSource: RawRepresentable, Codable, Sendable, Hashable {
     public var rawValue: String
     public init(rawValue: String) { self.rawValue = rawValue }
@@ -60,20 +58,6 @@ public struct ObservationSource: RawRepresentable, Codable, Sendable, Hashable {
     public static let spotcheck = ObservationSource(rawValue: "spotcheck")
     /// Chinese four-choice meaning check. Result: `correct` / `wrong` / `unknown`.
     public static let verify = ObservationSource(rawValue: "verify")
-    /// Card review. Result: `again` / `hard` / `good` / `easy`.
-    public static let review = ObservationSource(rawValue: "review")
-    /// Setting change (e.g. daily new-card limit). Not vocabulary evidence.
-    public static let setting = ObservationSource(rawValue: "setting")
-    /// "I want to learn this word". Not vocabulary evidence. Result: `add`.
-    public static let wish = ObservationSource(rawValue: "wish")
-    /// Manual "重新学" on a Leech: the card restarts as a new card. Result: `reset`. Not vocabulary evidence.
-    public static let relearn = ObservationSource(rawValue: "relearn")
-}
-
-/// `lemma` values of `setting` Observations (the setting's name; `result` holds its value).
-public enum SettingKey {
-    /// Daily new-card limit; result is a decimal integer (e.g. `"15"`).
-    public static let dailyNewLimit = "daily_new_limit"
 }
 
 /// Canonical `result` strings.
@@ -83,43 +67,4 @@ public enum ObservationResult {
     public static let correct = "correct"
     public static let wrong = "wrong"
     public static let unknown = "unknown"
-    public static let again = "again"
-    public static let hard = "hard"
-    public static let good = "good"
-    public static let easy = "easy"
-    public static let add = "add"
-    public static let reset = "reset"
-}
-
-/// Review fields aligned with Anki's revlog table, plus FSRS memory state.
-public struct ReviewLog: Codable, Sendable, Equatable {
-    /// 1 again, 2 hard, 3 good, 4 easy.
-    public var ease: Int
-    /// New interval: days when positive, seconds when negative (Anki revlog convention).
-    public var ivl: Int?
-    public var lastIvl: Int?
-    /// 0 learn, 1 review, 2 relearn, 3 filtered, 4 manual.
-    public var type: Int?
-    /// Answer time in milliseconds.
-    public var time: Int?
-    public var stability: Double?
-    public var difficulty: Double?
-    public var due: String?
-
-    public init(ease: Int, ivl: Int? = nil, lastIvl: Int? = nil, type: Int? = nil, time: Int? = nil,
-                stability: Double? = nil, difficulty: Double? = nil, due: String? = nil) {
-        self.ease = ease
-        self.ivl = ivl
-        self.lastIvl = lastIvl
-        self.type = type
-        self.time = time
-        self.stability = stability
-        self.difficulty = difficulty
-        self.due = due
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case ease, ivl, type, time, stability, difficulty, due
-        case lastIvl = "last_ivl"
-    }
 }

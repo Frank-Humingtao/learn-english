@@ -1,5 +1,7 @@
 # 06: Actions 重算、公开看板与 Progress Report
 
+Status: resolved
+
 **What to build:** 私有仓库收到新的 Observation 后，GitHub Actions 自动重算 Learner Profile，更新公开仓库 `english-profile` 的档案文件和 README 看板；当天第一次测试后，自动发一份 Progress Report issue。外部 AI 工具从一个固定地址就能读到最新一份。
 
 - 触发：`english-data` 的 `observations/` 有 push 时。用 concurrency group 串行执行，每次从全部 Observation 重算。
@@ -17,7 +19,6 @@
 
 **Blocked by:** 01, 05
 
-**Status:** resolved
 
 - [x] 在夹具仓库上 dry-run，生成的文件内容符合上面的规定
 - [x] 发报告的判定有测试：当天第一次测试才发、同日只更新、只复习不发、关闭上一份

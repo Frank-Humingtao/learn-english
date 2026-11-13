@@ -1,5 +1,7 @@
 # 01: 参考词库与 Profile Engine
 
+Status: resolved
+
 **What to build:** 构建一份带版本号的只读词库，供 App 和 Actions 共用；再写一个纯计算的 Profile Engine，它读全部 Observation，算出 Learner Profile。这是整个系统的核心，iPhone 本地和 GitHub Actions 调用的是同一份实现。
 
 - 词库：构建脚本合并 ECDICT（释义、音标、考试标签、lemma 映射）、BNC/COCA 25k 词族表（词频分层，构建时从官网下载，不入任何仓库）和 Wiktextract（例句、真人发音），产出一个可打包的只读词库，并带版本号。
@@ -13,7 +15,6 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** resolved
 
 - [x] 构建脚本能从零生成词库；命令行能查到任意词的释义、音标、词频排名、例句；词库带版本号
 - [x] BNC/COCA 原表和 Wiktextract 原始内容都不进入仓库

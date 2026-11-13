@@ -2,7 +2,6 @@ import CoreModels
 import Foundation
 import Lexicon
 import ProfileEngine
-import StudyComposer
 import Testing
 
 let fixtures = URL(fileURLWithPath: #filePath)
@@ -20,6 +19,20 @@ func fixtureLexicon() -> Lexicon {
     try! Lexicon.load(directory: fixtures.appendingPathComponent("lexicon"))
 }
 
+/// UTC calendar so "today" is the same on every machine.
+let utc: Calendar = {
+    var c = Calendar(identifier: .gregorian)
+    c.timeZone = TimeZone(identifier: "UTC")!
+    return c
+}()
+
+/// 2026-11-<day> <hour>:<minute> UTC.
+func at(day: Int, hour: Int = 9, minute: Int = 0) -> Date {
+    utc.date(from: DateComponents(year: 2026, month: 11, day: day, hour: hour, minute: minute))!
+}
+
+func iso(_ d: Date) -> String { Timestamp.iso(d.timeIntervalSince1970) }
+
 func testAnswer(_ lemma: String, _ yes: Bool, _ date: Date, session: String) -> Observation {
     Observation(ts: iso(date), lemma: lemma, source: .test, result: yes ? "yes" : "no", session: session)
 }
@@ -27,9 +40,8 @@ func testAnswer(_ lemma: String, _ yes: Bool, _ date: Date, session: String) -> 
 @Suite struct ProgressTests {
     /// `Fixtures/expected/summary.json` is what `profile-engine profile` prints for the fixture (CLITests).
     @Test func progressNumbersMatchTheProfileEngineCommandLine() {
-        let observations = fixtureObservations()
-        let report = ProgressPage.report(observations: observations, lexicon: fixtureLexicon(),
-                                     composer: StudyComposer(), now: at(day: 12), calendar: utc)
+        let report = ProgressPage.report(observations: fixtureObservations(), lexicon: fixtureLexicon(),
+                                         now: at(day: 12), calendar: utc)
         let golden = String(decoding: FileManager.default.contents(
             atPath: fixtures.appendingPathComponent("expected/summary.json").path) ?? Data(), as: UTF8.self)
         #expect(ProfileFiles.summaryJSON(report.profile) == golden)
@@ -45,7 +57,6 @@ func testAnswer(_ lemma: String, _ yes: Bool, _ date: Date, session: String) -> 
             for (i, w) in words.prefix(200).enumerated() {
                 obs.append(testAnswer(w, i < known, at(day: 1 + k * 3, hour: 9, minute: i / 10), session: "t\(k)"))
             }
-            obs.append(review(words[0], .good, at(day: 2 + k * 3)))
         }
         let curve = ProgressPage.curve(observations: obs, lexicon: lexicon)
         #expect(curve.map(\.session) == ["t0", "t1", "t2"])
@@ -69,37 +80,16 @@ func testAnswer(_ lemma: String, _ yes: Bool, _ date: Date, session: String) -> 
         #expect(curve.map(\.session) == ["baseline-1", "short-3", "short-5"])
     }
 
-    /// Same rule as the public dashboard (连续学习天数): consecutive days with a test or a review,
-    /// ending today or yesterday.
-    @Test func streakCountsConsecutiveStudyDays() {
-        let obs = [3, 5, 6].map { testAnswer("a", true, at(day: $0), session: "d\($0)") }
-            + [review("a", .good, at(day: 7)), review("a", .good, at(day: 8)),
-               StudyObservations.wish("b", at: at(day: 9)), StudyObservations.dailyNewLimit(5, at: at(day: 10))]
+    /// Same rule as the public dashboard (连续天数): consecutive days with a test answer,
+    /// ending today or yesterday. Retired card-study sources do not count.
+    @Test func streakCountsConsecutiveTestDays() {
+        let obs = [3, 5, 6, 7].map { testAnswer("a", true, at(day: $0), session: "d\($0)") }
+            + [Observation(ts: iso(at(day: 8)), lemma: "a", source: ObservationSource(rawValue: "review"), result: "good")]
         let today = ProgressPage.activity(observations: obs, now: at(day: 8, hour: 20), calendar: utc)
-        #expect(today.lastTestDay == "2026-11-06")
-        #expect(today.streakDays == 4, "test days 5, 6 and review days 7, 8")
-        #expect(ProgressPage.activity(observations: obs, now: at(day: 9, hour: 23), calendar: utc).streakDays == 4)
-        #expect(ProgressPage.activity(observations: obs, now: at(day: 10), calendar: utc).streakDays == 0,
-                "wishes and settings are not study")
+        #expect(today.lastTestDay == "2026-11-07")
+        #expect(today.streakDays == 3, "test days 5, 6, 7; the review on day 8 is not a test")
+        #expect(ProgressPage.activity(observations: obs, now: at(day: 9), calendar: utc).streakDays == 0)
         let none = ProgressPage.activity(observations: [], now: at(day: 9), calendar: utc)
         #expect(none.lastTestDay == nil && none.streakDays == 0)
-    }
-
-    /// A relearned Leech is a new card again: it no longer counts as an active card (Target) until studied.
-    @Test func profileUsesTheCardLedgersActiveCards() {
-        let lexicon = fixtureLexicon()
-        let far = lexicon.entries.max { $0.rank < $1.rank }!.lemma
-        var obs = (0..<8).map { review(far, .again, at(day: 1, hour: 8 + $0)) }
-        let leeched = ProgressPage.report(observations: obs, lexicon: lexicon, composer: StudyComposer(),
-                                      now: at(day: 2), calendar: utc)
-        #expect(leeched.leeches.map(\.lemma) == [far])
-        #expect(leeched.profile.band(of: far) == .distant)
-
-        obs.append(relearn(far, at(day: 2)))
-        obs.append(review(far, .good, at(day: 2, hour: 10)))
-        let relearned = ProgressPage.report(observations: obs, lexicon: lexicon, composer: StudyComposer(),
-                                        now: at(day: 2, hour: 11), calendar: utc)
-        #expect(relearned.leeches.isEmpty)
-        #expect(relearned.profile.band(of: far) == .target)
     }
 }

@@ -13,7 +13,6 @@ import profile_publish as pp  # noqa: E402
 
 TZ = "Asia/Shanghai"
 HERE = os.path.dirname(os.path.abspath(__file__))
-FIXTURE_REPO = os.path.join(HERE, "fixtures", "english-data")  # plan/ only
 # The Observations are EnglishCore's fixture (one copy, shared with the Swift tests).
 FIXTURE_OBSERVATIONS = os.path.join(HERE, "..", "..", "EnglishCore", "Fixtures", "observations")
 FAKE_ENGINE = os.path.join(HERE, "fixtures", "fake_engine.py")
@@ -97,7 +96,7 @@ class DryRunPipelineTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
         self.data = os.path.join(self.tmp, "english-data")
-        shutil.copytree(FIXTURE_REPO, self.data)
+        os.makedirs(self.data)
         shutil.copytree(FIXTURE_OBSERVATIONS, os.path.join(self.data, "observations"))
         self.out = os.path.join(self.tmp, "out")
 
@@ -135,20 +134,21 @@ class DryRunPipelineTests(unittest.TestCase):
         self.assertEqual(self.profile("words.tsv").splitlines()[0], "lemma\tband\tp\trank")
 
         recent = json.loads(self.profile("recent.json"))
-        self.assertEqual(recent["focus_targets"], ["additional", "anybody", "naturally", "anywhere", "presentation"])
+        self.assertNotIn("focus_targets", recent)
         self.assertEqual(recent["newly_mastered"], [])  # first run is the baseline
 
         readme = self.profile("README.md")
         for needle in ("```mermaid", "xychart-beta", "已掌握", "近一周新掌握的词", "最近测试日期：2026-11-05",
-                       "连续学习天数", "label%3Aprogress-report", "CC BY 4.0", "数据来源"):
+                       "连续测试天数", "label%3Aprogress-report", "CC BY 4.0", "数据来源"):
             self.assertIn(needle, readme)
 
         [r] = self.open_reports()
         fam = summary["vocab_size"]["families"]["estimate"]
         self.assertEqual(r["title"], "Progress Report 2026-11-05 · 约 %d 词族" % fam)
         j = self.report_json(r)
-        self.assertEqual(sorted(j), ["band_counts", "date", "focus_targets", "newly_mastered",
+        self.assertEqual(sorted(j), ["band_counts", "date", "newly_mastered",
                                      "profile_commit", "schema_version", "vocab_size", "words_tsv_url"])
+        self.assertEqual(j["schema_version"], 2)
         self.assertEqual(j["vocab_size"]["estimate"], fam)
         self.assertIn("low", j["vocab_size"])
         self.assertIn("change", j["vocab_size"])
@@ -156,7 +156,7 @@ class DryRunPipelineTests(unittest.TestCase):
                          "https://raw.githubusercontent.com/someone/english-profile/%s/words.tsv" % j["profile_commit"])
         self.assertEqual(j["band_counts"], summary["band_counts"])
 
-    def test_same_day_test_updates_next_day_test_creates_review_only_does_nothing(self):
+    def test_same_day_test_updates_next_day_test_creates_retired_sources_do_nothing(self):
         self.run_pipeline("2026-11-05T12:00:00Z")
         [first] = self.open_reports()
 
@@ -167,12 +167,11 @@ class DryRunPipelineTests(unittest.TestCase):
         self.assertEqual(again["number"], first["number"])
         self.assertEqual(len(self.issues()), 1)
 
-        # Review-only sync the next day: no new report, nothing edited.
+        # A sync with only a retired card-study source (old data) the next day: no new report.
         self.append({"ts": "2026-11-06T01:00:00Z", "lemma": "naturally", "source": "review", "result": "good"})
         before = self.issues()
         self.run_pipeline("2026-11-06T01:05:00Z")
         self.assertEqual(self.issues(), before)
-        self.assertIn("naturally", [e["lemma"] for e in json.loads(self.profile("recent.json"))["newly_mastered"]])
 
         # Next day's first test: a new report, the previous one closed but kept.
         self.append({"ts": "2026-11-06T02:00:00Z", "lemma": "anywhere", "source": "test", "result": "yes"})
@@ -183,7 +182,7 @@ class DryRunPipelineTests(unittest.TestCase):
         closed = [i for i in self.issues() if i["number"] == first["number"]]
         self.assertEqual(closed[0]["state"], "closed")
         j = self.report_json(latest)
-        self.assertEqual(set(j["newly_mastered"][:2]), {"anywhere", "naturally"})
+        self.assertIn("anywhere", j["newly_mastered"])
         self.assertLessEqual(len(j["newly_mastered"]), 30)
         self.assertGreater(j["vocab_size"]["change"], 0)
 
@@ -202,13 +201,6 @@ class DryRunPipelineTests(unittest.TestCase):
             self.assertNotIn('"%s"' % word, public)
         history = json.loads(self.profile("history.json"))
         self.assertEqual(sorted(history[0]), ["date", "families", "high", "low"])
-
-    def test_focus_targets_empty_without_a_study_plan(self):
-        shutil.rmtree(os.path.join(self.data, "plan"))
-        self.run_pipeline("2026-11-05T12:00:00Z")
-        self.assertEqual(json.loads(self.profile("recent.json"))["focus_targets"], [])
-        self.assertEqual(self.report_json(self.open_reports()[0])["focus_targets"], [])
-
 
 class TokenFailureTests(unittest.TestCase):
     """An invalid token must fail the workflow loudly, not silently skip publishing."""
@@ -243,16 +235,16 @@ class TokenFailureTests(unittest.TestCase):
 
 
 class HelperTests(unittest.TestCase):
-    def test_streak_counts_consecutive_study_days_up_to_yesterday(self):
+    def test_streak_counts_consecutive_test_days_up_to_yesterday(self):
         days = ["2026-11-01", "2026-11-03", "2026-11-04", "2026-11-05"]
         self.assertEqual(pp.streak(days, "2026-11-05"), 3)
         self.assertEqual(pp.streak(days, "2026-11-06"), 3)
         self.assertEqual(pp.streak(days, "2026-11-07"), 0)
 
-    def test_review_days_keep_the_streak_going(self):
+    def test_retired_review_days_do_not_count(self):
         obs = [{"source": "test", "_t": pp.parse_ts("2026-11-04T01:00:00Z")},
                {"source": "review", "_t": pp.parse_ts("2026-11-05T01:00:00Z")}]
-        self.assertEqual(pp.streak(pp.study_days(obs, pp.tzinfo(TZ)), "2026-11-05"), 2)
+        self.assertEqual(pp.streak(pp.test_days(obs, pp.tzinfo(TZ)), "2026-11-05"), 1)
 
 
 if __name__ == "__main__":

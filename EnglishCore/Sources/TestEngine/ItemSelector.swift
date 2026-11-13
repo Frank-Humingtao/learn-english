@@ -11,7 +11,7 @@ enum ItemSelector {
         for o in history {
             if o.pseudo == true {
                 usedPseudowords.insert(o.lemma.lowercased())
-            } else if [.test, .spotcheck, .verify, .review].contains(o.source),
+            } else if [.test, .spotcheck, .verify].contains(o.source),
                       let l = lexicon.lemma(for: o.lemma), let i = lexicon.index(of: l) {
                 tested.insert(i)
             }

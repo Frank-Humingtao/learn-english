@@ -60,7 +60,7 @@ final class SyncStateTests: XCTestCase {
         let repo = RepoRef(owner: "learner", name: "english-data")
         let items = (1...3).map {
             OutboxItem(id: Int64($0), observation: Observation(ts: "2026-11-12T08:30:0\($0).000Z", lemma: "w\($0)",
-                                                              source: .review, result: "good"))
+                                                              source: .test, result: "yes"))
         }
         var s = SyncState()
 

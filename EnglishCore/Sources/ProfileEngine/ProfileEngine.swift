@@ -17,14 +17,11 @@ import Musl
 /// than hand-calibrated. Each observed word additionally gets its own deviation `u_w ~ N(0, wordSD²)`,
 /// so direct evidence about a word moves that word's P beyond what its frequency predicts.
 ///
-/// Card reviews only move `u_w` of the reviewed word: they have no guessing term and are selected
-/// (only planned words get cards), so letting them into (θ, slope) would inflate the whole curve.
-///
 /// Correction signals on Yes/No answers: the guessing rate comes from pseudoword false alarms,
 /// raised when meaning checks after a "yes" fail more often than expected; implausibly fast "yes"
 /// answers count less; a person-fit statistic (lz) flags answer patterns the model can't explain.
 ///
-/// The reference time `asOf` (decay, Leech cooldown) is `config.asOf`, else the latest
+/// The reference time `asOf` (decay) is `config.asOf`, else the latest
 /// Observation, so the same Observations always give the same profile (App and Actions alike).
 public enum ProfileEngine {
     public static func compute(
@@ -49,9 +46,8 @@ public enum ProfileEngine {
 
         // 2. Evidence. Yes/No answers are "guessable": the Learner may say yes to a word
         // they don't know, at the false-alarm rate measured on pseudowords.
-        struct Evidence { var word: Int; var y: Double; var w: Double; var guessable: Bool; var global: Bool }
+        struct Evidence { var word: Int; var y: Double; var w: Double; var guessable: Bool }
         var evidence: [Evidence] = []
-        var reviewed = Set<Int>()
         var pseudoYes = 0.0, pseudoAll = 0.0
         var lastYesNo: [Int: Bool] = [:]
         var checkedAfterYes = 0.0, failedAfterYes = 0.0
@@ -74,7 +70,6 @@ public enum ProfileEngine {
             var known: Bool
             var weight: Double
             var guessable = false
-            var global = true
             switch o.source {
             case .test, .spotcheck:
                 guard o.result == ObservationResult.yes || o.result == ObservationResult.no else { continue }
@@ -90,15 +85,10 @@ public enum ProfileEngine {
                     checkedAfterYes += decay
                     if !known { failedAfterYes += decay }
                 }
-            case .review:
-                let isFirst = reviewed.insert(wi).inserted
-                known = o.result != ObservationResult.again
-                weight = (isFirst && o.result == ObservationResult.easy) ? config.firstEasyWeight : config.reviewWeight
-                global = false
             default:
                 continue
             }
-            evidence.append(Evidence(word: wi, y: known ? 1 : 0, w: weight * decay, guessable: guessable, global: global))
+            evidence.append(Evidence(word: wi, y: known ? 1 : 0, w: weight * decay, guessable: guessable))
             counts.evidence += 1
         }
         // Posterior mean of the false-alarm rate under a Beta prior, raised by meaning checks that
@@ -115,9 +105,9 @@ public enum ProfileEngine {
         }
 
         // 3. Global fit of (θ, slope) on Vocabulary Test evidence only.
-        let fit = fitGlobal(evidence.filter(\.global).map { datum($0, x: x[$0.word]) }, config: config)
+        let fit = fitGlobal(evidence.map { datum($0, x: x[$0.word]) }, config: config)
 
-        // 4. Per-word deviation for observed words (all evidence, reviews included).
+        // 4. Per-word deviation for observed words.
         var byWord: [Int: [Datum]] = [:]
         for e in evidence { byWord[e.word, default: []].append(datum(e, x: 0)) }
         let prior = x.map { fit.theta - fit.slope * $0 }
@@ -141,12 +131,9 @@ public enum ProfileEngine {
             })
         }
 
-        // 6. Active cards: the shared card replay (first rating, Leech, cooldown, 重新学) at asOf.
-        let active = CardReplay(observations: observations, rule: config.leech, asOf: asOfSeconds).activeLemmas
-
         return LearnerProfile(lexicon: lexicon, config: config, asOf: asOfString, theta: fit.theta,
                               slope: fit.slope, covariance: fit.covariance, falseAlarmRate: guess, personFit: personFit,
-                              x: x, p: p, activeCards: active, counts: counts, count: n)
+                              x: x, p: p, counts: counts, count: n)
     }
 
     /// Standardized log-likelihood person-fit statistic lz (Drasgow, Levine and Williams 1985):
@@ -165,7 +152,7 @@ public enum ProfileEngine {
     }
 
     static func isEvidence(_ s: ObservationSource) -> Bool {
-        s == .test || s == .spotcheck || s == .verify || s == .review
+        s == .test || s == .spotcheck || s == .verify
     }
 
     struct GlobalFit { var theta: Double; var slope: Double; var covariance: (Double, Double, Double) }

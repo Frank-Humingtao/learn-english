@@ -1,7 +1,6 @@
 import CoreModels
 import Foundation
 import Lexicon
-import ProfileEngine
 
 /// Vocabulary size at the end of one test session (a point on the 进度 curve).
 public struct VocabPoint: Sendable, Equatable {
@@ -11,30 +10,29 @@ public struct VocabPoint: Sendable, Equatable {
     public var families: Estimate
 }
 
-/// Study days as the public dashboard counts them (same rule as `profile_publish.py`).
+/// Test days as the public dashboard counts them (same rule as `profile_publish.py`).
 public struct StudyActivity: Sendable, Equatable {
     /// Local calendar day (yyyy-MM-dd) of the latest test answer.
     public var lastTestDay: String?
-    /// 连续学习天数: consecutive study days (a day with any test or review answer) ending today or
-    /// yesterday (0 once a full day is missed).
+    /// 连续天数: consecutive days with a Vocabulary Test answer, ending today or yesterday
+    /// (0 once a full day is missed).
     public var streakDays: Int
 }
 
 /// Everything the 进度 tab shows, recomputed on device.
 public struct ProgressReport: Sendable {
     public var profile: LearnerProfile
-    public var leeches: [Leech]
     public var activity: StudyActivity
 }
 
 /// The 进度 tab's numbers. Pure: Observations in, report out.
 public enum ProgressPage {
-    /// The current profile (exactly what `profile-engine profile` computes from the same Observations),
-    /// the Leech list as of `now` and the study streak.
-    public static func report(observations: [Observation], lexicon: Lexicon, composer: StudyComposer,
+    /// The current profile (exactly what `profile-engine profile` computes from the same Observations)
+    /// and the test streak.
+    public static func report(observations: [Observation], lexicon: Lexicon,
                               config: ProfileConfig = ProfileConfig(), now: Date, calendar: Calendar) -> ProgressReport {
         let profile = ProfileEngine.compute(observations: observations, lexicon: lexicon, config: config)
-        return ProgressReport(profile: profile, leeches: composer.ledger(observations: observations, now: now).leeches,
+        return ProgressReport(profile: profile,
                               activity: activity(observations: observations, now: now, calendar: calendar))
     }
 
@@ -62,15 +60,15 @@ public enum ProgressPage {
         }
     }
 
-    /// Observation sources that make a day a study day.
-    public static let studySources: Set<ObservationSource> = [.test, .spotcheck, .verify, .review]
+    /// Observation sources that make a day a test day.
+    public static let testSources: Set<ObservationSource> = [.test, .spotcheck, .verify]
 
     public static func activity(observations: [Observation], now: Date, calendar: Calendar) -> StudyActivity {
         func day(_ o: Observation) -> Date? {
             Timestamp.epochSeconds(o.ts).map { calendar.startOfDay(for: Date(timeIntervalSince1970: $0)) }
         }
         let testDays = observations.filter { $0.source == .test }.compactMap(day)
-        let days = Set(observations.filter { studySources.contains($0.source) }.compactMap(day))
+        let days = Set(observations.filter { testSources.contains($0.source) }.compactMap(day))
         let last = testDays.max().map { d -> String in
             let c = calendar.dateComponents([.year, .month, .day], from: d)
             return String(format: "%04d-%02d-%02d", c.year!, c.month!, c.day!)

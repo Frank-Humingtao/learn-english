@@ -1,4 +1,0 @@
-# Personal FSRS training (fsrs_train.py). Pinned; bump PINNED_FSRS in fsrs_train.py together.
-# Install torch from the CPU wheel index: pip install --extra-index-url https://download.pytorch.org/whl/cpu -r ...
-fsrs[optimizer]==6.3.2
-torch==2.15.0

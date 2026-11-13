@@ -66,14 +66,13 @@ public struct LearnerProfile: Sendable {
     public let probabilities: [Double]
     /// Word Band per lexicon entry, in `lexicon.entries` order.
     public let bands: [WordBand]
-    public let activeCards: Set<String>
     public let vocabulary: VocabularySize
     public let bandCounts: BandCounts
     public let levelMastery: [LevelMastery]
 
     init(lexicon: Lexicon, config: ProfileConfig, asOf: String, theta: Double, slope: Double,
          covariance: (Double, Double, Double), falseAlarmRate: Double, personFit: Double?, x: [Double], p: [Double],
-         activeCards: Set<String>, counts: ObservationCounts, count: Int) {
+         counts: ObservationCounts, count: Int) {
         self.lexicon = lexicon
         self.config = config
         self.asOf = asOf
@@ -82,7 +81,6 @@ public struct LearnerProfile: Sendable {
         self.falseAlarmRate = falseAlarmRate
         self.personFit = personFit
         self.probabilities = p
-        self.activeCards = activeCards
         self.counts = counts
 
         let entries = lexicon.entries
@@ -128,7 +126,7 @@ public struct LearnerProfile: Sendable {
             let band: WordBand
             if p[i] >= config.masteredThreshold {
                 band = .mastered
-            } else if Double(e.rank) <= window || activeCards.contains(e.lemma) {
+            } else if Double(e.rank) <= window {
                 band = .target
             } else {
                 band = .distant
