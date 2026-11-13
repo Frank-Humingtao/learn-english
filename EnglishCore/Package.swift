@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "ProfileEngine", targets: ["ProfileEngine"]),
         .library(name: "TestEngine", targets: ["TestEngine"]),
         .library(name: "SyncCore", targets: ["SyncCore"]),
+        .library(name: "ProfileEval", targets: ["ProfileEval"]),
         .executable(name: "profile-engine", targets: ["profile-engine"]),
     ],
     targets: [
@@ -24,10 +25,14 @@ let package = Package(
         // GitHub client (GraphQL createCommitOnBranch + REST Contents) and outbox sync logic,
         // over an injectable HTTP transport. No third-party Git/GitHub libraries.
         .target(name: "SyncCore", dependencies: ["CoreModels"]),
+        // Offline evaluation of Profile Engine models (held-out prediction, calibration, intervals,
+        // split-half / retest consistency, simulated Learners) behind a pluggable model seam.
+        .target(name: "ProfileEval", dependencies: ["CoreModels", "Lexicon", "ProfileEngine"]),
         // Command-line front end, kept as a library so tests can drive it in-process.
-        .target(name: "ProfileEngineCLI", dependencies: ["CoreModels", "Lexicon", "ProfileEngine"]),
+        .target(name: "ProfileEngineCLI", dependencies: ["CoreModels", "Lexicon", "ProfileEngine", "ProfileEval"]),
         .executableTarget(name: "profile-engine", dependencies: ["ProfileEngineCLI"]),
         .testTarget(name: "ProfileEngineTests", dependencies: ["ProfileEngine", "CoreModels", "Lexicon"]),
+        .testTarget(name: "ProfileEvalTests", dependencies: ["ProfileEval", "ProfileEngine", "CoreModels", "Lexicon"]),
         .testTarget(name: "TestEngineTests",
                     dependencies: ["TestEngine", "ProfileEngine", "ProfileEngineCLI", "CoreModels", "Lexicon"]),
         .testTarget(name: "SyncCoreTests", dependencies: ["SyncCore", "CoreModels"]),

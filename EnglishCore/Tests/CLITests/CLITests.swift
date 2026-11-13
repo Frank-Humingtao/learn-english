@@ -84,6 +84,28 @@ func contents(_ url: URL) -> String {
         #expect(r.out.contains("\"known\": "))
     }
 
+    @Test func evalWritesJSONAndTableForEachModel() throws {
+        let out = tempDir()
+        let args = ["eval", "--lexicon", lexicon, "--observations", observations, "--out", out.path,
+                    "--folds", "3", "--sim-learners", "0"]
+        let r = run(args)
+        #expect(r.code == 0, "\(r.err)")
+        #expect(r.out.contains("| 指标 | 目标 | current | frequency |"))
+        #expect(contents(out.appendingPathComponent("eval.md")) == r.out)
+        let json = contents(out.appendingPathComponent("eval.json"))
+        let parsed = try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]
+        let models = parsed?["models"] as? [[String: Any]]
+        #expect(models?.compactMap { $0["model"] as? String } == ["current", "frequency"])
+        #expect(models?.allSatisfy { $0["crossValidation"] != nil } == true)
+        // Repeatable.
+        let again = tempDir()
+        _ = run(["eval", "--lexicon", lexicon, "--observations", observations, "--out", again.path,
+                 "--folds", "3", "--sim-learners", "0"])
+        #expect(contents(again.appendingPathComponent("eval.json")) == json)
+
+        #expect(run(["eval", "--lexicon", lexicon, "--observations", observations, "--models", "nope"]).code == 2)
+    }
+
     @Test func usageErrorsExitNonZero() {
         #expect(run([]).code == 2)
         #expect(run(["profile", "--lexicon", lexicon]).code == 2)

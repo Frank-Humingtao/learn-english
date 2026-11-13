@@ -2,6 +2,7 @@ import CoreModels
 import Foundation
 import Lexicon
 import ProfileEngine
+import ProfileEval
 
 /// `profile-engine` command line. Kept in a library so tests drive it in-process.
 public enum ProfileEngineCLI {
@@ -13,6 +14,12 @@ public enum ProfileEngineCLI {
       profile-engine lookup   --lexicon DIR WORD...
       profile-engine coverage --lexicon DIR --observations PATH... [--text FILE]   (text from stdin if omitted)
       profile-engine version  --lexicon DIR
+      profile-engine eval     --lexicon DIR --observations PATH... [--out DIR] [--models current,frequency]
+                              [--folds N] [--sim-learners N] [--sim-seed N]
+          Offline evaluation of each model side by side (held-out prediction, calibration, interval
+          width, split-half and retest consistency, simulated Learners). Prints a Markdown table;
+          with --out also writes eval.json and eval.md. --sim-learners is per ability × answer style
+          (0 = no simulation).
 
     """
 
@@ -30,6 +37,7 @@ public enum ProfileEngineCLI {
             case "profile": return try profile(opts, stdout: stdout, stderr: stderr)
             case "lookup": return try lookup(opts, stdout: stdout)
             case "coverage": return try coverage(opts, stdout: stdout, stderr: stderr)
+            case "eval": return try eval(opts, stdout: stdout, stderr: stderr)
             case "version":
                 stdout(try opts.lexicon().version + "\n")
                 return 0
@@ -155,6 +163,47 @@ public enum ProfileEngineCLI {
         let c = p.coverage(of: text)
         stdout("{\"tokens\": \(c.tokens), \"known\": \(ProfileFiles.fixed(c.known, 4)), "
             + "\"mastered\": \(ProfileFiles.fixed(c.mastered, 4)), \"out_of_lexicon\": \(c.outOfLexicon)}\n")
+        return 0
+    }
+
+    /// Models `eval` can compare, by name.
+    static func evalModels(_ names: String, config: ProfileConfig) throws -> [any VocabularyModel] {
+        try names.split(separator: ",").map { name -> any VocabularyModel in
+            switch name {
+            case "current": return CurrentProfileModel(config: config)
+            case "frequency": return FrequencyBaselineModel()
+            default: throw UsageError(message: "unknown model \(name) (known: current, frequency)")
+            }
+        }
+    }
+
+    static func eval(_ o: Options, stdout: (String) -> Void, stderr: (String) -> Void) throws -> Int32 {
+        let paths = try o.observationPaths()
+        let lexicon = try o.lexicon()
+        let models = try evalModels(o.values["models"]?.first ?? "current,frequency", config: o.config())
+        var options = EvalOptions()
+        if let s = o.values["folds"]?.first {
+            guard let k = Int(s), k >= 0 else { throw UsageError(message: "bad --folds \(s)") }
+            options.folds = k
+        }
+        if let s = o.values["sim-learners"]?.first {
+            guard let k = Int(s), k >= 0 else { throw UsageError(message: "bad --sim-learners \(s)") }
+            if k == 0 { options.simulation = nil } else { options.simulation?.learnersPerSetting = k }
+        }
+        if let s = o.values["sim-seed"]?.first {
+            guard let k = UInt64(s) else { throw UsageError(message: "bad --sim-seed \(s)") }
+            options.simulation?.seed = k
+        }
+        let observations = try loadObservations(paths, stderr: stderr)
+        let report = Evaluation.run(observations: observations, lexicon: lexicon, models: models, options: options)
+        let table = report.table()
+        if let dir = o.values["out"]?.first {
+            let out = URL(fileURLWithPath: dir)
+            try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+            try write(try report.json(), to: out.appendingPathComponent("eval.json"))
+            try write(table, to: out.appendingPathComponent("eval.md"))
+        }
+        stdout(table)
         return 0
     }
 
