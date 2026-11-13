@@ -70,6 +70,22 @@ import Testing
         #expect(withMember.vocabulary.families.estimate - base.vocabulary.families.estimate > 0.5)
     }
 
+    @Test func publishedFilesCarryStandardErrorsAndTheCoreTailSplit() {
+        let lexicon = syntheticLexicon(count: 10000)
+        let profile = ProfileEngine.compute(observations: background(knownUpTo: 3000), lexicon: lexicon)
+        let rows = ProfileFiles.wordsTSV(profile).split(separator: "\n").map { $0.split(separator: "\t") }
+        #expect(rows[0] == ["lemma", "band", "p", "se", "rank"])
+        for (i, row) in rows.dropFirst().enumerated() {
+            #expect(row[3] == Substring(ProfileFiles.fixed(profile.standardErrors[i], 4)))
+        }
+        let summary = ProfileFiles.summaryJSON(profile)
+        #expect(summary.contains("\"schema_version\": 3,"))
+        #expect(summary.contains("\"core\": {\"families\": {\"estimate\": "))
+        #expect(summary.contains("\"tail\": {\"families\": {\"estimate\": "))
+        let v = profile.vocabulary
+        #expect(abs(v.core.lemmas.estimate + v.tail.lemmas.estimate - v.lemmas.estimate) < 1e-6)
+    }
+
     @Test func wordBandsFollowThresholds() {
         let lexicon = syntheticLexicon(count: 10000)
         let observations = background(knownUpTo: 3000)

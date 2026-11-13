@@ -4,14 +4,19 @@
 /// formatting done with integer arithmetic (no locale- or libc-dependent printf), rows in
 /// rank order, "\n" line endings.
 public enum ProfileFiles {
-    public static let schemaVersion = 1
+    /// 3: `words.tsv` gains `se`; `vocab_size` gains `core` (BNC/COCA levels ≤ 14) and `tail` (> 14).
+    public static let schemaVersion = 3
 
-    /// `summary.json`: vocabulary size with interval, Word Band counts, level mastery, update date.
+    /// `summary.json`: vocabulary size with 95% interval (whole lexicon, core ≤ 14k and tail > 14k
+    /// families), Word Band counts, level mastery, update date.
     /// Public, so nothing that reveals study volume or times finer than the day (no Observation
     /// counts, no model internals).
     public static func summaryJSON(_ p: LearnerProfile) -> String {
         func estimate(_ e: Estimate) -> String {
             "{\"estimate\": \(Int(e.estimate.rounded())), \"low\": \(Int(e.low.rounded())), \"high\": \(Int(e.high.rounded()))}"
+        }
+        func part(_ v: VocabularyPart) -> String {
+            "{\"families\": \(estimate(v.families)), \"lemmas\": \(estimate(v.lemmas))}"
         }
         let levels = p.levelMastery.map {
             "    {\"level\": \($0.level), \"families\": \($0.families), \"mastery\": \(fixed($0.mastery, 4))}"
@@ -23,7 +28,9 @@ public enum ProfileFiles {
           "lexicon_version": \(quote(p.lexicon.version)),
           "vocab_size": {
             "families": \(estimate(p.vocabulary.families)),
-            "lemmas": \(estimate(p.vocabulary.lemmas))
+            "lemmas": \(estimate(p.vocabulary.lemmas)),
+            "core": \(part(p.vocabulary.core)),
+            "tail": \(part(p.vocabulary.tail))
           },
           "band_counts": {"mastered": \(p.bandCounts.mastered), "target": \(p.bandCounts.target), "distant": \(p.bandCounts.distant)},
           "level_mastery": [
@@ -34,11 +41,11 @@ public enum ProfileFiles {
         """
     }
 
-    /// `words.tsv`: lemma, Word Band, P, frequency rank; one row per lemma in rank order.
+    /// `words.tsv`: lemma, Word Band, P, its standard error, frequency rank; one row per lemma in rank order.
     public static func wordsTSV(_ p: LearnerProfile) -> String {
-        var out = "lemma\tband\tp\trank\n"
+        var out = "lemma\tband\tp\tse\trank\n"
         for (i, e) in p.lexicon.entries.enumerated() {
-            out += "\(e.lemma)\t\(p.bands[i].rawValue)\t\(fixed(p.probabilities[i], 4))\t\(e.rank)\n"
+            out += "\(e.lemma)\t\(p.bands[i].rawValue)\t\(fixed(p.probabilities[i], 4))\t\(fixed(p.standardErrors[i], 4))\t\(e.rank)\n"
         }
         return out
     }

@@ -131,15 +131,17 @@ class DryRunPipelineTests(unittest.TestCase):
         self.assertIn("estimate", summary["vocab_size"]["families"])
         self.assertIn("band_counts", summary)
         self.assertIn("updated_at", summary)
-        self.assertEqual(self.profile("words.tsv").splitlines()[0], "lemma\tband\tp\trank")
+        self.assertEqual(self.profile("words.tsv").splitlines()[0], "lemma\tband\tp\tse\trank")
+        self.assertEqual(sorted(summary["vocab_size"]["core"]), ["families", "lemmas"])
+        self.assertEqual(sorted(summary["vocab_size"]["tail"]["families"]), ["estimate", "high", "low"])
 
         recent = json.loads(self.profile("recent.json"))
         self.assertNotIn("focus_targets", recent)
         self.assertEqual(recent["newly_mastered"], [])  # first run is the baseline
 
         readme = self.profile("README.md")
-        for needle in ("```mermaid", "xychart-beta", "已掌握", "近一周新掌握的词", "最近测试日期：2026-11-05",
-                       "连续测试天数", "label%3Aprogress-report", "CC BY 4.0", "数据来源"):
+        for needle in ("```mermaid", "xychart-beta", "最近测试日期：2026-11-05", "label%3Aprogress-report",
+                       "CC BY 4.0", "数据来源"):
             self.assertIn(needle, readme)
 
         [r] = self.open_reports()
@@ -148,13 +150,41 @@ class DryRunPipelineTests(unittest.TestCase):
         j = self.report_json(r)
         self.assertEqual(sorted(j), ["band_counts", "date", "newly_mastered",
                                      "profile_commit", "schema_version", "vocab_size", "words_tsv_url"])
-        self.assertEqual(j["schema_version"], 2)
+        self.assertEqual(j["schema_version"], 3)
+        self.assertIn("https://github.com/someone/english-profile#readme", r["body"])
         self.assertEqual(j["vocab_size"]["estimate"], fam)
         self.assertIn("low", j["vocab_size"])
         self.assertIn("change", j["vocab_size"])
         self.assertEqual(j["words_tsv_url"],
                          "https://raw.githubusercontent.com/someone/english-profile/%s/words.tsv" % j["profile_commit"])
         self.assertEqual(j["band_counts"], summary["band_counts"])
+
+    def test_readme_explains_the_report_on_its_own(self):
+        self.run_pipeline("2026-11-05T12:00:00Z")
+        readme = self.profile("README.md")
+        sections = ["# 英语词汇量报告", "## 当前快照", "## 参数说明", "## 测量方法", "## 和常见测试怎么对照", "## 隐私"]
+        self.assertEqual([s for s in sections if s in readme], sections)
+        self.assertEqual(sorted(sections, key=readme.index), sections)
+        summary = json.loads(self.profile("summary.json"))
+        fam, core = summary["vocab_size"]["families"], summary["vocab_size"]["core"]["families"]
+        self.assertIn("词族：约 **%d** 个（%d–%d），括号内为 95%% 区间" % (fam["estimate"], fam["low"], fam["high"]), readme)
+        self.assertIn("前 14k 词族（BNC/COCA 1–14 级）**%d** 个" % core["estimate"], readme)
+        self.assertIn("1k 96% · 2k 64%", readme)
+        # Every published key and column is explained.
+        for key in ("schema_version", "updated_at", "lexicon_version", "vocab_size.families", "vocab_size.lemmas",
+                    "vocab_size.core", "vocab_size.tail", "band_counts", "level_mastery"):
+            self.assertIn("| `%s` |" % key, readme)
+        for col in self.profile("words.tsv").splitlines()[0].split("\t"):
+            self.assertIn("| `%s` |" % col, readme)
+        for needle in ("`history.json`", "`recent.json`", "95% 区间", "p` ≥ 0.9", "+ 2000",
+                       "https://raw.githubusercontent.com/someone/english-profile/main/words.tsv",
+                       "15–25 级", "全部 25,000 个词族", "伪词", "四选一", "扣除猜测", "考纲", "外推", "BNC/COCA",
+                       "VST", "LexTALE", "testyourvocab", "lemma 数约为词族数的 2.0 倍",
+                       "docs/research/07-accurate-vocab-measurement.md", "没有作答时间"):
+            self.assertIn(needle, readme)
+        # A standalone report: nothing about other tools or what to do with the data.
+        for word in ("墨墨", "Grok", "推荐", "Recommendation", "agent", "Coverage", "复习"):
+            self.assertNotIn(word, readme)
 
     def test_same_day_test_updates_next_day_test_creates_retired_sources_do_nothing(self):
         self.run_pipeline("2026-11-05T12:00:00Z")
