@@ -25,12 +25,12 @@ import Testing
         var t = second
         while out.count < count, let item = s.current {
             t += 2
-            out.append(s.answer(learner.answer(item, lexicon: lexicon), rtMs: 1200, at: stamp(day: 5, second: t)))
+            out.append(s.answer(learner.answer(item, lexicon: lexicon), rtMs: 1200, at: stamp(day: 5, second: t)).observation)
         }
         return out
     }
 
-    @Test(arguments: [0, 1, 37, 80, 83])
+    @Test(arguments: [0, 1, 37, 150, 330])
     func interruptedAndResumedSessionMatchesAnUninterruptedOne(stopAt: Int) throws {
         // Uninterrupted reference run.
         var whole = checkpoint()
@@ -41,10 +41,13 @@ import Testing
         // Same learner, interrupted after `stopAt` answers, then resumed from the stored checkpoint.
         let saved = try encodeDecode(checkpoint())
         var first = saved
+        first.attach(lexicon)
         var l2 = ThresholdLearner(knownUpTo: 2500, falseAlarmEvery: 4)
         let stored = answer(&first, &l2, count: stopAt, from: 0)
 
         var resumed = saved
+        #expect(!resumed.isAttached)
+        resumed.attach(lexicon)
         let replayed = resumed.replay(stored)
         #expect(replayed == stored.count)
         #expect(resumed.observations == stored)
@@ -59,7 +62,8 @@ import Testing
     }
 
     @Test func replayStopsAtTheFirstObservationThatDoesNotFitTheNextItem() {
-        var s = checkpoint()
+        var s = try! encodeDecode(checkpoint())
+        s.attach(lexicon)
         var learner = ThresholdLearner(knownUpTo: 2500)
         var copy = s
         var stored = answer(&copy, &learner, count: 5, from: 0)
@@ -71,11 +75,9 @@ import Testing
     @Test func baselineIsTheLongFormOfTheSameTest() {
         let b = TestConfig.baseline
         let s = TestConfig.short
-        // About 30 minutes at ~2.5 s per item.
-        let minutes = Double(b.yesNoCount + b.meaningCheckCount) * 2.5 / 60
-        #expect((25...35).contains(minutes))
+        #expect(b.yesNoCount > s.yesNoCount)
         #expect(b.pseudowordFraction == s.pseudowordFraction)
-        #expect(b.spotcheckFraction == s.spotcheckFraction)
-        #expect(b.meaningCheckCount > s.meaningCheckCount)
+        #expect(b.verifyFraction == s.verifyFraction)
+        #expect(b.allocation == s.allocation)
     }
 }

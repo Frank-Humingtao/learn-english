@@ -64,7 +64,83 @@ public struct Pseudowords: Sendable {
     }
 
     func isNonword(_ w: String) -> Bool {
-        lexicon.lemma(for: w) == nil && !lexicon.supplementary.contains(w)
+        lexicon.lemma(for: w) == nil && !lexicon.supplementary.contains(w) && !looksDerived(w)
+    }
+
+    /// A real word plus a regular ending (`stemful`, `stemness`, `stems`): it reads as a real
+    /// derived or inflected form, so a "yes" to it says nothing about over-claiming.
+    public func looksDerived(_ w: String) -> Bool {
+        for suffix in Self.suffixes where w.count > suffix.count + 2 && w.hasSuffix(suffix) {
+            let stem = String(w.dropLast(suffix.count))
+            if isKnownForm(stem) || isKnownForm(stem + "e") { return true }
+            // Doubled consonant (`stopping`).
+            if let last = stem.last, stem.dropLast().last == last, isKnownForm(String(stem.dropLast())) { return true }
+            // y → i (`happiness`).
+            if stem.hasSuffix("i"), isKnownForm(String(stem.dropLast()) + "y") { return true }
+        }
+        return false
+    }
+
+    static let suffixes = ["s", "es", "ed", "ing", "er", "ers", "est", "ly", "ness", "ful", "less", "ment", "able",
+                           "ish", "ist", "ism", "ity", "ise", "ize", "al", "ally", "ion", "y"]
+
+    func isKnownForm(_ w: String) -> Bool { lexicon.lemma(for: w) != nil || lexicon.supplementary.contains(w) }
+
+    /// Orthographic neighbourhood size (Coltheart's N): lexicon words one substitution, insertion
+    /// or deletion away.
+    public func neighbors(_ word: String) -> Int {
+        let w = Array(word.lowercased())
+        var found = Set<String>()
+        let letters = Array("abcdefghijklmnopqrstuvwxyz")
+        func check(_ c: [Character]) {
+            let s = String(c)
+            if s != word && isKnownForm(s) { found.insert(s) }
+        }
+        for i in w.indices {
+            var d = w
+            d.remove(at: i)
+            check(d)
+            for l in letters where l != w[i] {
+                var c = w
+                c[i] = l
+                check(c)
+            }
+        }
+        for i in 0...w.count {
+            for l in letters {
+                var c = w
+                c.insert(l, at: i)
+                check(c)
+            }
+        }
+        return found.count
+    }
+
+    /// The shape class item analysis groups pseudowords by.
+    public func shape(_ w: String) -> PseudowordShape {
+        let n = neighbors(w)
+        let suffixLike = Self.suffixes.contains { $0.count >= 2 && w.hasSuffix($0) }
+        return PseudowordShape(neighbors: min(n, 2), suffixLike: suffixLike)
+    }
+
+    /// One pseudoword matched to `template`: length within `lengthTolerance` letters and
+    /// orthographic neighbourhood within `neighborTolerance` of the template's; not in `excluding`,
+    /// not of a retired shape. Matching is relaxed step by step if nothing fits.
+    func matched(to template: String, excluding: Set<String>, retired: Set<PseudowordShape>, lengthTolerance: Int,
+                 neighborTolerance: Int = 2, rng: inout SplitMix64) -> String? {
+        let t = template.lowercased()
+        let tn = neighbors(t)
+        for relax in 0..<3 {
+            for _ in 0..<40 {
+                guard let w = mutate(t, rng: &rng), !excluding.contains(w) else { continue }
+                if relax < 2 && abs(w.count - t.count) > lengthTolerance { continue }
+                guard isNonword(w) else { continue }
+                if relax < 1 && abs(neighbors(w) - tn) > neighborTolerance { continue }
+                if !retired.isEmpty && retired.contains(shape(w)) { continue }
+                return w
+            }
+        }
+        return nil
     }
 
     func mutate(_ template: String, rng: inout SplitMix64) -> String? {
@@ -121,4 +197,12 @@ public struct Pseudowords: Sendable {
         if !cur.isEmpty { segs.append(cur) }
         return segs
     }
+}
+
+/// What item analysis groups pseudowords by: orthographic neighbourhood size (0, 1, 2 or more)
+/// and whether the word ends like a common suffix.
+public struct PseudowordShape: Sendable, Hashable, Codable, CustomStringConvertible {
+    public var neighbors: Int
+    public var suffixLike: Bool
+    public var description: String { "N=\(neighbors == 2 ? "2+" : String(neighbors))\(suffixLike ? " 词缀形" : "")" }
 }
