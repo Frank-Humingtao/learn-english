@@ -1,6 +1,6 @@
 # Personal English Learning
 
-A single-learner system for measuring and tracking English vocabulary, so the learner's level is precise enough for external agents to recommend suitable reading and video.
+A single-learner system that measures the Learner's English vocabulary at regular intervals and publishes it, so external agents can recommend suitable reading and video. It is the broad-range vocabulary data provider among three tools: daily word study happens in 墨墨背单词, and recommending content is the Recommendation Agent's job; both are outside this system.
 
 ## Language
 
@@ -9,7 +9,7 @@ The single person this system serves and models.
 _Avoid_: User, student, account
 
 **Observation**:
-A single immutable record of the Learner's response to one word, from a Vocabulary Test or a Card review. Observations are only ever appended, never changed.
+A single immutable record of the Learner's response to one word, from a Vocabulary Test. Observations are only ever appended, never changed.
 _Avoid_: Event, log entry, answer
 
 **Learner Profile**:
@@ -21,15 +21,15 @@ One of three classifications of a word relative to the Learner: Mastered, Target
 _Avoid_: Difficulty, tier, grade
 
 **Mastered**:
-A Word Band for words too easy to need study; the Learner already knows them.
+A Word Band for words the Learner already knows reliably.
 _Avoid_: Easy, known, 太简单
 
 **Target**:
-A Word Band for words within the Learner's reach and worth studying now.
+A Word Band for words at the edge of the Learner's knowledge: not yet reliably known, but close enough to be picked up from context or study.
 _Avoid_: Learning, 正好该学
 
 **Distant**:
-A Word Band for words currently too far beyond the Learner to be useful; set aside for now.
+A Word Band for words currently far beyond the Learner's knowledge.
 _Avoid_: Hard, advanced, 太遥远
 
 **Coverage**:
@@ -44,21 +44,9 @@ _Avoid_: Quiz, exam
 The one-time full-length Vocabulary Test taken at the start, which later short tests refine.
 _Avoid_: Placement test, initial test
 
-**Card**:
-A single word (lemma, not an individual sense) presented for spaced study, in the style of vocabulary apps and Anki decks.
-_Avoid_: Flashcard, entry
-
-**Study Plan**:
-The ordered list of words the Learner should start studying next, each with a short note on why, plus the current focus words; written by Word Planning and the only source of new Cards.
-_Avoid_: Queue, lesson plan, 备课
-
-**Word Planning**:
-The recurring act of reviewing the Learner's Observations and Learner Profile to choose and order Target words into a new Study Plan. Done by Claude, not by a fixed formula.
-_Avoid_: Scheduling (that is spaced repetition's job), 备课
-
-**Leech**:
-A Card the Learner has forgotten eight or more times. It is paused rather than reviewed further; its Word Band is unaffected.
-_Avoid_: Hard word, 难词
+**Recommendation Agent**:
+The external AI agent that reads this system's published vocabulary data and the Learner's 墨墨背单词 study data every day, reconciles them itself, and recommends reading and video at a suitable level. Outside this system.
+_Avoid_: Bot, recommender
 
 **Progress Report**:
 A concise snapshot of the Learner Profile published as a GitHub issue for external agents to read. A new one supersedes the previous one after each day's first Vocabulary Test; only the newest is current. It describes the Learner's level, never their content preferences.
