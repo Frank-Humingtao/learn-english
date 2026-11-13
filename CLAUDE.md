@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues are local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues on `Frank-Humingtao/learn-english` (use `gh`). Old tickets in `.scratch/english-learning-app/issues/` are a read-only archive. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

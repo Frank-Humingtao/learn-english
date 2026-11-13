@@ -19,7 +19,7 @@
 - [x] BNC/COCA 原表和 Wiktextract 原始内容都不进入仓库
 - [x] 用夹具 Observation 测试：P 随证据单调变化、Word Band 边界正确、ΣP 与区间、衰减效果、word family 折算、Coverage
 - [x] 模拟学习者测试：已知 θ 的模拟学习者做若干次短测作答后，估计词汇量落在真实值的误差范围内
-- [ ] 命令行在 macOS 和 Linux 上对同一夹具输出完全相同的 `summary.json` 和 `words.tsv`
+- [x] 命令行在 macOS 和 Linux 上对同一夹具输出完全相同的 `summary.json` 和 `words.tsv`
 
 ## Comments
 
@@ -42,3 +42,5 @@
 - Linux 一致性：本机没有 docker 或 Linux。已新增 `.github/workflows/englishcore.yml`，在 `swift:6.0` 容器里跑同一个金标准测试，CI 变绿即可勾选。剩余风险是 libm 的 exp/log 在 glibc 和 Darwin 上最后一位可能不同，极少数情况下第 4 位小数会翻转；遇到时可以改为输出 3 位小数。
 
 - Orchestrator (2026-11-13): resolved on `integration/english-learning-app`. The macOS/Linux parity box stays open until `.github/workflows/englishcore.yml` runs green on GitHub (no Linux runner locally). Code-review fixes (merge 20572db) pinned lexicon sources and made the lexicon version independent of Wiktextract columns.
+
+2026-11-13：GitHub CI（ubuntu-22.04）上 EnglishCore 测试含金标准比对全部通过，macOS/Linux 一致。

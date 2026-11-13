@@ -53,3 +53,5 @@
 
 - 第 4 个框：两个链接的 URL 按 06 号票的 README 格式拼出，也确认会在 Safari 打开。但要等 02 号票建好真实的 `english-profile` 仓库，才能确认打开的是正确页面。
 - 活跃卡改用 ledger 后，如果有词被"重新学"过，或者 Leech 冷却到期，App 的 Target 数会和 Actions 端稍有差别，因为 CLI 不认识 relearn。要完全一致，`profile-engine` 得能接受传入的活跃卡；这次没有改 CLI。
+
+外链真机验收转到 GitHub issue #4。
