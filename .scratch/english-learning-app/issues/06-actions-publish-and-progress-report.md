@@ -63,3 +63,4 @@
 - workflow 本身没在 GitHub 上跑过（docker 构建步骤、`find` 二进制路径、Actions cache）。
 
 2026-11-13：真实仓库手动触发发布 3 次，档案文件齐全，始终只有一份打开的 Progress Report，公开文件无复习时间线。「iPhone 短测后自动更新」还要等下一次手机同步触发来验证。
+自动发布真机验收转到 GitHub issue #4。
