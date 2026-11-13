@@ -1,6 +1,7 @@
 import CoreModels
 import Foundation
 import Lexicon
+import TestEngine
 
 /// How a simulated Learner answers.
 public enum AnswerStyle: String, Codable, Sendable, CaseIterable {
@@ -37,6 +38,13 @@ public struct SimulationOptions: Sendable, Equatable {
     public var verifyGuess = 0.3
     /// P(correct meaning check | word known).
     public var verifyKnown = 0.95
+    /// How the tests choose items. `.stratified` uses `baselineItems` / `shortItems` real words;
+    /// the other flows run the 450 + 300 Yes/No items of `TestConfig.baseline` / `.short`.
+    public var flow: SimulatedFlow = .stratified
+    /// Test Engine settings of the baseline and the short test (`.engine` flow; `.legacy` uses only
+    /// their Yes/No counts).
+    public var baselineTest = TestConfig.baseline
+    public var shortTest = TestConfig.short
 
     public init() {}
 }
@@ -49,6 +57,8 @@ public struct SimulatedLearner: Sendable {
     /// True knowledge per lexicon entry.
     public var knows: [Bool]
     public var observations: [Observation]
+    /// What the test flow did (flows other than `.stratified`).
+    public var flowStats: FlowStats?
 
     public var trueLemmas: Int { knows.filter { $0 }.count }
 
@@ -73,6 +83,12 @@ public struct SimulatedLearner: Sendable {
         let knows = entries.map { e -> Bool in
             let eta = theta - o.slope * log(Double(e.rank) / 1000) + o.wordSD * rng.gaussian()
             return rng.uniform() < 1 / (1 + exp(-eta))
+        }
+        if o.flow != .stratified {
+            let answerer = SimulatedAnswerer(knows: knows, style: style, options: o, lexicon: lexicon)
+            let (observations, stats) = FlowSimulation.run(o.flow, answerer: answerer, label: label, rng: &rng)
+            return SimulatedLearner(label: label, style: style, theta: theta, knows: knows, observations: observations,
+                                    flowStats: stats)
         }
 
         // 25 strata equally wide in ln(position).

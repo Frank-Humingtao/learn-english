@@ -42,8 +42,9 @@ public enum MeaningChecks {
     /// Distractors are drawn at random from this many nearest same-POS words.
     static let neighborhood = 8
 
-    static func item(for lemma: String, lexicon: Lexicon, rng: inout SplitMix64) -> MeaningCheckItem? {
-        guard let idx = lexicon.index(of: lemma), let g = gloss(lexicon.entries[idx]) else { return nil }
+    /// `glosses`: `gloss(_:)` of every entry, precomputed (parsing is the slow part).
+    static func item(for lemma: String, lexicon: Lexicon, glosses: [Gloss?], rng: inout SplitMix64) -> MeaningCheckItem? {
+        guard let idx = lexicon.index(of: lemma), let g = glosses[idx] else { return nil }
         let entries = lexicon.entries
         func neighbors(samePOS: Bool) -> [Gloss] {
             var found: [Gloss] = []
@@ -51,7 +52,7 @@ public enum MeaningChecks {
             var step = 1
             while found.count < neighborhood && step <= entries.count {
                 for j in [idx - step, idx + step] where j >= 0 && j < entries.count {
-                    guard let h = gloss(entries[j]), !samePOS || h.pos == g.pos, !firstSenses.contains(h.firstSense),
+                    guard let h = glosses[j], !samePOS || h.pos == g.pos, !firstSenses.contains(h.firstSense),
                           h.text != g.text
                     else { continue }
                     firstSenses.insert(h.firstSense)

@@ -15,7 +15,8 @@ import Musl
 struct ItemSelector: Sendable {
     let lexicon: Lexicon
     let pseudowords: Pseudowords
-    /// Whether each entry has a gloss.
+    /// Each entry's gloss, and whether it has one.
+    let glosses: [MeaningChecks.Gloss?]
     let eligible: [Bool]
     /// Token-frequency weight of each entry, raised to `TestConfig.frequencyExponent`.
     let frequencyWeight: [Double]
@@ -24,7 +25,8 @@ struct ItemSelector: Sendable {
         self.lexicon = lexicon
         pseudowords = Pseudowords(lexicon: lexicon)
         let entries = lexicon.entries
-        eligible = entries.map { MeaningChecks.gloss($0) != nil }
+        glosses = entries.map(MeaningChecks.gloss)
+        eligible = glosses.map { $0 != nil }
         // Corpus token frequency; Zipf's law (∝ 1/rank) where the lexicon has none.
         let hasFreq = entries.contains { $0.freq > 0 }
         frequencyWeight = entries.map { e in

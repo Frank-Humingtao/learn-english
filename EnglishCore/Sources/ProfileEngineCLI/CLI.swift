@@ -3,6 +3,7 @@ import Foundation
 import Lexicon
 import ProfileEngine
 import ProfileEval
+import TestEngine
 
 /// `profile-engine` command line. Kept in a library so tests drive it in-process.
 public enum ProfileEngineCLI {
@@ -15,11 +16,16 @@ public enum ProfileEngineCLI {
       profile-engine coverage --lexicon DIR --observations PATH... [--text FILE]   (text from stdin if omitted)
       profile-engine version  --lexicon DIR
       profile-engine eval     --lexicon DIR --observations PATH... [--out DIR] [--models legacy,frequency,twolayer]
-                              [--folds N] [--sim-learners N] [--sim-seed N]
+                              [--folds N] [--sim-learners N] [--sim-seed N] [--sim-flow stratified|legacy|engine]
+                              [--sim-test key=value,...]
           Offline evaluation of each model side by side (held-out prediction, calibration, interval
           width, split-half and retest consistency, simulated Learners). Prints a Markdown table;
           with --out also writes eval.json and eval.md. --sim-learners is per ability × answer style
-          (0 = no simulation).
+          (0 = no simulation). --sim-flow picks how the simulated tests choose items: an idealized
+          stratified sample (default), the selector before ticket 03, or the Test Engine.
+          --sim-test key=value,... tunes the simulated tests (TestConfig: baselineItems, shortItems,
+          pseudowordFraction, verifyFraction, verifyTargeted, stratified, uncertain, boundary, retest,
+          minPerStratum, frequencyExponent).
 
     """
 
@@ -228,6 +234,34 @@ public enum ProfileEngineCLI {
         if let s = o.values["sim-learners"]?.first {
             guard let k = Int(s), k >= 0 else { throw UsageError(message: "bad --sim-learners \(s)") }
             if k == 0 { options.simulation = nil } else { options.simulation?.learnersPerSetting = k }
+        }
+        if let s = o.values["sim-flow"]?.first {
+            guard let f = SimulatedFlow(rawValue: s) else { throw UsageError(message: "bad --sim-flow \(s) (stratified|legacy|engine)") }
+            options.simulation?.flow = f
+        }
+        if let s = o.values["sim-test"]?.first, options.simulation != nil {
+            for pair in s.split(separator: ",") {
+                let kv = pair.split(separator: "=").map(String.init)
+                guard kv.count == 2, let v = Double(kv[1]) else { throw UsageError(message: "bad --sim-test \(pair)") }
+                for k in 0..<2 {
+                    var t = k == 0 ? options.simulation?.baselineTest : options.simulation?.shortTest
+                    switch kv[0] {
+                    case "baselineItems": if k == 0 { t?.yesNoCount = Int(v) }
+                    case "shortItems": if k == 1 { t?.yesNoCount = Int(v) }
+                    case "pseudowordFraction": t?.pseudowordFraction = v
+                    case "verifyFraction": t?.verifyFraction = v
+                    case "verifyTargeted": t?.verifyTargeted = v != 0
+                    case "stratified": t?.allocation.stratified = v
+                    case "uncertain": t?.allocation.uncertain = v
+                    case "boundary": t?.allocation.boundary = v
+                    case "retest": t?.allocation.retest = v
+                    case "minPerStratum": t?.minPerStratum = Int(v)
+                    case "frequencyExponent": t?.frequencyExponent = v
+                    default: throw UsageError(message: "unknown --sim-test setting \(kv[0])")
+                    }
+                    if k == 0 { options.simulation?.baselineTest = t! } else { options.simulation?.shortTest = t! }
+                }
+            }
         }
         if let s = o.values["sim-seed"]?.first {
             guard let k = UInt64(s) else { throw UsageError(message: "bad --sim-seed \(s)") }

@@ -30,8 +30,15 @@ public struct TestConfig: Sendable, Equatable, Codable {
     public var yesNoCount: Int
     /// Share of Yes/No items that are freshly generated pseudowords.
     public var pseudowordFraction = 0.15
-    /// P(a meaning check right after a "yes" to a real word).
+    /// Share of "yes" answers to real words followed at once by a meaning check. The next check
+    /// comes after a random 1…(2/fraction − 1) further "yes" answers, so the share stays close to
+    /// this while the Learner cannot predict which word is checked.
     public var verifyFraction = 0.10
+    /// Aim meaning checks at unexpected "yes" answers: the chance after a "yes" scales with
+    /// 1 − P(word) relative to the mean over this session's "yes" answers so far (same average).
+    /// Off by default: in simulation it biased over-claimers' totals further than random checks
+    /// (it also trips the Profile Engine's failed-check session gate more often).
+    public var verifyTargeted = false
     public var allocation = Allocation()
     /// Every frequency level gets at least this many stratified items (when it has eligible words).
     public var minPerStratum = 2
@@ -158,6 +165,11 @@ public struct TestSession: Sendable {
     /// Pseudowords never to show again (earlier tests and this one).
     var usedPseudowords: Set<String>
     var retiredShapes: Set<PseudowordShape>
+    /// Real-word "yes" answers so far and the sum of their 1 − P (targeted verification).
+    var yesCount = 0
+    var yesSurprise = 0.0
+    /// "Yes" answers left until the next meaning check (untargeted mode).
+    var yesUntilCheck = 0
     /// Live estimate state while detached (decoded and not yet attached).
     private var detachedLive: LiveEstimate.State?
     private var runtime: Runtime?
@@ -186,6 +198,7 @@ public struct TestSession: Sendable {
         retiredShapes = PseudowordAnalysis(history: history, generator: selector.pseudowords).retired
         self.rng = rng
         runtime = Runtime(lexicon: lexicon, live: live, selector: selector)
+        yesUntilCheck = drawCheckGap()
         appendNext(after: nil)
     }
 
@@ -286,11 +299,25 @@ public struct TestSession: Sendable {
     /// Appends the next item: a meaning check right after some "yes" answers, else the next slot.
     private mutating func appendNext(after o: Observation?) {
         guard let rt = runtime else { return }
-        if let o, o.pseudo != true, o.source != .verify, o.result == ObservationResult.yes,
-           rng.uniform() < config.verifyFraction,
-           let check = MeaningChecks.item(for: o.lemma, lexicon: rt.lexicon, rng: &rng) {
-            items.append(.meaningCheck(check))
-            return
+        if let o, o.pseudo != true, o.source != .verify, o.result == ObservationResult.yes {
+            let check: Bool
+            if config.verifyTargeted, let i = rt.lexicon.index(of: o.lemma) {
+                // P from the population curve: what the model expected before this answer.
+                let surprise = 1 - rt.live.priorProbability(i)
+                yesCount += 1
+                yesSurprise += surprise
+                let mean = max(0.05, yesSurprise / Double(yesCount))
+                check = rng.uniform() < min(0.9, config.verifyFraction * surprise / mean)
+            } else {
+                yesUntilCheck -= 1
+                check = yesUntilCheck <= 0
+            }
+            if check, let item = MeaningChecks.item(for: o.lemma, lexicon: rt.lexicon, glosses: rt.selector.glosses,
+                                                    rng: &rng) {
+                yesUntilCheck = drawCheckGap()
+                items.append(.meaningCheck(item))
+                return
+            }
         }
         while slot < schedule.count {
             let kind = schedule[slot]
@@ -300,6 +327,12 @@ public struct TestSession: Sendable {
                 return
             }
         }
+    }
+
+    private mutating func drawCheckGap() -> Int {
+        guard config.verifyFraction > 0 else { return .max }
+        let maxGap = max(1, Int((2 / config.verifyFraction).rounded()) - 1)
+        return 1 + Int(rng.next() % UInt64(maxGap))
     }
 
     private mutating func pick(_ kind: YesNoItem.Kind, _ rt: Runtime) -> YesNoItem? {
@@ -346,7 +379,7 @@ public struct TestSession: Sendable {
 extension TestSession: Codable {
     enum CodingKeys: String, CodingKey {
         case sessionID, config, lexiconVersion, items, observations, rng, schedule, slot, stratifiedQueue, retestQueue
-        case used, usedPseudowords, retiredShapes, live
+        case used, usedPseudowords, retiredShapes, live, yesCount, yesSurprise, yesUntilCheck
     }
 
     public init(from decoder: Decoder) throws {
@@ -365,6 +398,9 @@ extension TestSession: Codable {
         usedPseudowords = try c.decode(Set<String>.self, forKey: .usedPseudowords)
         retiredShapes = try c.decode(Set<PseudowordShape>.self, forKey: .retiredShapes)
         detachedLive = try c.decode(LiveEstimate.State.self, forKey: .live)
+        yesCount = try c.decode(Int.self, forKey: .yesCount)
+        yesSurprise = try c.decode(Double.self, forKey: .yesSurprise)
+        yesUntilCheck = try c.decode(Int.self, forKey: .yesUntilCheck)
         runtime = nil
     }
 
@@ -384,6 +420,9 @@ extension TestSession: Codable {
         try c.encode(usedPseudowords.sorted(), forKey: .usedPseudowords)
         try c.encode(retiredShapes.sorted { $0.description < $1.description }, forKey: .retiredShapes)
         try c.encode(runtime?.live.state ?? detachedLive, forKey: .live)
+        try c.encode(yesCount, forKey: .yesCount)
+        try c.encode(yesSurprise, forKey: .yesSurprise)
+        try c.encode(yesUntilCheck, forKey: .yesUntilCheck)
     }
 }
 

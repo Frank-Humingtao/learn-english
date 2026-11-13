@@ -86,6 +86,19 @@ extension EvalReport {
                 guard let x = m.simulation?.all else { return "–" }
                 return "\(num(x.meanKnowledgeLogLoss)) · \(num(x.meanKnowledgeECE))"
             })
+            if let x = models.first?.simulation?.all, x.meanItemsBeyond8k != nil {
+                row("模拟 每人排名 >8k 的真词题 · 核验题", "", { m in
+                    guard let x = m.simulation?.all else { return "–" }
+                    return "\(num1(x.meanItemsBeyond8k)) · \(num1(x.meanMeaningChecks))"
+                })
+            }
+            if let x = models.first?.simulation?.all, x.meanAnswerMs != nil {
+                row("模拟 每题耗时（记录+实时估计，平均 / 最大）", "不拖慢答题", { m in
+                    guard let x = m.simulation?.all, let a = x.meanAnswerMs else { return "–" }
+                    return String(format: "%.1f / %.1f ms", a, x.maxAnswerMs ?? 0)
+                })
+                row("模拟 实时估计 vs 完整拟合（相对差）", "", { m in pct(m.simulation?.all.meanLiveVsFullGap) })
+            }
         }
         return s
     }
@@ -94,6 +107,11 @@ extension EvalReport {
 private func num(_ x: Double?) -> String {
     guard let x, x.isFinite else { return "–" }
     return String(format: "%.3f", x)
+}
+
+private func num1(_ x: Double?) -> String {
+    guard let x, x.isFinite else { return "–" }
+    return String(format: "%.1f", x)
 }
 
 private func pct(_ x: Double?) -> String {

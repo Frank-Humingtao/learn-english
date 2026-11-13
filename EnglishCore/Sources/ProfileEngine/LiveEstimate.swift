@@ -13,24 +13,28 @@ import Musl
 /// after every answer, and the per-word P the item selector picks from.
 ///
 /// The full fit (`ProfileEngine.compute`) takes about half a second on the full lexicon, far too
-/// slow per answer. Here the population curve (feature weights β, word SD τ) and the response
-/// parameters δ, r stay at the values fitted before the test; only the ability θ and the
-/// pseudoword false-alarm rate (logit f₀) are updated, warm-started from their previous values, by
-/// a 2-D Newton step on this session's answers with the pre-test posterior as a Gaussian prior.
-/// Answers about words seen before this session only update those words' own P.
+/// slow per answer. Here the word SD τ, the secondary feature weights and the meaning-check guessing
+/// rate r stay at the values fitted before the test; the ability θ, the main frequency slope β₁,
+/// the pseudoword false-alarm rate (logit f₀) and the real-word extra δ are re-estimated after every
+/// answer, warm-started from their previous values, by a small Newton step on this session's
+/// answers with the pre-test posterior of those four as a Gaussian prior. (With δ frozen, an
+/// over-claiming Learner's live number ran far above the full fit.) Answers about words seen before this session
+/// only update those words' own P.
 ///
-/// The test result still comes from the full fit, which also refits β and τ (stratified long-tail
-/// items mostly move those), so the final number can differ somewhat from the last live one.
+/// The test result still comes from the full fit, so the final number can differ somewhat from
+/// the last live one (`profile-engine eval --sim-flow engine` reports by how much).
 public struct LiveEstimate: Sendable {
     /// Everything that changes during the session, plus the pre-test fit it starts from. Codable
     /// so a resumed test continues exactly where it stopped.
     public struct State: Sendable, Codable, Equatable {
         var features: [WordFeature]
+        /// Pre-test feature weights; the first (main slope) is re-estimated as `x[1]`.
         var weights: [Double]
         var tau: Double
-        var theta0: Double, thetaVariance: Double
-        var a0: Double, aVariance: Double
-        var delta: Double, logitR: Double
+        /// Pre-test posterior of x = (θ, β₁, logit f₀, δ): mean and precision (row-major 4×4).
+        var mean0: [Double]
+        var precision0: [Double]
+        var logitR: Double
         var slip: Double, verifySlip: Double
         var fastYesMs: Int, fastYesWeight: Double
         /// log P(answers | known) − log P(answers | unknown) of each word answered before this session.
@@ -38,13 +42,15 @@ public struct LiveEstimate: Sendable {
         /// This session's answers per word (lexicon index) and to pseudowords.
         var session: [Int: WordCounts] = [:]
         var pseudoYes = 0.0, pseudoNo = 0.0
-        /// Current θ and logit f₀.
-        var theta: Double, a: Double
-        var thetaPosteriorVariance: Double
+        /// Current x and its posterior covariance.
+        var x: [Double]
+        var covariance: [Double]
     }
 
     public private(set) var state: State
-    let offsets: [Double]
+    /// Main feature column x₁ and the fixed rest of the difficulty β₂…·x₂… per entry.
+    let main: [Double]
+    let rest: [Double]
     /// Index of each family's best-known member before the session.
     let familyBest: [Int]
 
@@ -61,9 +67,20 @@ public struct LiveEstimate: Sendable {
                 + [log(c.wordSDPrior), logit(c.pseudowordFalseAlarmPrior), c.realWordExtraPriorMean, logit(c.verifyGuessPrior)]
             cov = []
         }
-        func variance(_ k: Int, _ fallback: Double) -> Double {
-            cov.count == dim * dim && cov[k * dim + k] > 0 ? cov[k * dim + k] : fallback
+        let idx = [0, 1, dim - 3, dim - 2]
+        let n = Self.n
+        var sub = [Double](repeating: 0, count: n * n)
+        let fallback = [c.thetaPriorSD * c.thetaPriorSD, c.mainSlopePriorSD * c.mainSlopePriorSD,
+                        c.pseudowordFalseAlarmPriorSD * c.pseudowordFalseAlarmPriorSD,
+                        c.realWordExtraPriorSD * c.realWordExtraPriorSD]
+        for (r, i) in idx.enumerated() {
+            for (k, j) in idx.enumerated() {
+                sub[r * n + k] = cov.count == dim * dim ? cov[i * dim + j] : (r == k ? fallback[r] : 0)
+            }
         }
+        var diagonal = [Double](repeating: 0, count: n * n)
+        for r in 0..<n { diagonal[r * n + r] = 1 / fallback[r] }
+        let precision = invert(sub, n) ?? diagonal
         let rates = ResponseRates(s: c.slipRate, sv: c.verifySlipRate, f0: sigmoid(x[dim - 3]),
                                   f: sigmoid(x[dim - 3] + x[dim - 2]), r: sigmoid(x[dim - 1]))
         var llr: [Int: Double] = [:]
@@ -71,52 +88,68 @@ public struct LiveEstimate: Sendable {
             let (la, lb) = rates.logLikelihoods(counts)
             llr[i] = la - lb
         }
-        let thetaVar = variance(0, c.thetaPriorSD * c.thetaPriorSD)
+        let mean = [x[0], x[1], x[dim - 3], x[dim - 2]]
         state = State(features: c.features, weights: Array(x[1...width]), tau: exp(x[width + 1]),
-                      theta0: x[0], thetaVariance: thetaVar,
-                      a0: x[dim - 3], aVariance: variance(dim - 3, c.pseudowordFalseAlarmPriorSD * c.pseudowordFalseAlarmPriorSD),
-                      delta: x[dim - 2], logitR: x[dim - 1], slip: c.slipRate, verifySlip: c.verifySlipRate,
+                      mean0: mean, precision0: precision, logitR: x[dim - 1],
+                      slip: c.slipRate, verifySlip: c.verifySlipRate,
                       fastYesMs: c.fastYesMs, fastYesWeight: c.fastYesWeight, historyLLR: llr,
-                      theta: x[0], a: x[dim - 3], thetaPosteriorVariance: thetaVar)
-        (offsets, familyBest) = Self.runtime(state, lexicon: profile.lexicon)
+                      x: mean, covariance: sub)
+        (main, rest, familyBest) = Self.runtime(state, lexicon: profile.lexicon)
     }
 
     /// Restores a running estimate (e.g. from a test checkpoint) on the same lexicon.
     public init(state: State, lexicon: Lexicon) {
         self.state = state
-        (offsets, familyBest) = Self.runtime(state, lexicon: lexicon)
+        (main, rest, familyBest) = Self.runtime(state, lexicon: lexicon)
     }
 
-    static func runtime(_ s: State, lexicon: Lexicon) -> ([Double], [Int]) {
+    static func runtime(_ s: State, lexicon: Lexicon) -> ([Double], [Double], [Int]) {
         let fm = FeatureMatrix(lexicon: lexicon, features: s.features)
-        var offsets = [Double](repeating: 0, count: lexicon.entries.count)
-        for i in lexicon.entries.indices {
+        let n = lexicon.entries.count
+        var main = [Double](repeating: 0, count: n)
+        var rest = [Double](repeating: 0, count: n)
+        for i in 0..<n {
             var b = 0.0
             var k = 0
-            for v in fm.row(i) { b += s.weights[k] * v; k += 1 }
-            offsets[i] = b
+            for v in fm.row(i) {
+                if k == 0 { main[i] = v } else { b += s.weights[k] * v }
+                k += 1
+            }
+            rest[i] = b
         }
-        // Family best members at the pre-test θ.
-        let tmp = LiveEstimate(state: s, offsets: offsets, familyBest: [])
-        let p0 = lexicon.entries.indices.map { tmp.probability($0) }
-        return (offsets, familyBestIndices(p0, lexicon: lexicon))
+        // Family best members at the pre-test parameters (the same whenever the state is restored).
+        var pre = s
+        pre.x = s.mean0
+        pre.session = [:]
+        let tmp = LiveEstimate(state: pre, main: main, rest: rest, familyBest: [])
+        let p0 = (0..<n).map { tmp.probability($0) }
+        return (main, rest, familyBestIndices(p0, lexicon: lexicon))
     }
 
-    private init(state: State, offsets: [Double], familyBest: [Int]) {
+    /// Number of re-estimated parameters.
+    static let n = 4
+
+    private init(state: State, main: [Double], rest: [Double], familyBest: [Int]) {
         self.state = state
-        self.offsets = offsets
+        self.main = main
+        self.rest = rest
         self.familyBest = familyBest
     }
 
     // MARK: reading
 
     /// Current ability θ (logit P(known) at rank 1000 with average other features).
-    public var theta: Double { state.theta }
+    public var theta: Double { state.x[0] }
+    /// Current main frequency slope.
+    public var slope: Double { state.x[1] }
     /// Current P("yes" | pseudoword).
-    public var pseudowordFalseAlarmRate: Double { sigmoid(state.a) }
+    public var pseudowordFalseAlarmRate: Double { sigmoid(state.x[2]) }
 
-    var rates: ResponseRates {
-        ResponseRates(s: state.slip, sv: state.verifySlip, f0: sigmoid(state.a), f: sigmoid(state.a + state.delta),
+    @inline(__always)
+    func eta(_ i: Int, _ x: [Double]) -> Double { x[0] - x[1] * main[i] - rest[i] }
+
+    func rates(_ x: [Double]) -> ResponseRates {
+        ResponseRates(s: state.slip, sv: state.verifySlip, f0: sigmoid(x[2]), f: sigmoid(x[2] + x[3]),
                       r: sigmoid(state.logitR))
     }
 
@@ -127,44 +160,55 @@ public struct LiveEstimate: Sendable {
 
     /// P(known) of lexicon entry `i` now (posterior for answered words).
     public func probability(_ i: Int) -> Double {
-        let cv = Curve(eta: state.theta - offsets[i], tau: state.tau)
+        let cv = Curve(eta: eta(i, state.x), tau: state.tau)
         var logitP = log(max(cv.p, 1e-300)) - log(max(cv.q, 1e-300))
         if let h = state.historyLLR[i] { logitP += h }
         if let c = state.session[i] {
-            let (la, lb) = rates.logLikelihoods(c)
+            let (la, lb) = rates(state.x).logLikelihoods(c)
             logitP += la - lb
         }
         return sigmoid(logitP)
     }
 
-    /// Fast approximation of the population curve π_w at the current θ for words without answers
-    /// (probit approximation of the logistic-normal integral; within about 0.02 of `probability`).
+    /// Fast approximation of the population curve π_w now, for words without answers (probit
+    /// approximation of the logistic-normal integral; within about 0.02 of `probability`).
     @inline(__always)
     public func priorProbability(_ i: Int) -> Double {
         let scale = 1 / (1 + Double.pi * state.tau * state.tau / 8).squareRoot()
-        return sigmoid((state.theta - offsets[i]) * scale)
+        return sigmoid(eta(i, state.x) * scale)
     }
 
-    /// Word families known now, with an approximate 95% interval (θ uncertainty plus which words
-    /// are known; the curve's own uncertainty is only in the full fit).
+    /// Word families known now, with an approximate 95% interval (uncertainty of θ and β₁ plus
+    /// which words are known; τ and the other weights are only uncertain in the full fit).
     public var families: Estimate {
-        var sum = 0.0, bern = 0.0, slope = 0.0
+        // Unanswered words (nearly all) use the one-sigmoid probit approximation: a 9-point
+        // quadrature over 25,000 families is too slow per answer in an unoptimized build.
+        var sum = 0.0, bern = 0.0, dTheta = 0.0, dSlope = 0.0
+        let scale = 1 / (1 + Double.pi * state.tau * state.tau / 8).squareRoot()
         for i in familyBest {
-            let p = probability(i)
-            sum += p
-            bern += p * (1 - p)
-            if !hasEvidence(i) {
-                let cv = Curve(eta: state.theta - offsets[i], tau: state.tau)
-                slope += cv.dEta
+            if hasEvidence(i) {
+                let p = probability(i)
+                sum += p
+                bern += p * (1 - p)
+            } else {
+                let p = sigmoid(eta(i, state.x) * scale)
+                sum += p
+                let v = p * (1 - p)
+                bern += v
+                dTheta += v * scale
+                dSlope -= v * scale * main[i]
             }
         }
-        let half = 1.96 * (slope * slope * state.thetaPosteriorVariance + bern).squareRoot()
+        let c = state.covariance
+        let n = Self.n
+        let v = dTheta * dTheta * c[0] + 2 * dTheta * dSlope * c[1] + dSlope * dSlope * c[n + 1]
+        let half = 1.96 * (max(0, v) + bern).squareRoot()
         return Estimate(estimate: sum, low: max(0, sum - half), high: min(Double(familyBest.count), sum + half))
     }
 
     // MARK: updating
 
-    /// Adds one answer of this session and re-estimates θ and f₀.
+    /// Adds one answer of this session and re-estimates θ, β₁, f₀ and δ.
     public mutating func record(_ o: Observation, lexicon: Lexicon) {
         if o.pseudo == true {
             if o.result == ObservationResult.yes { state.pseudoYes += 1 } else if o.result == ObservationResult.no { state.pseudoNo += 1 }
@@ -193,69 +237,102 @@ public struct LiveEstimate: Sendable {
         if state.historyLLR[i] == nil { refit() }
     }
 
-    /// Log posterior of (θ, a) over this session's fresh words and pseudowords.
-    func logPosterior(_ theta: Double, _ a: Double) -> Double {
+    /// Log posterior of x over this session's fresh words and pseudowords, and its gradient.
+    func evaluate(_ x: [Double], gradient: Bool = true) -> (Double, [Double]) {
         let s = state
-        var lp = -0.5 * (theta - s.theta0) * (theta - s.theta0) / s.thetaVariance
-            - 0.5 * (a - s.a0) * (a - s.a0) / s.aVariance
-        let f0 = sigmoid(a)
+        let n = Self.n
+        var lp = 0.0
+        var g = [Double](repeating: 0, count: n)
+        for r in 0..<n {
+            var row = 0.0
+            for k in 0..<n { row += s.precision0[r * n + k] * (x[k] - s.mean0[k]) }
+            lp -= 0.5 * (x[r] - s.mean0[r]) * row
+            g[r] -= row
+        }
+        let f0 = sigmoid(x[2])
         lp += s.pseudoYes * log(f0) + s.pseudoNo * log(1 - f0)
-        let rp = ResponseRates(s: s.slip, sv: s.verifySlip, f0: f0, f: sigmoid(a + s.delta), r: sigmoid(s.logitR))
+        g[2] += s.pseudoYes * (1 - f0) - s.pseudoNo * f0
+        let rp = rates(x)
         for (i, c) in s.session where s.historyLLR[i] == nil {
-            let cv = Curve(eta: theta - offsets[i], tau: s.tau)
+            let cv = Curve(eta: eta(i, x), tau: s.tau)
             let (la, lb) = rp.logLikelihoods(c)
             let known = log(max(cv.p, 1e-300)) + la, unknown = log(max(cv.q, 1e-300)) + lb
             let m = max(known, unknown)
-            lp += m + log(exp(known - m) + exp(unknown - m))
+            let l = m + log(exp(known - m) + exp(unknown - m))
+            lp += l
+            guard gradient else { continue }
+            let post = exp(known - l)
+            let dEta = (post / max(cv.p, 1e-300) - (1 - post) / max(cv.q, 1e-300)) * cv.dEta
+            g[0] += dEta
+            g[1] -= dEta * main[i]
+            let df = (1 - post) * rp.dLogB(c).f
+            g[2] += df
+            g[3] += df
         }
-        return lp
+        return (lp, g)
     }
 
-    /// Damped 2-D Newton from the current values (finite differences; a handful of iterations).
-    mutating func refit() {
-        var x = (state.theta, state.a)
-        let h = 1e-4
-        var current = logPosterior(x.0, x.1)
-        var hess = (0.0, 0.0, 0.0)
-        for _ in 0..<20 {
-            let fpp = logPosterior(x.0 + h, x.1), fmp = logPosterior(x.0 - h, x.1)
-            let fpa = logPosterior(x.0, x.1 + h), fma = logPosterior(x.0, x.1 - h)
-            let fpq = logPosterior(x.0 + h, x.1 + h), fmq = logPosterior(x.0 - h, x.1 - h)
-            let g0 = (fpp - fmp) / (2 * h), g1 = (fpa - fma) / (2 * h)
-            let h00 = (fpp - 2 * current + fmp) / (h * h)
-            let h11 = (fpa - 2 * current + fma) / (h * h)
-            let h01 = (fpq - fpp - fpa + 2 * current - fmp - fma + fmq) / (2 * h * h)
-            hess = (h00, h01, h11)
-            // Solve (−H) step = g, with damping if −H is not positive definite.
-            var a00 = -h00, a11 = -h11
-            let a01 = -h01
-            var det = a00 * a11 - a01 * a01
-            if !(a00 > 0 && det > 0) {
-                a00 = max(abs(a00), 1) * 2
-                a11 = max(abs(a11), 1) * 2
-                det = a00 * a11 - a01 * a01
-            }
-            var s0 = (a11 * g0 - a01 * g1) / det
-            var s1 = (a00 * g1 - a01 * g0) / det
-            var next = logPosterior(x.0 + s0, x.1 + s1)
-            var halvings = 0
-            while !(next >= current) && halvings < 10 {
-                s0 /= 2
-                s1 /= 2
-                next = logPosterior(x.0 + s0, x.1 + s1)
-                halvings += 1
-            }
-            guard next >= current else { break }
-            x = (x.0 + s0, x.1 + s1)
-            let gain = next - current
-            current = next
-            if gain < 1e-9 || (abs(s0) < 1e-6 && abs(s1) < 1e-6) { break }
+    func logPosterior(_ x: [Double]) -> Double { evaluate(x, gradient: false).0 }
+
+    /// Hessian by forward differences of the analytic gradient (symmetrized).
+    func hessian(_ x: [Double], _ g0: [Double]) -> [Double] {
+        let n = Self.n
+        let h = 1e-5
+        var hess = [Double](repeating: 0, count: n * n)
+        for k in 0..<n {
+            var xp = x
+            xp[k] += h
+            let gp = evaluate(xp).1
+            for r in 0..<n { hess[r * n + k] = (gp[r] - g0[r]) / h }
         }
-        state.theta = x.0
-        state.a = x.1
-        // Marginal variance of θ from the 2×2 negative Hessian.
-        let (h00, h01, h11) = hess
-        let det = h00 * h11 - h01 * h01
-        if h00 < 0 && det > 0 { state.thetaPosteriorVariance = -h11 / det }
+        for r in 0..<n {
+            for k in (r + 1)..<n {
+                let v = (hess[r * n + k] + hess[k * n + r]) / 2
+                hess[r * n + k] = v
+                hess[k * n + r] = v
+            }
+        }
+        return hess
+    }
+
+    /// Damped Newton from the current values (usually one or two steps).
+    mutating func refit() {
+        let n = Self.n
+        var x = state.x
+        var (current, g) = evaluate(x)
+        var negH = [Double](repeating: 0, count: n * n)
+        for _ in 0..<20 {
+            negH = hessian(x, g).map { -$0 }
+            var lambda = 0.0
+            var accepted = false
+            // Levenberg–Marquardt damping until the step improves the posterior.
+            for _ in 0..<12 {
+                var a = negH
+                if lambda > 0 { for k in 0..<n { a[k * n + k] += lambda * max(1, abs(negH[k * n + k])) } }
+                lambda = lambda == 0 ? 1e-3 : lambda * 10
+                guard let st = solve(a, g, n) else { continue }
+                let cand = zip(x, st).map { $0 + $1 }
+                let (v, cg) = evaluate(cand)
+                if v.isFinite && v >= current {
+                    let gain = v - current
+                    x = cand
+                    current = v
+                    g = cg
+                    accepted = true
+                    if gain < 1e-9 || st.allSatisfy({ abs($0) < 1e-6 }) {
+                        state.x = x
+                        return finish(negH)
+                    }
+                    break
+                }
+            }
+            if !accepted { break }
+        }
+        state.x = x
+        finish(negH)
+    }
+
+    private mutating func finish(_ negH: [Double]) {
+        if let c = invert(negH, Self.n), c[0] > 0, c[Self.n + 1] > 0 { state.covariance = c }
     }
 }
