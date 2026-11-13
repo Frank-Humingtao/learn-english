@@ -1,5 +1,7 @@
 # 07: 卡片学习
 
+Status: wontfix
+
 **What to build:** 学习者在"学习"标签先复习到期卡片，再学新卡。卡片按 FSRS 调度，用四档评分；学会的词自动退出，反复忘记的词暂停；学习者可以手动加词、在设置里改每日新词上限。这一张先用一份手写的示例 Study Plan 作为新词来源。
 
 - 学习会话：先放到期复习，再放新卡，中间一页"复习完成，开始 N 个新词？"可以停下。新卡数取计划建议的每日数和设置上限两者中较小的一个，按计划顺序取词，跳过已有卡、已 Mastered 或已评"太简单"的词。
@@ -15,7 +17,6 @@
 
 **Blocked by:** 03
 
-**Status:** resolved
 
 - [x] 用示例计划在模拟器里完整走一次：复习 → 分隔页 → 新卡 → 完成页
 - [x] 会话组装有测试：复习先于新卡、新卡数取较小值、跳过规则、Leech 重新引入的位置和计数
@@ -45,3 +46,5 @@
 - 和 03 号票一样没有点屏幕：翻面、按钮、加词弹窗、设置里的 Picker 都是经由同一套 model 方法和 Core 测试验证的。人工点一遍即可确认。
 - swift-fsrs 在 Linux 上能否编译只看了源码（只 import Foundation），没有实际编译；`.github/workflows/englishcore.yml` 的 CI 会编译到它。
 - Profile Engine 自己按全部"忘了"次数推活跃卡，"重新学"之后不会清零（它只影响 Target 窗口外的词是否算 Target）。需要时可以把 `CardLedger.activeCards` 传给 `ProfileEngine.compute(activeCards:)`。
+
+- 2026-11-13：按 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md) 作废。系统只做词汇测量，背词交给墨墨背单词；本票的代码已删除（commit a2ca384）。

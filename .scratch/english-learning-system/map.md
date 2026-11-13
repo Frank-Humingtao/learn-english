@@ -45,6 +45,8 @@ Label: wayfinder:map
 - [选词规划 skill 的设计](issues/13-word-plan-skill.md)：用 Claude 桌面 App 的定时任务每天 07:30 跑，也可手动 `/word-plan` 加一句临时要求；skill 放在 `english-data` 仓库里，先用脚本把记录汇总成精简摘要再交给 Claude；选词顺序依次是「想学」、似懂非懂（高频优先）、按词频，易混词不同天；选词说明为中文、不超过 40 字、不编造；`focus_targets` 先放正在学的难卡；输出经脚本校验，最多修 2 次，不过就不提交；计划超过 3 天未更新时 App「学习」标签显示黄字提醒，并附每次的中文摘要。
 - [迷雾收尾：由 agent 自行决定的技术细节](issues/14-agent-decided-details.md)：本地存储用 SQLite（GRDB），直接调 GitHub API，不引入客户端库；卡片内容来自 ECDICT 加 Wiktextract，测试干扰项从词典抽取，第一版卡片不配图；令牌和个人信息绝不入库；GitHub 连不上只推迟同步；BNC/COCA 原表不入库，派生数据用 CC BY 4.0，代码用 MIT。
 
+- **范围收窄（2026-11-13）**：[ADR 0002](../../docs/adr/0002-measure-only-no-study-or-planning.md)：本系统只做词汇测量并发布；背词交给墨墨背单词，内容推荐由 Recommendation Agent 负责，本系统不读墨墨数据。上面关于卡片、Leech、FSRS、Study Plan、`word-plan` 的决定作废。测量方法的新依据见 [调研：准确的词汇量测量](research/07-accurate-vocab-measurement.md)，后续实现票见 [../english-measurement/](../english-measurement/)。
+
 ## Not yet specified
 
 <!-- 已清空：剩余迷雾由「迷雾收尾：由 agent 自行决定的技术细节」处理 -->

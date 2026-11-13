@@ -50,3 +50,7 @@ Target 里可能有一两千个词。每次学习时，由 AI 决定引入哪些
 - **顽固词重新引入**：卡片重置后按新卡处理，排在当天新卡最前面，计入当天新卡上限。
 
 新开工单：[选词规划 skill 的设计](13-word-plan-skill.md)。
+
+## Comments
+
+- 2026-11-13：已被 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md) 取代：卡片学习、选词规划都移出本系统。

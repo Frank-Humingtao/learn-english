@@ -1,5 +1,7 @@
 # 05: 同步到私有仓库
 
+Status: resolved
+
 **What to build:** 学习者的作答自动同步到私有仓库 `english-data`，界面清楚地显示同步状态：全部同步时什么都不显示，有积压时显示"未同步 N 条"，断网时提示离线，令牌出错时显示红条。
 
 - 本地优先：新 Observation 进 outbox。一次测试或复习结束时、App 回到前台时，自动批量提交，提交到 `observations/iphone/YYYY-MM.jsonl`（只追加）。
@@ -14,7 +16,6 @@
 
 **Blocked by:** 02, 03
 
-**Status:** resolved
 
 - [ ] 冲突错误格式已实测，结果记进本票
 - [ ] 做完一次短测后，私有仓库出现对应的 JSONL 行，内容与本地一致

@@ -1,5 +1,7 @@
 # 02: 创建仓库与令牌
 
+Status: resolved
+
 **What to build:** 让后续的同步和发布有真实的落脚点。这一步需要学习者本人在 GitHub 上操作，agent 提供逐步清单（可以用 `wizard` skill 生成交互式向导）。
 
 - 建私有仓库 `english-data` 和公开仓库 `english-profile`。
@@ -11,7 +13,6 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** resolved
 
 - [x] 两个仓库都已存在，可见性正确
 - [x] 两个令牌的授权范围与上面一致，没有多余权限

@@ -1,5 +1,7 @@
 # 09: 进度标签
 
+Status: resolved
+
 **What to build:** 学习者在"进度"标签看到自己的长期变化：估计词汇量和曲线、三类词、各频段掌握率、连续学习天数，以及 Leech 清单；还能一键打开公开看板和最新的 Progress Report。
 
 - 估计词汇量（词族数）及误差范围、随时间变化的曲线。
@@ -11,7 +13,6 @@
 
 **Blocked by:** 06, 07
 
-**Status:** resolved
 
 - [x] 用夹具 Observation 预置数据时，进度页各项数字与 Profile Engine 命令行一致
 - [x] 曲线能反映多次测试的变化
@@ -53,3 +54,5 @@
 
 - 第 4 个框：两个链接的 URL 按 06 号票的 README 格式拼出，也确认会在 Safari 打开。但要等 02 号票建好真实的 `english-profile` 仓库，才能确认打开的是正确页面。
 - 活跃卡改用 ledger 后，如果有词被"重新学"过，或者 Leech 冷却到期，App 的 Target 数会和 Actions 端稍有差别，因为 CLI 不认识 relearn。要完全一致，`profile-engine` 得能接受传入的活跃卡；这次没有改 CLI。
+
+- 2026-11-13：按 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md)，其中与卡片学习、Leech、Study Plan 相关的部分已删除，其余仍有效。

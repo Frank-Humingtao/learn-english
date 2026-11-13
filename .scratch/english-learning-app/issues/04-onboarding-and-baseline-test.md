@@ -1,5 +1,7 @@
 # 04: 首次启动与 Baseline Test
 
+Status: resolved
+
 **What to build:** 第一次打开 App 时，学习者依次看到欢迎页、粘贴 PAT（可以跳过），然后被引导做约 30 分钟的 Baseline Test。基线测试可以中途退出，下次从断点继续。
 
 - 首次启动三步：欢迎页 → 粘贴 GitHub fine-grained PAT（存进 Keychain，可跳过，稍后在设置里补）→ 基线测试介绍。
@@ -9,7 +11,6 @@
 
 **Blocked by:** 03
 
-**Status:** resolved
 
 - [x] 全新安装后首次启动依次出现三步，之后再打开不再出现
 - [x] 跳过 PAT 后能正常使用测试

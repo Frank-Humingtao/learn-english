@@ -2,6 +2,8 @@
 
 Status: ready-for-agent
 
+> **2026-11-13 起部分作废**：按 [ADR 0002](../../docs/adr/0002-measure-only-no-study-or-planning.md)，卡片学习、Leech、Study Plan、Word Planning、个人 FSRS 参数都已移出本系统。测量部分的新规格见 [../english-measurement/spec.md](../english-measurement/spec.md)，以新规格为准。
+
 来源：[地图](map.md) 的全部已关闭票，以及 [GLOSSARY.md](../../GLOSSARY.md)、[ADR 0001](../../docs/adr/0001-append-only-observations-and-two-repos.md)。下文的术语（Learner、Observation、Learner Profile、Word Band、Mastered / Target / Distant、Coverage、Vocabulary Test、Baseline Test、Card、Study Plan、Word Planning、Leech、Progress Report）都按术语表的定义使用。
 
 ## Problem Statement

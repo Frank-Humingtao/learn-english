@@ -1,5 +1,7 @@
 # 10: 个人化 FSRS 参数
 
+Status: wontfix
+
 **What to build:** 复习记录攒够几百条后，GitHub Actions 用学习者自己的数据训练 FSRS 参数，写回私有仓库；App 同步到新参数后改用它调度，让复习间隔更贴合学习者的记忆。
 
 - Actions 在 `english-data` 中用 py-fsrs 训练，只用来源为 review 的 Observation（不用测试和抽查）。复习条数低于门槛时跳过。
@@ -8,7 +10,6 @@
 
 **Blocked by:** 06, 07
 
-**Status:** resolved
 
 - [x] 复习条数不足门槛时，工作流跳过训练、不报错
 - [x] 用夹具复习记录训练出的参数文件格式正确，并能被 swift-fsrs 读入
@@ -57,3 +58,5 @@
 - 工作流没在真实 GitHub 上跑过，需要 02 号票的真实仓库：setup-python、CPU 版 torch 的安装、推送权限都还没确认。
 - 卡片按钮下方的间隔变化没有截图：这次模拟器数据里没有到期的卡。这一点由 Core 测试覆盖。
 - 训练时用 lemma 作卡片 ID，没有按 Leech 重置把一张卡的历史拆开，影响很小。
+
+- 2026-11-13：按 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md) 作废。系统只做词汇测量，背词交给墨墨背单词；本票的代码已删除（commit a2ca384）。

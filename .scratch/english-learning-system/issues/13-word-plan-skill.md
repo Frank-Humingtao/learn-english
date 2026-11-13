@@ -71,3 +71,7 @@ Part of: ../map.md
 - **提交流程**：运行前先 `git pull --rebase`；只 `git add` 本次写的 `plan/` 文件；提交说明的首行是摘要；push 被拒时先 rebase 再重试一次。
 - **运行时间**：每天 07:30。
 - 不新增 ADR：skill 的位置和定时方式都容易改，没有难以撤销的取舍。
+
+## Comments
+
+- 2026-11-13：已被 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md) 取代：卡片学习、选词规划都移出本系统。

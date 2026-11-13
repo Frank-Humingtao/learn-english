@@ -1,5 +1,7 @@
 # 03: App 骨架与短测
 
+Status: resolved
+
 **What to build:** 学习者打开 App，看到"学习 / 测试 / 进度 / 设置"四个标签，能在"测试"标签完成一次完整的 3 到 5 分钟短测，并看到本地算出的结果。这是 App 的主干。
 
 - SwiftUI App 壳：底部标签栏四个标签，测试和复习是全屏流程（以原型 `.scratch/english-learning-system/prototypes/11-app-screens/` 的方案 A 为准）。
@@ -14,7 +16,6 @@
 
 **Blocked by:** 01
 
-**Status:** resolved
 
 - [x] 在模拟器里能从"测试"标签完整做完一次短测并看到结果页
 - [x] 选题测试：题目集中在 P≈0.5 附近、不重复已测词、假词和抽查比例正确、干扰项来自同词性同频段
@@ -38,3 +39,5 @@
 **未验证**
 
 - 模拟器控制权限没有拿到，所以按钮点击（认识/不认识、选项、✕）是通过 autoplay 调用同一个 model 方法验证的，没有实际点屏幕；中途退出是直接结束进程，而不是点 ✕。人工在模拟器里点一遍即可确认。
+
+- 2026-11-13：按 [ADR 0002](../../../docs/adr/0002-measure-only-no-study-or-planning.md)，其中与卡片学习、Leech、Study Plan 相关的部分已删除，其余仍有效。
