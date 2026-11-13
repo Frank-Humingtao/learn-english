@@ -18,6 +18,7 @@ struct RootView: View {
                 .tabItem { Label("设置", systemImage: "gearshape") }
                 .tag(AppModel.Tab.settings)
         }
+        .tint(Theme.accent)
         .fullScreenCover(item: $model.presentedFlow) { flow in
             switch flow {
             case .test(let test): TestFlowView(model: test)
@@ -33,9 +34,9 @@ struct LoadingState: View {
 
     var body: some View {
         if let error = model.loadError {
-            ContentUnavailableView("无法加载词库", systemImage: "exclamationmark.triangle", description: Text(error))
+            ContentUnavailableView(error, systemImage: "exclamationmark.triangle")
         } else {
-            ProgressView("正在加载词库…")
+            ProgressView()
         }
     }
 }

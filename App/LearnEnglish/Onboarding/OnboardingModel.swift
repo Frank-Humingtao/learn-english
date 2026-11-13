@@ -1,13 +1,13 @@
 import Foundation
 import Observation
 
-/// First launch: welcome → paste the GitHub PAT (skippable) → Baseline Test intro.
+/// First launch: paste the GitHub PAT (skippable) → start the Baseline Test.
 /// Leaving the last step (start or later) marks onboarding done, so it never shows again.
 @Observable @MainActor
 final class OnboardingModel {
-    enum Step: Int { case welcome, token, baseline }
+    enum Step: Int { case token, baseline }
 
-    private(set) var step: Step = .welcome
+    private(set) var step: Step = .token
     var tokenInput = ""
     private(set) var tokenError: String?
     /// Whether a token was saved in this onboarding (no token value is kept here).
@@ -20,16 +20,12 @@ final class OnboardingModel {
         tokenSaved = app.tokenStore.readToken() != nil
     }
 
-    func next() {
-        if step == .welcome { step = .token }
-    }
-
     /// Validates the pasted text's shape and stores it in the Keychain. The input is cleared
     /// right away so the token does not linger in memory longer than needed.
     func saveToken() {
         guard let app else { return }
         guard let token = PATFormat.normalized(tokenInput) else {
-            tokenError = "这看起来不像 GitHub 令牌（应以 github_pat_ 开头）。"
+            tokenError = "不是 github_pat_ 令牌"
             return
         }
         do {
@@ -40,7 +36,7 @@ final class OnboardingModel {
             tokenSaved = true
             step = .baseline
         } catch {
-            tokenError = "保存到钥匙串失败：\(error)"
+            tokenError = "保存失败"
         }
     }
 
