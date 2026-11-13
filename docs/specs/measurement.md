@@ -2,7 +2,7 @@
 
 Status: ready-for-agent
 
-依据：[ADR 0002](../../docs/adr/0002-measure-only-no-study-or-planning.md)、[调研：准确的词汇量测量](../english-learning-system/research/07-accurate-vocab-measurement.md)、2026-11-13 的 grilling 结论，以及 [GLOSSARY.md](../../GLOSSARY.md)。同步、两个仓库和发布流水线沿用 [旧规格](../english-learning-system/spec.md) 和 [ADR 0001](../../docs/adr/0001-append-only-observations-and-two-repos.md)。
+依据：[ADR 0002](../adr/0002-measure-only-no-study-or-planning.md)、[调研：准确的词汇量测量](../research/07-accurate-vocab-measurement.md)、2026-11-13 的 grilling 结论，以及 [GLOSSARY.md](../../GLOSSARY.md)。同步、两个仓库和发布流水线沿用 [旧规格](english-learning-system.md) 和 [ADR 0001](../adr/0001-append-only-observations-and-two-repos.md)。
 
 ## Problem Statement
 
@@ -51,7 +51,7 @@ Learner 在手机上实测后反馈，方案据此反复迭代。
 ## Implementation Decisions
 
 - **不接墨墨**：Observation 只来自 Vocabulary Test，包括 `test`、`spotcheck`、`verify` 三种。旧文件里的 `review` / `wish` / `setting` / `relearn` 一律忽略。
-- **评测协议**（指标和初始阈值见调研 07 §E，之后按数据调整）：
+- **评测协议**（指标和初始阈值见[调研 07](../research/07-accurate-vocab-measurement.md) §E，之后按数据调整）：
   - 留出预测：log loss、Brier、AUC，目标 AUC ≥ .80；
   - 校准误差 ECE ≤ .05；
   - 总数区间半宽：基线测试后 ≤ ±20%，累积约 1000 个校正观测后 ≤ ±10%；
@@ -94,3 +94,7 @@ Learner 在手机上实测后反馈，方案据此反复迭代。
 
 - 答题时实时显示词汇量，可能诱导 Learner 多点"认识"。评测时要关注假词误认率和核验失败率是否上升，一旦上升，把数据拿给 Learner 看，再决定是否调整。
 - 调研 07 的"未核实与开放问题"一节，列出了几篇只核对到二手资料的文献。
+
+## 实现票
+
+GitHub issues：#10（离线评测，已完成）、#11（模型重写）、#12（测试流程）、#13（UI 原型）、#14（UI 实现）、#15（报告 schema 3）。
