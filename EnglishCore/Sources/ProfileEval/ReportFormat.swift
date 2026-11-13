@@ -48,6 +48,9 @@ extension EvalReport {
         predictionRows("交叉验证(按词)", \.crossValidation)
         row("词族总数 [95%]", "", { interval($0.families) })
         row("词族区间半宽", "基线后 ≤ ±20%", { $0.families.map { "±" + pct($0.relativeHalfWidth) } ?? "–" })
+        row("词族 ≤14k [95%]", "", { interval($0.coreFamilies) })
+        row("词族 ≤14k 区间半宽", "", { $0.coreFamilies.map { "±" + pct($0.relativeHalfWidth) } ?? "–" })
+        row("词族 >14k [95%]", "", { interval($0.tailFamilies) })
         row("lemma 总数 [95%]", "", { interval($0.lemmas) })
         row("lemma 区间半宽", "基线后 ≤ ±20%", { $0.lemmas.map { "±" + pct($0.relativeHalfWidth) } ?? "–" })
         for (k, h) in (models.first?.splitHalf ?? []).enumerated() {

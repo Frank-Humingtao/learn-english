@@ -37,6 +37,9 @@ public struct ModelFit {
     public var knowledge: [Double]
     public var lemmas: Interval
     public var families: Interval
+    /// Families at BNC/COCA levels ≤ 14 and above, when the model reports them.
+    public var coreFamilies: Interval?
+    public var tailFamilies: Interval?
     /// Predicted probability of the observed outcome of an item about lexicon entry `entry`:
     /// P("yes") for a Yes/No item, P(correct) for a meaning check. Models with a response layer
     /// (guessing, slips) put it here; it must not leak into `knowledge`.
@@ -49,6 +52,13 @@ public struct ModelFit {
         self.families = families
         self.respond = respond
     }
+
+    public init(knowledge: [Double], lemmas: Interval, families: Interval, coreFamilies: Interval?,
+                tailFamilies: Interval?, respond: @escaping (_ entry: Int, _ kind: ItemKind) -> Double) {
+        self.init(knowledge: knowledge, lemmas: lemmas, families: families, respond: respond)
+        self.coreFamilies = coreFamilies
+        self.tailFamilies = tailFamilies
+    }
 }
 
 /// The seam between the evaluation and a model implementation. A model is a pure function of
@@ -59,13 +69,37 @@ public protocol VocabularyModel {
     func fit(observations: [Observation], lexicon: Lexicon) -> ModelFit
 }
 
-/// The Profile Engine as it is today (ADR 0002 baseline): Rasch on ln rank with per-word
-/// deviations and a guessing floor from pseudowords.
-public struct CurrentProfileModel: VocabularyModel {
+/// The Profile Engine before ticket 02 (ADR 0002 baseline, frozen as `LegacyProfileEngine`): Rasch
+/// on ln rank with per-word deviations and a guessing floor from pseudowords.
+public struct LegacyProfileModel: VocabularyModel {
+    public var name: String
+    public var config: LegacyProfileConfig
+
+    public init(name: String = "legacy", config: LegacyProfileConfig = LegacyProfileConfig()) {
+        self.name = name
+        self.config = config
+    }
+
+    public func fit(observations: [Observation], lexicon: Lexicon) -> ModelFit {
+        let profile = LegacyProfileEngine.compute(observations: observations, lexicon: lexicon, config: config)
+        let p = profile.probabilities
+        let g = profile.falseAlarmRate
+        let s = profile.slipRate
+        return ModelFit(knowledge: p, lemmas: Interval(profile.lemmas), families: Interval(profile.families)) { i, kind in
+            // Mirrors the engine's own likelihood: Yes/No answers carry guessing and slips,
+            // meaning checks are taken at face value.
+            kind == .yesNo ? g + (1 - g - s) * p[i] : p[i]
+        }
+    }
+}
+
+/// The Profile Engine (`ProfileEngine.compute`, ticket 02): knowledge layer σ(θ − β·x_w) over word
+/// features, response layer with slips, false alarms and meaning-check guessing.
+public struct TwoLayerModel: VocabularyModel {
     public var name: String
     public var config: ProfileConfig
 
-    public init(name: String = "current", config: ProfileConfig = ProfileConfig()) {
+    public init(name: String = "twolayer", config: ProfileConfig = ProfileConfig()) {
         self.name = name
         self.config = config
     }
@@ -73,13 +107,19 @@ public struct CurrentProfileModel: VocabularyModel {
     public func fit(observations: [Observation], lexicon: Lexicon) -> ModelFit {
         let profile = ProfileEngine.compute(observations: observations, lexicon: lexicon, config: config)
         let p = profile.probabilities
-        let g = profile.falseAlarmRate
-        let s = config.slipRate
+        let f = profile.falseAlarmRate, r = profile.verifyGuessRate
+        let s = config.slipRate, sv = config.verifySlipRate
         return ModelFit(knowledge: p, lemmas: Interval(profile.vocabulary.lemmas),
-                        families: Interval(profile.vocabulary.families)) { i, kind in
-            // Mirrors the engine's own likelihood: Yes/No answers carry guessing and slips,
-            // meaning checks are taken at face value.
-            kind == .yesNo ? g + (1 - g - s) * p[i] : p[i]
+                        families: Interval(profile.vocabulary.families),
+                        coreFamilies: Interval(profile.vocabulary.core.families),
+                        tailFamilies: Interval(profile.vocabulary.tail.families)) { i, kind in
+            let yes = (1 - s) * p[i] + f * (1 - p[i])
+            switch kind {
+            case .yesNo: return yes
+            case .verify:
+                // A meaning check is only asked after a "yes": P(correct | yes).
+                return ((1 - s) * (1 - sv) * p[i] + f * r * (1 - p[i])) / yes
+            }
         }
     }
 }

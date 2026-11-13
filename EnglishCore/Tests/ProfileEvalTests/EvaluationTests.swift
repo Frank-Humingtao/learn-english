@@ -238,7 +238,7 @@ final class StubModel: VocabularyModel {
         s2.shortItems = 150
         let learner = SimulatedLearner.generate(lexicon: Self.lexicon, theta: 1.5, style: .honest, seed: 99,
                                                 label: "real", options: s2)
-        let models: [any VocabularyModel] = [CurrentProfileModel(), FrequencyBaselineModel()]
+        let models: [any VocabularyModel] = [LegacyProfileModel(name: "current"), FrequencyBaselineModel()]
         let r1 = Evaluation.run(observations: learner.observations, lexicon: Self.lexicon, models: models, options: o)
         let r2 = Evaluation.run(observations: learner.observations, lexicon: Self.lexicon, models: models, options: o)
         #expect(try r1.json() == r2.json())
@@ -263,5 +263,28 @@ final class StubModel: VocabularyModel {
         let table = r1.table()
         #expect(table.contains("| 指标 | 目标 | current | frequency |"))
         #expect(table.contains("留出(按场次) AUC"))
+    }
+
+    /// Ticket 02: the two-layer model's intervals cover honest Learners and its word-level P is
+    /// calibrated. Over-claimers are still hard (see ticket 02): it covers them more often than the
+    /// reference models, which never do, but tends to over-correct.
+    @Test func twoLayerModelCoversHonestLearnersAndIsCalibrated() throws {
+        let lexicon = syntheticLexicon(count: 20000)
+        var o = EvalOptions()
+        o.folds = 0
+        var sim = SimulationOptions()
+        sim.thetas = [2.0]
+        sim.learnersPerSetting = 3
+        o.simulation = sim
+        let models: [any VocabularyModel] = [LegacyProfileModel(), FrequencyBaselineModel(), TwoLayerModel()]
+        let r = Evaluation.run(observations: [], lexicon: lexicon, models: models, options: o)
+        let legacy = try #require(r.models[0].simulation), freq = try #require(r.models[1].simulation)
+        let two = try #require(r.models[2].simulation)
+        #expect(two.honest.lemmaCoverage == 1, "\(two.honest)")
+        #expect(abs(two.honest.meanRelativeBiasFamilies) < 0.15, "\(two.honest)")
+        for ref in [legacy, freq] {
+            #expect(two.honest.meanKnowledgeECE < ref.honest.meanKnowledgeECE)
+            #expect(two.overclaiming.familyCoverage > ref.overclaiming.familyCoverage)
+        }
     }
 }

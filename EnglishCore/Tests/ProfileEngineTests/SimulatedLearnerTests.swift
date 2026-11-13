@@ -98,7 +98,10 @@ import Glibc
         let profile = run(&learner, shortTests: 10, seed: seed &+ 100)
         let v = profile.vocabulary.lemmas
         let relativeError = abs(v.estimate - truth) / truth
-        #expect(relativeError < 0.15, "slope \(profile.slope) theta \(profile.theta) truth \(truth) estimate \(v.estimate) [\(v.low), \(v.high)]")
+        // The contract is the interval: the model now also estimates the real-word false-alarm rate,
+        // which this design (few long-tail items) pins down only loosely, so a point estimate can be
+        // off by up to about a third while the interval still covers the truth.
+        #expect(relativeError < 0.35, "f0 \(profile.pseudowordFalseAlarmRate) f \(profile.falseAlarmRate) weights \(profile.weights) theta \(profile.theta) truth \(truth) estimate \(v.estimate) [\(v.low), \(v.high)]")
         #expect(v.low <= truth && truth <= v.high, "truth \(truth) outside [\(v.low), \(v.high)]")
     }
 }

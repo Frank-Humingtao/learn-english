@@ -21,6 +21,12 @@ public struct Estimate: Sendable, Equatable {
     public var high: Double
 }
 
+/// Totals over one part of the lexicon.
+public struct VocabularyPart: Sendable, Equatable {
+    public var lemmas: Estimate
+    public var families: Estimate
+}
+
 public struct VocabularySize: Sendable, Equatable {
     /// ΣP over lemmas.
     public var lemmas: Estimate
@@ -29,6 +35,10 @@ public struct VocabularySize: Sendable, Equatable {
     public var families: Estimate
     public var lemmaCount: Int
     public var familyCount: Int
+    /// The same totals for BNC/COCA levels ≤ `ProfileConfig.coreLevels` (14k families: what matters
+    /// for Coverage) and above (the long tail, where most of the uncertainty is).
+    public var core: VocabularyPart
+    public var tail: VocabularyPart
 }
 
 public struct BandCounts: Sendable, Equatable {
@@ -51,76 +61,61 @@ public struct LearnerProfile: Sendable {
     public let config: ProfileConfig
     /// Reference time of the computation (ISO 8601).
     public let asOf: String
-    /// Ability on the logit scale, relative to a word at `config.referenceRank`.
+    /// Ability: logit P(known) of a word at rank 1000 with average other features.
     public let theta: Double
-    /// Difficulty per unit of ln(rank).
-    public let slope: Double
+    /// Difficulty weights of `config.features` (one per feature column).
+    public let weights: [Double]
+    /// Fitted SD τ of the per-word deviation u_w.
+    public let wordSD: Double
     public let counts: ObservationCounts
-    /// Estimated rate of "yes" to unknown words: pseudoword false alarms (decayed, Beta prior),
-    /// raised by meaning checks failed after a "yes".
+    /// Response layer: P("yes" | pseudoword) …
+    public let pseudowordFalseAlarmRate: Double
+    /// … P("yes" | real word not known) (never counted as knowing) …
     public let falseAlarmRate: Double
+    /// … and P(meaning check right | word not known).
+    public let verifyGuessRate: Double
     /// Person-fit statistic lz of the Yes/No answers (about 0 when consistent with the model; below
     /// about −2 the answers look careless or random). nil with too few answers.
     public let personFit: Double?
-    /// P(known) per lexicon entry, in `lexicon.entries` order.
+    /// Sessions the quality gate down-weighted, with their weight.
+    public let sessionWeights: [String: Double]
+    /// P(known) per lexicon entry, in `lexicon.entries` order: the knowledge layer only (the
+    /// posterior for words with answers), no guessing.
     public let probabilities: [Double]
+    /// Standard error of each P from the uncertainty of the fitted parameters.
+    public let standardErrors: [Double]
     /// Word Band per lexicon entry, in `lexicon.entries` order.
     public let bands: [WordBand]
     public let vocabulary: VocabularySize
     public let bandCounts: BandCounts
+    /// Mean family P per BNC/COCA 1000-family level (frequency-band mastery).
     public let levelMastery: [LevelMastery]
 
-    init(lexicon: Lexicon, config: ProfileConfig, asOf: String, theta: Double, slope: Double,
-         covariance: (Double, Double, Double), falseAlarmRate: Double, personFit: Double?, x: [Double], p: [Double],
-         counts: ObservationCounts, count: Int) {
+    init(lexicon: Lexicon, config: ProfileConfig, asOf: String, theta: Double, weights: [Double], wordSD: Double,
+         pseudowordFalseAlarmRate: Double, falseAlarmRate: Double, verifyGuessRate: Double, personFit: Double?,
+         sessionWeights: [String: Double], probabilities p: [Double], standardErrors: [Double],
+         vocabulary: VocabularySize, counts: ObservationCounts) {
         self.lexicon = lexicon
         self.config = config
         self.asOf = asOf
         self.theta = theta
-        self.slope = slope
+        self.weights = weights
+        self.wordSD = wordSD
+        self.pseudowordFalseAlarmRate = pseudowordFalseAlarmRate
         self.falseAlarmRate = falseAlarmRate
+        self.verifyGuessRate = verifyGuessRate
         self.personFit = personFit
+        self.sessionWeights = sessionWeights
         self.probabilities = p
+        self.standardErrors = standardErrors
+        self.vocabulary = vocabulary
         self.counts = counts
 
         let entries = lexicon.entries
-        let (ctt, ctb, cbb) = covariance
-
-        // Variance of a sum of P: parameter uncertainty (delta method on θ, slope)
-        // plus the Bernoulli spread of which words are actually known.
-        func interval(_ ps: [Double], _ xs: [Double]) -> Estimate {
-            var sum = 0.0, gt = 0.0, gb = 0.0, bern = 0.0
-            for (pi, xi) in zip(ps, xs) {
-                let d = pi * (1 - pi)
-                sum += pi
-                gt += d
-                gb -= d * xi
-                bern += d
-            }
-            let variance = gt * gt * ctt + 2 * gt * gb * ctb + gb * gb * cbb + bern
-            let half = 1.96 * sqrt(max(0, variance))
-            return Estimate(estimate: sum, low: max(0, sum - half), high: min(Double(ps.count), sum + half))
-        }
-        let lemmaSize = interval(p, x)
-
-        // Families: P(family) = max over member lemmas.
-        var familyBest: [String: Int] = [:]
-        var familyOrder: [String] = []
-        for (i, e) in entries.enumerated() {
-            if let j = familyBest[e.family] {
-                if p[i] > p[j] { familyBest[e.family] = i }
-            } else {
-                familyBest[e.family] = i
-                familyOrder.append(e.family)
-            }
-        }
-        let best = familyOrder.map { familyBest[$0]! }
-        let familySize = interval(best.map { p[$0] }, best.map { x[$0] })
-        vocabulary = VocabularySize(lemmas: lemmaSize, families: familySize, lemmaCount: entries.count,
-                                    familyCount: familyOrder.count)
+        let best = familyBestIndices(p, lexicon: lexicon)
 
         // Word Bands.
-        let window = Double(config.targetWindow) + lemmaSize.estimate
+        let window = Double(config.targetWindow) + vocabulary.lemmas.estimate
         var counts = BandCounts()
         bands = entries.enumerated().map { i, e in
             let band: WordBand

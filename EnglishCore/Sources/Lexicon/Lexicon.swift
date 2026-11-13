@@ -9,6 +9,11 @@ public struct LexiconEntry: Sendable, Equatable {
     public var familyRank: Int
     /// BNC/COCA 1000-family level (1 = first 1000 families ... 25).
     public var level: Int
+    /// Frequency of this lemma (with its inflections) in the BNC/COCA family lists; 0 if unknown.
+    public var freq: Int
+    /// ECDICT frequency ranks in the BNC and in a contemporary (COCA) corpus; 0 if unranked or unknown.
+    public var bncRank: Int
+    public var cocaRank: Int
     public var phonetic: String
     public var pos: String
     /// ECDICT exam tags, space separated (e.g. `cet4 cet6 ky`).
@@ -22,7 +27,8 @@ public struct LexiconEntry: Sendable, Equatable {
     /// Pronunciation audio URL (Wiktextract), may be empty.
     public var audio: String
 
-    public init(lemma: String, rank: Int, family: String, familyRank: Int, level: Int,
+    public init(lemma: String, rank: Int, family: String, familyRank: Int, level: Int, freq: Int = 0,
+                bncRank: Int = 0, cocaRank: Int = 0,
                 phonetic: String = "", pos: String = "", tags: String = "", definition: String = "",
                 translation: String = "", example: String = "", audio: String = "") {
         self.lemma = lemma
@@ -30,6 +36,9 @@ public struct LexiconEntry: Sendable, Equatable {
         self.family = family
         self.familyRank = familyRank
         self.level = level
+        self.freq = freq
+        self.bncRank = bncRank
+        self.cocaRank = cocaRank
         self.phonetic = phonetic
         self.pos = pos
         self.tags = tags

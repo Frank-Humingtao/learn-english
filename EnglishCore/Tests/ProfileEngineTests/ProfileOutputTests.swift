@@ -89,7 +89,7 @@ import Testing
         }
         let counts = profile.bandCounts
         #expect(counts.mastered + counts.target + counts.distant == 10000)
-        #expect(counts.mastered > 1000 && counts.mastered < 3000, "\(counts) theta=\(profile.theta) slope=\(profile.slope) v=\(profile.vocabulary.lemmas)")
+        #expect(counts.mastered > 1000 && counts.mastered < 3000, "\(counts) theta=\(profile.theta) weights=\(profile.weights) v=\(profile.vocabulary.lemmas)")
     }
 
     @Test func thresholdsAreTunable() {
