@@ -2,9 +2,9 @@
 
 Status: ready-for-agent
 
-> **2026-11-13 起部分作废**：按 [ADR 0002](../../docs/adr/0002-measure-only-no-study-or-planning.md)，卡片学习、Leech、Study Plan、Word Planning、个人 FSRS 参数都已移出本系统。测量部分的新规格见 [../english-measurement/spec.md](../english-measurement/spec.md)，以新规格为准。
+> **2026-11-13 起部分作废**：按 [ADR 0002](../adr/0002-measure-only-no-study-or-planning.md)，卡片学习、Leech、Study Plan、Word Planning、个人 FSRS 参数都已移出本系统。测量部分的新规格见 [../english-measurement/spec.md](measurement.md)，以新规格为准。
 
-来源：[地图](map.md) 的全部已关闭票，以及 [GLOSSARY.md](../../GLOSSARY.md)、[ADR 0001](../../docs/adr/0001-append-only-observations-and-two-repos.md)。下文的术语（Learner、Observation、Learner Profile、Word Band、Mastered / Target / Distant、Coverage、Vocabulary Test、Baseline Test、Card、Study Plan、Word Planning、Leech、Progress Report）都按术语表的定义使用。
+来源：[地图](https://github.com/Frank-Humingtao/learn-english/blob/e948511/.scratch/english-learning-system/map.md) 的全部已关闭票，以及 [GLOSSARY.md](../../GLOSSARY.md)、[ADR 0001](../adr/0001-append-only-observations-and-two-repos.md)。下文的术语（Learner、Observation、Learner Profile、Word Band、Mastered / Target / Distant、Coverage、Vocabulary Test、Baseline Test、Card、Study Plan、Word Planning、Leech、Progress Report）都按术语表的定义使用。
 
 ## Problem Statement
 
@@ -154,7 +154,7 @@ Learner 想要三样东西：
    - 认证用只授权 `english-data` Contents 读写的 fine-grained PAT，存在 Keychain。
    - 状态模型：已同步（不显示）、未同步 N 条、离线（灰色提示）、令牌错误（401，红条）。
 5. **App UI**（SwiftUI）
-   - 底部标签栏分四个标签：学习、测试、进度、设置。测试和复习都是全屏流程。屏幕清单和交互以原型 `prototypes/11-app-screens/index.html` 的方案 A 为准。
+   - 底部标签栏分四个标签：学习、测试、进度、设置。测试和复习都是全屏流程。屏幕清单和交互以原型 ``.scratch/english-learning-system/prototypes/11-app-screens/index.html`（见 git 历史）` 的方案 A 为准。
    - 第一版卡片不配图。
    - App 不调用任何 AI 服务。
 6. **参考数据构建**
@@ -220,6 +220,6 @@ Learner 想要三样东西：
 - **阈值未定稿**：Word Band 阈值（0.9 和约 2000 词的窗口）、Leech 的 8 次和 30 天都是初值，需要用真实数据调整。由于 Observation 只追加，调整后重算即可，历史不丢。
 - **许可待确认**：BNC/COCA 词表没有明确许可证。目前的做法是只在构建时下载、不入库。如果日后要把原表放进公开仓库，需要先向 Paul Nation 确认。
 - **网络**：GitHub 在大陆网络下暂时连不上时，只会推迟同步。App 不内置代理。
-- **详细决策与依据**：见地图 Decisions so far 中各票的 Answer 部分，以及 `research/` 下的调研笔记。
+- **详细决策与依据**：见地图 Decisions so far 中各票的 Answer 部分，以及 `docs/research/` 下的调研笔记。
 
-实现票：[../english-learning-app/issues/](../english-learning-app/issues/)（10 张）。
+实现票：原 `.scratch/english-learning-app/issues/`（10 张，已全部完成或作废，见 git 历史）。

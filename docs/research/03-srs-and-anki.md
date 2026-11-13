@@ -1,6 +1,6 @@
 # 调研：间隔重复算法与 Anki 卡组格式
 
-来源工单：[03-srs-and-anki](../issues/03-srs-and-anki.md)
+来源工单：[03-srs-and-anki](https://github.com/Frank-Humingtao/learn-english/blob/e948511/.scratch/english-learning-system/issues/03-srs-and-anki.md)
 调研日期：2026-11-11
 
 ## 问题

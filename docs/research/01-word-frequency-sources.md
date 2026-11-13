@@ -1,6 +1,6 @@
 # 调研：词频词表与词典数据来源
 
-对应 ticket：[01-word-frequency-sources](../issues/01-word-frequency-sources.md)
+对应 ticket：[01-word-frequency-sources](https://github.com/Frank-Humingtao/learn-english/blob/e948511/.scratch/english-learning-system/issues/01-word-frequency-sources.md)
 调研日期：2026-11-11
 
 ## 问题

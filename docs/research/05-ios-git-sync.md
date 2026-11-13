@@ -1,6 +1,6 @@
 # 调研：iPhone 上的 Git 同步可行性
 
-来源工单：[05-ios-git-sync](../issues/05-ios-git-sync.md)
+来源工单：[05-ios-git-sync](https://github.com/Frank-Humingtao/learn-english/blob/e948511/.scratch/english-learning-system/issues/05-ios-git-sync.md)
 调研日期：2026-11-11
 
 ## 问题

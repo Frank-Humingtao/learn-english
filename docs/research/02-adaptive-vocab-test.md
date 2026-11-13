@@ -1,6 +1,6 @@
 # 调研：自适应词汇量测试方法
 
-对应工单：[02-adaptive-vocab-test](../issues/02-adaptive-vocab-test.md)
+对应工单：[02-adaptive-vocab-test](https://github.com/Frank-Humingtao/learn-english/blob/e948511/.scratch/english-learning-system/issues/02-adaptive-vocab-test.md)
 调研日期：2026-11-11
 
 问题：有哪些成熟、可复现的词汇量估算方法？怎样在 3 到 5 分钟内，从按词频分层的大题库里自适应抽样，估出总词汇量和各频段掌握率？一两天测一次时，怎样做到题目不重复、结果滚动更新？怎样识别猜测和过度自信？哪些题库或参数是公开的？

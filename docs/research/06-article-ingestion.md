@@ -1,6 +1,6 @@
 # 调研：文章入库方式与个人使用的版权边界
 
-对应工单：[06-article-ingestion](../issues/06-article-ingestion.md)
+对应工单：[06-article-ingestion](https://github.com/Frank-Humingtao/learn-english/blob/e948511/.scratch/english-learning-system/issues/06-article-ingestion.md)
 调研日期：2026-11-11
 
 > 声明：本文不是法律意见。版权部分只按风险高低分级，具体情况请咨询专业人士。

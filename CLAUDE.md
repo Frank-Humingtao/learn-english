@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues are local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `Frank-Humingtao/learn-english` (via `gh`) are the only tracker; no local ticket files. Specs live in `docs/specs/`, research in `docs/research/`. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
