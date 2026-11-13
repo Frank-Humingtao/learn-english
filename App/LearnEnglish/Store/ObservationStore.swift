@@ -15,7 +15,6 @@ struct ObservationRow: Codable, FetchableRecord, MutablePersistableRecord {
     var session: String?
     var pseudo: Bool?
     var lexicon: String?
-    var review: String?
 
     init(_ o: Observation) {
         ts = o.ts
@@ -26,13 +25,11 @@ struct ObservationRow: Codable, FetchableRecord, MutablePersistableRecord {
         session = o.session
         pseudo = o.pseudo
         lexicon = o.lexicon
-        review = o.review.flatMap { try? JSONEncoder().encode($0) }.map { String(decoding: $0, as: UTF8.self) }
     }
 
     var observation: Observation {
         Observation(ts: ts, lemma: lemma, source: ObservationSource(rawValue: source), result: result, rtMs: rt_ms,
-                    session: session, pseudo: pseudo, lexicon: lexicon,
-                    review: review.flatMap { try? JSONDecoder().decode(ReviewLog.self, from: Data($0.utf8)) })
+                    session: session, pseudo: pseudo, lexicon: lexicon)
     }
 
     mutating func didInsert(_ inserted: InsertionSuccess) {

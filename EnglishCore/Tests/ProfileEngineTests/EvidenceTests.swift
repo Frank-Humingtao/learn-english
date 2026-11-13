@@ -33,35 +33,13 @@ import Testing
         #expect(oneYes < twoYes)
     }
 
-    @Test func reviewForgotCountsAsUnknownOtherRatingsAsKnown() {
+    /// Older files still hold the retired card-study sources; they are not vocabulary evidence.
+    @Test func retiredCardStudySourcesAreIgnored() {
         let target = word(4321)
         let base = p(target, [])
-        #expect(p(target, [obs(target, .review, "again", day: 1)]) < base)
-        for rating in ["hard", "good", "easy"] {
-            // Seed the card with a first review so `easy` is not a first rating here.
-            let first = obs(target, .review, "good", day: 1)
-            let withRating = p(target, [first, obs(target, .review, rating, day: 2)])
-            #expect(withRating > p(target, [first]), "rating \(rating) should count as known")
+        let noise = ["review", "wish", "setting", "relearn"].map {
+            obs(target, ObservationSource(rawValue: $0), "good", day: 1)
         }
-    }
-
-    @Test func firstRatingTooEasyIsStrongerThanAnOrdinaryKnownAnswer() {
-        let target = word(6000)
-        let easyFirst = p(target, [obs(target, .review, "easy", day: 1)])
-        let goodFirst = p(target, [obs(target, .review, "good", day: 1)])
-        #expect(easyFirst > goodFirst + 0.2)
-        // Near the Learner's boundary (background knows up to rank ~3000) one "too easy" suffices for Mastered.
-        let boundary = word(3000)
-        #expect(p(boundary, [obs(boundary, .review, "easy", day: 1)]) >= 0.9)
-    }
-
-    @Test func wishesAndSettingsAreNotVocabularyEvidence() {
-        let target = word(4321)
-        let base = p(target, [])
-        let noise = [
-            obs(target, .wish, "add", day: 1),
-            obs(target, .setting, "daily_new=10", day: 1),
-        ]
         #expect(abs(p(target, noise) - base) < 1e-12)
     }
 

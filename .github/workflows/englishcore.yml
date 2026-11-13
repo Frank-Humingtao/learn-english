@@ -37,8 +37,8 @@ jobs:
       - run: python3 -I english-data-template/scripts/test_obs_io.py
       - run: swift build -c release --package-path EnglishCore --product profile-engine
       - run: |
-          # Fixture english-data repo: plan/ from the template, Observations from EnglishCore's fixture.
-          cp -R english-data-template/scripts/fixtures/english-data "$RUNNER_TEMP/data"
+          # Fixture english-data repo: Observations from EnglishCore's fixture.
+          mkdir -p "$RUNNER_TEMP/data"
           cp -R EnglishCore/Fixtures/observations "$RUNNER_TEMP/data/observations"
           python3 -I english-data-template/scripts/profile_publish.py dry-run \
             --data "$RUNNER_TEMP/data" \
@@ -46,15 +46,3 @@ jobs:
             --owner example --tz Asia/Shanghai --now 2026-11-05T12:00:00Z --out "$RUNNER_TEMP/dry-run"
           cat "$RUNNER_TEMP/dry-run/report-decision.json"
           grep -q '"action": "create"' "$RUNNER_TEMP/dry-run/report-decision.json"
-  # Personal FSRS training (english-data-template/scripts/fsrs_train.py) with the pinned optimizer.
-  fsrs-train:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: |
-          python3 -m pip install --quiet --extra-index-url https://download.pytorch.org/whl/cpu \
-            -r english-data-template/scripts/requirements-fsrs.txt
-      - run: python3 -I english-data-template/scripts/test_fsrs_train.py

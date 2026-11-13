@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Bottom tab bar (scheme A): 学习 / 测试 / 进度 / 设置. Tests and reviews run as full-screen flows
+/// Bottom tab bar: 测试 / 进度 / 设置. Tests run as full-screen flows
 /// over the tab bar via `AppModel.presentedFlow`. Each tab lives in its own file.
 struct RootView: View {
     @Environment(AppModel.self) private var model
@@ -8,9 +8,6 @@ struct RootView: View {
     var body: some View {
         @Bindable var model = model
         TabView(selection: $model.selectedTab) {
-            StudyTab()
-                .tabItem { Label("学习", systemImage: "book") }
-                .tag(AppModel.Tab.study)
             TestTab()
                 .tabItem { Label("测试", systemImage: "checklist") }
                 .tag(AppModel.Tab.test)
@@ -24,7 +21,6 @@ struct RootView: View {
         .fullScreenCover(item: $model.presentedFlow) { flow in
             switch flow {
             case .test(let test): TestFlowView(model: test)
-            case .study(let study): StudyFlowView(model: study)
             case .onboarding(let onboarding): OnboardingView(model: onboarding)
             }
         }

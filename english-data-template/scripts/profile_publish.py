@@ -30,21 +30,20 @@ import urllib.error
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from obs_io import latest_plan, load_observations, parse_ts, streak, study_days  # noqa: E402,F401
+from obs_io import load_observations, parse_ts, streak, test_days  # noqa: E402,F401
 
 try:
     from zoneinfo import ZoneInfo
 except ImportError:  # pragma: no cover
     ZoneInfo = None
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # 2: focus_targets removed (ADR 0002)
 LABEL = "progress-report"
 PROFILE_REPO = "english-profile"
 TITLE_RE = re.compile(r"^Progress Report (\d{4}-\d{2}-\d{2})\b")
 STATE_RE = re.compile(r"<!-- progress-report-state: (\{.*?\}) -->")
 RECENT_DAYS = 7
 MAX_NEWLY_MASTERED = 30
-MAX_FOCUS_TARGETS = 50
 CURVE_POINTS = 60
 
 
@@ -256,7 +255,7 @@ def render_readme(summary, recent, history, last_test, streak_days, owner):
         "## 学习",
         "",
         "- 最近测试日期：%s" % (last_test or "暂无"),
-        "- 连续学习天数：%d 天" % streak_days,
+        "- 连续测试天数：%d 天" % streak_days,
         "",
         "## 最新 Progress Report",
         "",
@@ -267,7 +266,7 @@ def render_readme(summary, recent, history, last_test, streak_days, owner):
         "",
         "- `summary.json`：词汇量及区间、三类词数、更新时间",
         "- `words.tsv`：lemma、Word Band、P（认识概率）、词频排名",
-        "- `recent.json`：近一周新掌握的词、当前学习重点 `focus_targets`",
+        "- `recent.json`：近一周新掌握的词",
         "- `history.json`：每日词汇量（用于上面的曲线）",
         "",
         "## 数据来源与许可",
@@ -312,13 +311,10 @@ def build(data_dir, profile_dir, engine, lexicon, now, tz, owner):
     words = read_words(os.path.join(profile_dir, "words.tsv"))
     observations = load_observations(data_dir)
     warn_lexicon_mismatch(observations, lexicon)
-    _, plan = latest_plan(data_dir)
     recent = {
         "schema_version": SCHEMA_VERSION,
         "updated_at": today,
         "newly_mastered": newly_mastered(prev_words, words, prev_recent.get("newly_mastered", []), today),
-        # Copied verbatim from the latest Study Plan (written by word-plan); empty without one.
-        "focus_targets": (plan or {}).get("focus_targets", []),
     }
     history = upsert_history(history, today, summary)
     zone = tzinfo(tz)
@@ -327,7 +323,7 @@ def build(data_dir, profile_dir, engine, lexicon, now, tz, owner):
     write_json(os.path.join(profile_dir, "history.json"), history)
     write_text(os.path.join(profile_dir, "README.md"),
                render_readme(summary, recent, history, tests[-1] if tests else None,
-                             streak(study_days(observations, zone), today), owner))
+                             streak(test_days(observations, zone), today), owner))
     return {"summary": summary, "recent": recent, "history": history, "observations": observations}
 
 
@@ -355,7 +351,6 @@ def render_report(decision, built, commit, owner, now):
     before = [h for h in history if h["date"] < decision.date]
     change = fam["estimate"] - before[-1]["families"] if before else 0
     nm = [e["lemma"] for e in recent["newly_mastered"]][:MAX_NEWLY_MASTERED]
-    focus = list(recent["focus_targets"])[:MAX_FOCUS_TARGETS]
     bands = summary["band_counts"]
     data = {
         "schema_version": SCHEMA_VERSION,
@@ -365,7 +360,6 @@ def render_report(decision, built, commit, owner, now):
                        "high": fam["high"], "change": change},
         "band_counts": {"mastered": bands["mastered"], "target": bands["target"], "distant": bands["distant"]},
         "newly_mastered": nm,
-        "focus_targets": focus,
         "words_tsv_url": "https://raw.githubusercontent.com/%s/%s/%s/words.tsv" % (owner, PROFILE_REPO, commit),
     }
     title = "Progress Report %s · 约 %d 词族" % (decision.date, fam["estimate"])
@@ -378,7 +372,6 @@ def render_report(decision, built, commit, owner, now):
         "- 已掌握 %d · 学习目标 %d · 暂不考虑 %d。" % (bands["mastered"], bands["target"], bands["distant"]),
         "- 近一周新掌握 %d 个词%s" % (len(recent["newly_mastered"]),
                                  "：" + "、".join(nm[:10]) + ("……" if len(nm) > 10 else "") + "。" if nm else "。"),
-        "- 当前学习重点 %d 个词。" % len(focus),
         "- 逐词数据：[words.tsv](%s)（固定到本次档案提交）。" % data["words_tsv_url"],
         "",
         "```json",

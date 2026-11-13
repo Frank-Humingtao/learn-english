@@ -2,20 +2,19 @@ import CoreModels
 import Foundation
 import Lexicon
 import ProfileEngine
-import StudyComposer
 
-/// 进度 tab (ticket 09): profile with the card ledger's active cards, test streak, public links.
+/// 进度 tab (ticket 09): profile, test streak, public links.
 extension AppModel {
     /// The Learner Profile as the 进度 tab and everything else in the app uses it. The same
-    /// computation as `profile-engine profile` in GitHub Actions (active cards from the shared card
-    /// replay, reference time = latest Observation), so both publish identical numbers.
+    /// computation as `profile-engine profile` in GitHub Actions (reference time = latest
+    /// Observation), so both publish identical numbers.
     nonisolated static func computeProfile(observations: [LearnerObservation], lexicon: Lexicon) -> LearnerProfile {
-        ProgressPage.report(observations: observations, lexicon: lexicon, composer: StudyComposer(),
+        ProgressPage.report(observations: observations, lexicon: lexicon,
                             now: Date(), calendar: .current).profile
     }
 
-    /// 连续学习天数 and the latest test day (same rule as the public dashboard).
-    var studyActivity: StudyActivity {
+    /// 连续天数 and the latest test day (same rule as the public dashboard).
+    var testActivity: StudyActivity {
         ProgressPage.activity(observations: observations, now: Date(), calendar: .current)
     }
 
@@ -58,12 +57,5 @@ extension AppModel {
         await recomputeProfile()
     }
 
-    /// Simulator hook (`LE_RELEARN=<lemma>`): same call as the 重新学 button.
-    func relearnIfRequested() async {
-        guard let lemma = ProcessInfo.processInfo.environment["LE_RELEARN"],
-              leeches.contains(where: { $0.lemma == lemma }) else { return }
-        try? relearn(lemma)
-        await recomputeProfile()
-    }
     #endif
 }

@@ -35,7 +35,7 @@ final class FakeGitHub: HTTPTransport, @unchecked Sendable {
     var files: [String: String] { (snapshots[head] ?? [:]).mapValues { String(decoding: $0, as: UTF8.self) } }
     var commitCount: Int { commitMessages.count }
 
-    /// Simulates a commit by another writer (e.g. the Mac adding a Study Plan).
+    /// Simulates a commit by another writer (e.g. GitHub Actions).
     func externalCommit(path: String = "plans/2026-11-12.md", text: String = "plan\n") {
         var next = snapshots[head]!
         next[path] = Data(text.utf8)

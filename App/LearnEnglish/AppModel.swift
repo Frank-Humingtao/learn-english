@@ -6,35 +6,31 @@ import ProfileEngine
 /// The single app-state / dependency container, injected into the view tree with `.environment`.
 ///
 /// Owns the database, the bundled lexicon, the in-memory Observation history and the current
-/// Learner Profile. Feature flows (test, study, ...) get what they need from here and report
+/// Learner Profile. Feature flows (test, onboarding) get what they need from here and report
 /// new Observations back through `record(_:)`, the one write path (sync hooks in here later).
 @Observable @MainActor
 final class AppModel {
-    enum Tab: Hashable { case study, test, progress, settings }
+    enum Tab: Hashable { case test, progress, settings }
 
-    /// A full-screen flow covering the tab bar. Later tickets add cases (study session, baseline...).
+    /// A full-screen flow covering the tab bar.
     enum Flow: Identifiable {
         case test(TestFlowModel)
-        case study(StudyFlowModel)
         case onboarding(OnboardingModel)
 
         var id: ObjectIdentifier {
             switch self {
             case .test(let m): ObjectIdentifier(m)
-            case .study(let m): ObjectIdentifier(m)
             case .onboarding(let m): ObjectIdentifier(m)
             }
         }
     }
 
-    var selectedTab: Tab = .study
+    var selectedTab: Tab = .test
     var presentedFlow: Flow?
 
     let database: AppDatabase
     /// Outbox sync to english-data (ticket 05).
     let sync: SyncModel
-    /// Newest Study Plan pulled from english-data (ticket 08).
-    let plans = PlanStore()
     private(set) var lexicon: Lexicon?
     private(set) var observations: [LearnerObservation] = []
     private(set) var profile: LearnerProfile?
@@ -51,7 +47,6 @@ final class AppModel {
         self.defaults = defaults
         Self.forgetTokenFromEarlierInstall(tokenStore, defaults: defaults)
         sync = SyncModel(database: database, tokenStore: tokenStore, defaults: defaults)
-        plans.attach(to: sync)
     }
 
     var isLoaded: Bool { lexicon != nil && profile != nil }
@@ -83,7 +78,7 @@ final class AppModel {
         sync.refreshCount()
     }
 
-    /// A test or study session ended (result shown or flow closed): push the outbox.
+    /// A test session ended (result shown or flow closed): push the outbox.
     func sessionEnded() {
         sync.syncSoon()
     }

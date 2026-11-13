@@ -32,11 +32,8 @@ struct LearnEnglishApp: App {
                     // Simulator verification hooks (no effect unless the env vars are set).
                     if ProcessInfo.processInfo.environment["LE_TAB"] == "test" { model.selectedTab = .test }
                     if ProcessInfo.processInfo.environment["LE_START_TEST"] != nil { model.startTest() }
-                    model.seedReviewsIfRequested()
                     if ProcessInfo.processInfo.environment["LE_TAB"] == "progress" { model.selectedTab = .progress }
                     await model.seedObservationsIfRequested()
-                    await model.relearnIfRequested()
-                    if ProcessInfo.processInfo.environment["LE_START_STUDY"] != nil { model.startStudy() }
                     if ProcessInfo.processInfo.environment["LE_START_BASELINE"] != nil {
                         model.onboardingCompleted = true
                         model.startBaseline()

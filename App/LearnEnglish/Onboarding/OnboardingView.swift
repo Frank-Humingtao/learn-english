@@ -24,7 +24,7 @@ struct OnboardingView: View {
     private var welcome: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("你好").font(.largeTitle.bold()).padding(.top, 24)
-            Text("这个 App 会先测出你的词汇量，再只给你「正好该学」的词发卡片。")
+            Text("这个 App 会定期测出你的词汇量。")
             Text("所有记录都存到你自己的私有 GitHub 仓库 english-data。")
                 .foregroundStyle(.secondary)
             Spacer()
