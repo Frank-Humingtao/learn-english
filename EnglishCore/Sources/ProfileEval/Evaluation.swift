@@ -58,6 +58,7 @@ public struct SimulatedResult: Codable, Sendable, Equatable {
     public var familiesCovered: Bool
     /// Published P(known) against the true knowledge state of every lexicon word.
     public var knowledge: Scores
+    public var flow: FlowStats?
 }
 
 public struct SimulationSummary: Codable, Sendable, Equatable {
@@ -73,6 +74,13 @@ public struct SimulationSummary: Codable, Sendable, Equatable {
     public var meanRelativeHalfWidthFamilies: Double
     public var meanKnowledgeLogLoss: Double
     public var meanKnowledgeECE: Double
+    /// Flow means (simulated flows other than `.stratified`): real items beyond rank 8000 and
+    /// meaning checks per Learner (baseline + short test).
+    public var meanItemsBeyond8k: Double?
+    public var meanMeaningChecks: Double?
+    public var meanAnswerMs: Double?
+    public var maxAnswerMs: Double?
+    public var meanLiveVsFullGap: Double?
 }
 
 public struct SimulationReport: Codable, Sendable, Equatable {
@@ -288,7 +296,12 @@ public enum Evaluation {
                                    lemmas: fit.lemmas, families: fit.families,
                                    lemmasCovered: fit.lemmas.contains(Double(tl)),
                                    familiesCovered: fit.families.contains(Double(tf)),
-                                   knowledge: Scores(predictions: fit.knowledge, outcomes: l.knows.map { $0 ? 1 : 0 })!)
+                                   knowledge: Scores(predictions: fit.knowledge, outcomes: l.knows.map { $0 ? 1 : 0 })!,
+                                   flow: l.flowStats)
+        }
+        func flowMean(_ rs: [SimulatedResult], _ f: (FlowStats) -> Double?) -> Double? {
+            let v = rs.compactMap { $0.flow.flatMap(f) }
+            return v.isEmpty ? nil : rounded(v.reduce(0, +) / Double(v.count))
         }
         func summary(_ rs: [SimulatedResult]) -> SimulationSummary {
             let n = Double(max(1, rs.count))
@@ -302,7 +315,12 @@ public enum Evaluation {
                 meanRelativeBiasFamilies: mean { ($0.families.estimate - Double($0.trueFamilies)) / Double(max(1, $0.trueFamilies)) },
                 meanRelativeHalfWidthFamilies: mean { $0.families.relativeHalfWidth },
                 meanKnowledgeLogLoss: mean { $0.knowledge.logLoss },
-                meanKnowledgeECE: mean { $0.knowledge.ece })
+                meanKnowledgeECE: mean { $0.knowledge.ece },
+                meanItemsBeyond8k: flowMean(rs) { Double($0.beyond8k) },
+                meanMeaningChecks: flowMean(rs) { Double($0.meaningChecks) },
+                meanAnswerMs: flowMean(rs) { $0.answerMeanMs },
+                maxAnswerMs: rs.compactMap { $0.flow?.answerMaxMs }.max(),
+                meanLiveVsFullGap: flowMean(rs) { $0.liveVsFullRelativeGap })
         }
         return SimulationReport(all: summary(results), honest: summary(results.filter { $0.style == .honest }),
                                 overclaiming: summary(results.filter { $0.style == .overclaiming }),

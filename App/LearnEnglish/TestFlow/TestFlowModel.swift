@@ -26,6 +26,10 @@ final class TestFlowModel {
     private(set) var session: TestSession?
     /// Observations recorded in this flow.
     private(set) var recorded = 0
+    /// Judgment of the last answer (pseudowords and meaning checks; real words are neutral).
+    private(set) var feedback: Feedback?
+    /// Live vocabulary estimate (word families) after the answers so far.
+    private(set) var liveEstimate: Int?
 
     private weak var app: AppModel?
     private let lexicon: Lexicon
@@ -64,20 +68,28 @@ final class TestFlowModel {
         return Double(p.answered) / Double(p.total)
     }
 
-    /// Rough minutes left at ~2.5 s per item.
+    /// Rough minutes left at the pace the test lengths were planned with.
     var minutesLeft: Int {
         guard let p = session?.progress else { return 0 }
-        return max(1, Int((Double(p.total - p.answered) * 2.5 / 60).rounded(.up)))
+        return max(1, Int((Double(p.total - p.answered) * TestConfig.secondsPerYesNo / 60).rounded(.up)))
     }
 
     func start() async {
         // `.task` can run again (e.g. when the cover is re-presented); start only once.
         guard session == nil, !started else { return }
         started = true
-        if var s = resume?.session, let stored = resume?.stored {
+        if let checkpoint = resume?.session, let stored = resume?.stored {
             // Resume: replay what was already stored; these are not recorded again.
-            recorded = s.replay(stored)
+            let lexicon = lexicon
+            let (s, applied) = await Task.detached(priority: .userInitiated) {
+                var s = checkpoint
+                s.attach(lexicon)
+                let applied = s.replay(stored)
+                return (s, applied)
+            }.value
+            recorded = applied
             session = s
+            liveEstimate = s.estimate.map { Int($0.estimate.rounded()) }
             advance()
             return
         }
@@ -103,10 +115,12 @@ final class TestFlowModel {
         guard var s = session, case .question = phase else { return }
         let now = Date()
         let rt = Int(now.timeIntervalSince(shownAt) * 1000)
-        let o = s.answer(answer, rtMs: rt, at: Clock.iso(now))
+        let outcome = s.answer(answer, rtMs: rt, at: Clock.iso(now))
         session = s
+        feedback = outcome.feedback
+        liveEstimate = s.estimate.map { Int($0.estimate.rounded()) }
         do {
-            try app?.record(o)
+            try app?.record(outcome.observation)
             recorded += 1
         } catch {
             phase = .failed("保存失败：\(error)")

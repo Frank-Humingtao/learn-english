@@ -90,11 +90,21 @@ public struct LearnerProfile: Sendable {
     public let bandCounts: BandCounts
     /// Mean family P per BNC/COCA 1000-family level (frequency-band mastery).
     public let levelMastery: [LevelMastery]
+    /// Fitted parameters [θ, β…, ln τ, logit f₀, δ, logit r] and their posterior covariance
+    /// (row-major), for `LiveEstimate`.
+    let fitParameters: [Double]
+    let fitCovariance: [Double]
+    /// Per-word answer counts that entered the fit (entry index → all answers), for `LiveEstimate`.
+    let observedCounts: [Int: WordCounts]
 
     init(lexicon: Lexicon, config: ProfileConfig, asOf: String, theta: Double, weights: [Double], wordSD: Double,
          pseudowordFalseAlarmRate: Double, falseAlarmRate: Double, verifyGuessRate: Double, personFit: Double?,
          sessionWeights: [String: Double], probabilities p: [Double], standardErrors: [Double],
-         vocabulary: VocabularySize, counts: ObservationCounts) {
+         vocabulary: VocabularySize, counts: ObservationCounts, fitParameters: [Double] = [],
+         fitCovariance: [Double] = [], observedCounts: [Int: WordCounts] = [:]) {
+        self.fitParameters = fitParameters
+        self.fitCovariance = fitCovariance
+        self.observedCounts = observedCounts
         self.lexicon = lexicon
         self.config = config
         self.asOf = asOf

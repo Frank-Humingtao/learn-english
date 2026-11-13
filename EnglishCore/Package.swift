@@ -27,9 +27,9 @@ let package = Package(
         .target(name: "SyncCore", dependencies: ["CoreModels"]),
         // Offline evaluation of Profile Engine models (held-out prediction, calibration, intervals,
         // split-half / retest consistency, simulated Learners) behind a pluggable model seam.
-        .target(name: "ProfileEval", dependencies: ["CoreModels", "Lexicon", "ProfileEngine"]),
+        .target(name: "ProfileEval", dependencies: ["CoreModels", "Lexicon", "ProfileEngine", "TestEngine"]),
         // Command-line front end, kept as a library so tests can drive it in-process.
-        .target(name: "ProfileEngineCLI", dependencies: ["CoreModels", "Lexicon", "ProfileEngine", "ProfileEval"]),
+        .target(name: "ProfileEngineCLI", dependencies: ["CoreModels", "Lexicon", "ProfileEngine", "ProfileEval", "TestEngine"]),
         .executableTarget(name: "profile-engine", dependencies: ["ProfileEngineCLI"]),
         .testTarget(name: "ProfileEngineTests", dependencies: ["ProfileEngine", "CoreModels", "Lexicon"]),
         .testTarget(name: "ProfileEvalTests", dependencies: ["ProfileEval", "ProfileEngine", "CoreModels", "Lexicon"]),

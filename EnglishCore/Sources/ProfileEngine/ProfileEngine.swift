@@ -135,7 +135,8 @@ public enum ProfileEngine {
             weights: Array(fit.params[1...features.width]), wordSD: tau,
             pseudowordFalseAlarmRate: rp.f0, falseAlarmRate: rp.f, verifyGuessRate: rp.r,
             personFit: personFit, sessionWeights: evidence.sessionWeights,
-            probabilities: p, standardErrors: se, vocabulary: vocabulary, counts: evidence.counts)
+            probabilities: p, standardErrors: se, vocabulary: vocabulary, counts: evidence.counts,
+            fitParameters: fit.params, fitCovariance: fit.covariance, observedCounts: observed)
     }
 
     /// Standardized log-likelihood person-fit statistic lz (Drasgow, Levine and Williams 1985):
@@ -161,7 +162,7 @@ public enum ProfileEngine {
 // MARK: evidence
 
 /// Weighted answer counts about one word.
-struct WordCounts {
+struct WordCounts: Sendable, Codable, Equatable {
     var yes = 0.0, no = 0.0, correct = 0.0, wrong = 0.0
     /// Unweighted Yes/No answers (person fit).
     var yesItems = 0.0, noItems = 0.0
