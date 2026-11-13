@@ -54,8 +54,6 @@ final class TestFlowModel {
         self.resume = resume
     }
 
-    var title: String { kind == .baseline ? "基线测试" : "今日短测" }
-
     /// Baseline answers survive ✕; the view asks before leaving.
     var confirmsExit: Bool {
         guard kind == .baseline else { return false }
@@ -68,11 +66,11 @@ final class TestFlowModel {
         return Double(p.answered) / Double(p.total)
     }
 
-    /// Rough minutes left at the pace the test lengths were planned with.
-    var minutesLeft: Int {
-        guard let p = session?.progress else { return 0 }
-        return max(1, Int((Double(p.total - p.answered) * TestConfig.secondsPerYesNo / 60).rounded(.up)))
-    }
+    /// Number of segments in the answer screen's progress bar.
+    static let segments = 10
+
+    /// Progress-bar segments completely filled so far.
+    var segmentsFilled: Int { min(Self.segments, Int((progress * Double(Self.segments)).rounded(.down))) }
 
     func start() async {
         // `.task` can run again (e.g. when the cover is re-presented); start only once.
@@ -108,11 +106,14 @@ final class TestFlowModel {
             }
         }
         session = s
+        liveEstimate = s.estimate.map { Int($0.estimate.rounded()) }
         advance()
     }
 
-    func answer(_ answer: TestAnswer) {
-        guard var s = session, case .question = phase else { return }
+    /// Records the answer to the current item and moves on; returns the judgment to show.
+    @discardableResult
+    func answer(_ answer: TestAnswer) -> Feedback {
+        guard var s = session, case .question = phase else { return .neutral }
         let now = Date()
         let rt = Int(now.timeIntervalSince(shownAt) * 1000)
         let outcome = s.answer(answer, rtMs: rt, at: Clock.iso(now))
@@ -124,9 +125,10 @@ final class TestFlowModel {
             recorded += 1
         } catch {
             phase = .failed("保存失败：\(error)")
-            return
+            return outcome.feedback
         }
         advance()
+        return outcome.feedback
     }
 
     private func advance() {
@@ -167,8 +169,17 @@ final class TestFlowModel {
     func autoplayIfRequested() async {
         guard ProcessInfo.processInfo.environment["LE_AUTOPLAY"] != nil else { return }
         let stopAt = Int(ProcessInfo.processInfo.environment["LE_AUTOPLAY_STOP_AT"] ?? "") ?? .max
+        // `LE_AUTOPLAY_STOP_BEFORE=pseudoword|meaning`: stop (after the first 20) at such an item.
+        let stopBefore = ProcessInfo.processInfo.environment["LE_AUTOPLAY_STOP_BEFORE"]
         var pseudo = 0
         while case .question(let item) = phase, recorded < stopAt {
+            if recorded >= 20, let stopBefore {
+                switch item {
+                case .yesNo(let q) where q.kind == .pseudoword && stopBefore == "pseudoword": return
+                case .meaningCheck where stopBefore == "meaning": return
+                default: break
+                }
+            }
             try? await Task.sleep(for: .milliseconds(150))
             let known = { (w: String) in (self.lexicon.entry(lemma: w)?.rank ?? .max) <= 6000 }
             switch item {
