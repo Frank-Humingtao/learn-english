@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-09T23:30:00Z",
+  "daily_new": 10,
+  "new_words": [{"lemma": "additional", "note": "测试中犹豫过"}, {"lemma": "anybody", "note": "高频"}],
+  "focus_targets": ["additional", "anybody", "naturally", "anywhere", "presentation"],
+  "summary": "先补似懂非懂的高频词。",
+  "instruction": ""
+}

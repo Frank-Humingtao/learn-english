@@ -1,0 +1,60 @@
+name: EnglishCore
+
+on:
+  push:
+    paths: ["EnglishCore/**", "tools/lexicon-build/**", "english-data-template/**", ".github/workflows/englishcore.yml"]
+  pull_request:
+    paths: ["EnglishCore/**", "tools/lexicon-build/**", "english-data-template/**", ".github/workflows/englishcore.yml"]
+
+jobs:
+  # The CLI golden-file test (CLITests.profileOutputMatchesGoldenFiles) compares against
+  # files generated on macOS, so a green Linux run proves identical summary.json / words.tsv.
+  linux:
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test --package-path EnglishCore
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test --package-path EnglishCore
+  lexicon-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -I tools/lexicon-build/test_build_lexicon.py
+  # Publish pipeline (english-data-template): unit tests, then a dry run of the whole
+  # pipeline with the real Linux profile-engine against the fixture english-data repo.
+  publish-dry-run:
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update -qq && apt-get install -y -qq python3 tzdata >/dev/null
+      - run: python3 -I english-data-template/scripts/test_profile_publish.py
+      - run: python3 -I english-data-template/scripts/test_obs_io.py
+      - run: swift build -c release --package-path EnglishCore --product profile-engine
+      - run: |
+          # Fixture english-data repo: plan/ from the template, Observations from EnglishCore's fixture.
+          cp -R english-data-template/scripts/fixtures/english-data "$RUNNER_TEMP/data"
+          cp -R EnglishCore/Fixtures/observations "$RUNNER_TEMP/data/observations"
+          python3 -I english-data-template/scripts/profile_publish.py dry-run \
+            --data "$RUNNER_TEMP/data" \
+            --engine EnglishCore/.build/release/profile-engine --lexicon EnglishCore/Fixtures/lexicon \
+            --owner example --tz Asia/Shanghai --now 2026-11-05T12:00:00Z --out "$RUNNER_TEMP/dry-run"
+          cat "$RUNNER_TEMP/dry-run/report-decision.json"
+          grep -q '"action": "create"' "$RUNNER_TEMP/dry-run/report-decision.json"
+  # Personal FSRS training (english-data-template/scripts/fsrs_train.py) with the pinned optimizer.
+  fsrs-train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python3 -m pip install --quiet --extra-index-url https://download.pytorch.org/whl/cpu \
+            -r english-data-template/scripts/requirements-fsrs.txt
+      - run: python3 -I english-data-template/scripts/test_fsrs_train.py

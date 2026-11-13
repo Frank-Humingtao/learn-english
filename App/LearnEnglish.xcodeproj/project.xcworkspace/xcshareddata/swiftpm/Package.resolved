@@ -1,0 +1,24 @@
+{
+  "originHash" : "b9c2ee33150193781ef182e203737993b941369496bbbf2cb70ec4f9773f7755",
+  "pins" : [
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift",
+      "state" : {
+        "revision" : "92a554cd0d5e8d67cb18993c6054e73fe42c066c",
+        "version" : "7.12.0"
+      }
+    },
+    {
+      "identity" : "swift-fsrs",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/open-spaced-repetition/swift-fsrs",
+      "state" : {
+        "revision" : "74cb02977ba94dd505aa2a13149238b5f5d48a1b",
+        "version" : "6.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

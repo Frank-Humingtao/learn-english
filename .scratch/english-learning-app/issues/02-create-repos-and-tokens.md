@@ -11,10 +11,27 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-human
+**Status:** resolved
 
-- [ ] 两个仓库都已存在，可见性正确
-- [ ] 两个令牌的授权范围与上面一致，没有多余权限
-- [ ] Actions 令牌已存进 `english-data` 的 Secrets
-- [ ] `progress-report` label 已创建
-- [ ] 令牌值没有出现在任何聊天记录、文件或提交里
+- [x] 两个仓库都已存在，可见性正确
+- [x] 两个令牌的授权范围与上面一致，没有多余权限
+- [x] Actions 令牌已存进 `english-data` 的 Secrets
+- [x] `progress-report` label 已创建
+- [x] 令牌值没有出现在任何聊天记录、文件或提交里
+
+## Comments
+
+**2026-11-13 · 已完成（学习者本人操作，agent 只读核实）**
+
+用向导 `tools/setup-wizard/ticket02.sh` 完成。核实结果：
+
+- `Frank-Humingtao/english-data`：PRIVATE，默认分支 `main`（带 README 初始提交，main 一开始就有 head，可用于 `expectedHeadOid`）。
+- `Frank-Humingtao/english-profile`：PUBLIC，默认分支 `main`（带 README 初始提交）。
+- label `progress-report` 已在 `english-profile` 创建。
+- Secret `PROFILE_TOKEN` 已存进 `english-data` 的 Actions secrets（工单 06 的工作流用 `secrets.PROFILE_TOKEN`）。
+- 令牌（学习者截图确认，两者都是 No expiration，都没有 user permissions）：
+  - `english-iphone`：只授权 `english-data`；Metadata 只读 + Contents 读写。由学习者存在密码管理器里，之后在 App 设置里粘贴。
+  - `english-actions-profile`：只授权 `english-profile`；Metadata 只读 + Contents 和 Issues 读写。
+- 令牌值没有出现在聊天、文件、提交或日志里：secret 通过 `gh secret set` 从剪贴板/stdin 写入，每次写完都清空了剪贴板。
+
+给工单 05 的提示：真实环境已具备。实测 `expectedHeadOid` 冲突时，需要学习者在本机用 `english-iphone` 令牌运行测试，令牌不要交给 agent。

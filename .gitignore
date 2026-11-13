@@ -1,1 +1,6 @@
 .DS_Store
+.build/
+.swiftpm/
+tools/lexicon-build/cache/
+tools/lexicon-build/out/
+__pycache__/
