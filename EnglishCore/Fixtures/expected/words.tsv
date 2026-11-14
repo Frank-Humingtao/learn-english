@@ -1,926 +1,926 @@
-lemma	band	p	rank
-be	Mastered	1.0000	1
-any	Mastered	1.0000	63
-follow	Mastered	0.9998	96
-re	Mastered	0.9999	124
-add	Mastered	0.9991	183
-week	Mastered	0.9989	195
-light	Mastered	0.9959	322
-accept	Mastered	0.9950	346
-nature	Mastered	0.9994	364
-raise	Mastered	0.9937	377
-tax	Mastered	0.9890	459
-anything	Mastered	0.9882	476
-god	Mastered	0.9871	492
-hospital	Mastered	0.9789	594
-presented	Mastered	0.9963	698
-cup	Mastered	0.9962	719
-anyone	Mastered	0.9869	751
-natural	Mastered	0.9611	754
-hall	Mastered	0.9587	772
-worse	Mastered	0.9533	802
-anyway	Mastered	0.9501	833
-addition	Mastered	0.9937	864
-mountain	Mastered	0.9433	878
-kitchen	Mastered	0.9928	919
-additional	Mastered	0.9538	996
-monday	Mastered	0.9705	1037
-bath	Mastered	0.9007	1100
-worst	Mastered	0.9881	1114
-anybody	Target	0.8978	1127
-naturally	Target	0.8845	1163
-anywhere	Target	0.8874	1177
-presentation	Target	0.8825	1186
-acceptable	Target	0.8760	1201
-acceptance	Target	0.8664	1243
-weekly	Target	0.8677	1252
-taxation	Target	0.8509	1264
-presents	Target	0.8615	1269
-innit	Target	0.8535	1303
-presenting	Target	0.8320	1392
-follower	Target	0.8198	1419
-unacceptable	Mastered	0.9781	1420
-goddess	Target	0.7830	1561
-mon	Target	0.7764	1611
-presenter	Mastered	0.9021	1618
-additionally	Target	0.7701	1635
-unnatural	Target	0.7544	1695
-anyhow	Target	0.7574	1697
-ff	Target	0.7516	1706
-tis	Target	0.7447	1732
-additive	Target	0.7232	1745
-mountaineer	Target	0.7324	1779
-taxable	Mastered	0.9324	1783
-naturalist	Target	0.7109	1790
-acceptability	Target	0.7001	1902
-anymore	Target	0.6975	1912
-midweek	Target	0.6568	1940
-mountainous	Target	0.6802	1994
-natured	Target	0.6625	2047
-raiser	Target	0.6537	2081
-unnaturally	Target	0.6530	2084
-naturalistic	Target	0.6297	2093
-owt	Distant	0.6402	2134
-mountainside	Distant	0.6136	2240
-naturalism	Distant	0.5877	2346
-twas	Distant	0.5870	2349
-cuppa	Distant	0.5841	2361
-presentable	Distant	0.2120	2364
-godly	Distant	0.5814	2372
-unlit	Distant	0.5795	2380
-unacceptably	Distant	0.7993	2428
-kitchenette	Distant	0.5641	2445
-naturalness	Distant	0.5410	2545
-hospitalise	Mastered	0.9159	2574
-bein	Distant	0.0385	2579
-lighters	Mastered	0.9149	2589
-presentational	Distant	0.5292	2597
-acceptor	Distant	0.0358	2694
-hospitalize	Distant	0.5060	2703
-hospitalisation	Distant	0.4949	2755
-additionality	Distant	0.1577	2761
-hospitalization	Distant	0.4815	2819
-godless	Distant	0.4749	2851
-ungodly	Distant	0.4723	2864
-acceptably	Distant	0.4642	2904
-godliness	Distant	0.0296	2933
-pretax	Distant	0.4406	3025
-unacceptability	Distant	0.4403	3027
-untaxed	Distant	0.4355	3052
-godlike	Distant	0.8752	3086
-cupful	Distant	0.4273	3096
-wert	Distant	0.4089	3198
-naturalistically	Distant	0.8506	3398
-biweekly	Distant	0.8430	3459
-cuplike	Distant	0.4856	3618
-midweekly	Distant	0.0181	3637
-nontaxable	Distant	0.0180	3645
-presentably	Distant	0.3364	3651
-semiweekly	Distant	0.3347	3663
-unpresentable	Distant	0.0172	3676
-develop	Distant	0.3420	3684
-development	Distant	0.8277	3725
-department	Distant	0.0165	3771
-profession	Distant	0.2869	3806
-character	Distant	0.3141	3842
-modern	Distant	0.3120	3903
-duty	Distant	0.0160	3904
-professional	Distant	0.2922	3967
-accuse	Distant	0.1207	3986
-wing	Distant	0.2928	4056
-fan	Distant	0.7902	4129
-elder	Distant	0.2747	4211
-diet	Distant	0.3935	4241
-cloud	Distant	0.0126	4276
-pipe	Distant	0.2591	4304
-cap	Distant	0.0124	4358
-elderly	Distant	0.2448	4391
-shelf	Distant	0.2465	4477
-jacket	Distant	0.7549	4492
-chat	Distant	0.0193	4588
-pro	Distant	0.2270	4592
-spray	Distant	0.2243	4658
-accent	Distant	0.0099	4738
-developer	Distant	0.0018	4818
-rice	Distant	0.0096	4851
-characterise	Distant	0.1994	4916
-characterize	Distant	0.1955	4948
-accusation	Distant	0.6725	4974
-departmental	Distant	0.0399	5010
-dietary	Distant	0.1714	5103
-developmental	Distant	0.1831	5134
-professionally	Distant	0.0078	5178
-professionalism	Distant	0.1655	5192
-modernist	Distant	0.0015	5224
-modernism	Distant	0.1761	5234
-redevelopment	Distant	0.1741	5264
-shelve	Distant	0.1557	5286
-modernity	Distant	0.1718	5299
-dept	Distant	0.1715	5304
-modernise	Distant	0.1714	5305
-modernisation	Distant	0.1693	5337
-modernization	Distant	0.1598	5343
-cloudy	Distant	0.1734	5379
-dieter	Distant	0.1532	5390
-characterisation	Distant	0.1651	5403
-modernize	Distant	0.0069	5454
-dutifully	Distant	0.0065	5521
-characterization	Distant	0.3332	5528
-postmodern	Distant	0.0066	5563
-postmodernism	Distant	0.4807	5580
-undeveloped	Distant	0.1504	5652
-redevelop	Distant	0.1500	5659
-postmodernist	Distant	0.1495	5669
-underdeveloped	Distant	0.0056	5698
-dutiful	Distant	0.0053	5733
-accusingly	Distant	0.6098	5779
-cloudless	Distant	0.0057	5830
-chatty	Distant	0.1391	5864
-sprayer	Distant	0.1364	5919
-unprofessional	Distant	0.5979	5938
-accuser	Distant	0.0050	5990
-interdepartmental	Distant	0.1291	6072
-dietician	Distant	0.1289	6076
-underdevelopment	Distant	0.0053	6088
-dietitian	Distant	0.0047	6093
-uncapped	Distant	0.5763	6154
-characterful	Distant	0.5687	6188
-developmentally	Distant	0.1231	6205
-jacketed	Distant	0.0048	6252
-characterless	Distant	0.1195	6291
-unclouded	Distant	0.1160	6375
-respray	Distant	0.0047	6400
-wingless	Distant	0.1139	6428
-accusatory	Distant	0.0045	6429
-modernizer	Distant	0.0045	6460
-departmentally	Distant	0.1097	6537
-modernistic	Distant	0.7754	6558
-unaccented	Distant	0.0008	6643
-dutiable	Distant	0.0001	6655
-chattiness	Distant	0.0041	6702
-nonprofessional	Distant	0.0945	6717
-dutifulness	Distant	0.1672	6788
-semipro	Distant	0.0965	6921
-semiprofessional	Distant	0.0964	6922
-authority	Distant	0.0976	6941
-concept	Distant	0.0037	7001
-complex	Distant	0.0037	7040
-solution	Distant	0.0035	7058
-correspond	Distant	0.0907	7165
-symptom	Distant	0.4750	7245
-gene	Distant	0.0842	7314
-respective	Distant	0.4554	7435
-prosecute	Distant	0.0030	7453
-charter	Distant	0.0029	7489
-dedicate	Distant	0.0157	7517
-continent	Distant	0.0031	7537
-equation	Distant	0.0783	7542
-authorise	Distant	0.0001	7599
-remote	Distant	0.0029	7692
-administrative	Distant	0.0683	7716
-literary	Distant	0.0751	7770
-respectively	Distant	0.0027	7805
-enthusiasm	Distant	0.0028	7845
-neutral	Distant	0.0706	7879
-jury	Distant	0.0694	7936
-prosecution	Distant	0.0617	7955
-conception	Distant	0.0662	8003
-complexity	Distant	0.0025	8020
-continental	Distant	0.1741	8059
-correspondence	Distant	0.0001	8135
-conceptual	Distant	0.0001	8243
-irrespective	Distant	0.0123	8288
-authorize	Distant	0.0021	8346
-dedication	Distant	0.0108	8350
-prosecutor	Distant	0.0573	8393
-neutrality	Distant	0.0611	8403
-remotely	Distant	0.0000	8494
-symptomatic	Distant	0.0022	8537
-correspondingly	Distant	0.0586	8547
-unauthorised	Distant	0.0022	8563
-authorisation	Distant	0.0021	8606
-neutralise	Distant	0.0021	8685
-remoteness	Distant	0.0548	8782
-neutralisation	Distant	0.0547	8794
-authorization	Distant	0.0018	8827
-neutralize	Distant	0.0487	8863
-conceptually	Distant	0.0106	8905
-unauthorized	Distant	0.0522	8964
-conceptualize	Distant	0.0521	8966
-conceptualization	Distant	0.0515	9013
-conceptualise	Distant	0.0512	9031
-subcontinent	Distant	0.0512	9035
-administratively	Distant	0.0507	9067
-intercontinental	Distant	0.0503	9097
-charterer	Distant	0.0484	9238
-neutrally	Distant	0.0475	9309
-conceptualisation	Distant	0.0094	9357
-transcontinental	Distant	0.0408	9522
-neutralization	Distant	0.0086	9659
-symptomatically	Distant	0.0419	9792
-subcontinental	Distant	0.0412	9853
-dedicatedly	Distant	0.0409	9884
-irrespectively	Distant	0.0081	9897
-acid	Distant	0.0404	10010
-mutter	Distant	0.0390	10033
-undermine	Distant	0.0373	10101
-monopoly	Distant	0.0371	10120
-cathedral	Distant	0.0389	10165
-proposition	Distant	0.0072	10220
-soar	Distant	0.0347	10386
-eyebrow	Distant	0.0066	10429
-splash	Distant	0.0349	10487
-bankrupt	Distant	0.0336	10519
-ambulance	Distant	0.0356	10527
-con	Distant	0.0341	10623
-ballet	Distant	0.0068	10640
-adverse	Distant	0.0064	10650
-impatient	Distant	0.0331	10709
-prevalent	Distant	0.0315	10786
-spike	Distant	0.0296	10803
-solar	Distant	0.0328	10876
-hormone	Distant	0.0291	10878
-theology	Distant	0.0314	10969
-bankruptcy	Distant	0.0300	10994
-prevalence	Distant	0.0299	11017
-impatiently	Distant	0.0300	11167
-impatience	Distant	0.0297	11221
-adversely	Distant	0.0268	11225
-acidity	Distant	0.0263	11317
-acidic	Distant	0.0256	11429
-spiky	Distant	0.0050	11450
-adversity	Distant	0.0255	11454
-hormonal	Distant	0.0280	11479
-monopolist	Distant	0.0276	11539
-monopolistic	Distant	0.0274	11569
-monopolise	Distant	0.0271	11625
-monopolize	Distant	0.0245	11634
-acidly	Distant	0.0267	11683
-conman	Distant	0.0263	11767
-propositional	Distant	0.0261	11792
-monopolisation	Distant	0.0248	12030
-monopolization	Distant	0.0245	12091
-splashy	Distant	0.0212	12152
-adverseness	Distant	0.0231	12362
-mutterer	Distant	0.0229	12397
-enquire	Distant	0.0042	12427
-enquiry	Distant	0.0232	12432
-sniff	Distant	0.0231	12468
-groan	Distant	0.0044	12492
-stalk	Distant	0.0042	12570
-socialism	Distant	0.0226	12572
-chord	Distant	0.0211	12615
-grove	Distant	0.0206	12726
-skeleton	Distant	0.0200	12872
-twitch	Distant	0.0208	12885
-vacuum	Distant	0.0204	12923
-volatile	Distant	0.0185	12955
-relish	Distant	0.0189	12985
-plasma	Distant	0.0181	13049
-offspring	Distant	0.0191	13101
-tolerant	Distant	0.0191	13103
-conclusive	Distant	0.0182	13198
-diversion	Distant	0.0186	13220
-shorts	Distant	0.0592	13241
-gratitude	Distant	0.0189	13309
-stereo	Distant	0.0181	13382
-volatility	Distant	0.0183	13511
-intolerance	Distant	0.0182	13556
-inconclusive	Distant	0.0163	13598
-conclusively	Distant	0.0178	13665
-intolerant	Distant	0.0177	13703
-stalker	Distant	0.0174	13774
-enquirer	Distant	0.0034	13779
-sniffer	Distant	0.0173	13822
-enquiringly	Distant	0.0170	13911
-diversionary	Distant	0.0170	13920
-sniffy	Distant	0.0168	13962
-twitchy	Distant	0.0033	13980
-chordal	Distant	0.0167	13988
-twitcher	Distant	0.0165	14074
-tolerantly	Distant	0.0164	14112
-inconclusively	Distant	0.0163	14126
-twitchiness	Distant	0.0157	14346
-intolerantly	Distant	0.0156	14377
-nonvolatile	Distant	0.0155	14404
-twitchily	Distant	0.0153	14488
-vacua	Distant	0.0153	14491
-al	Distant	0.0153	14493
-infringe	Distant	0.0134	14635
-poach	Distant	0.0130	14638
-vomit	Distant	0.0134	14660
-climax	Distant	0.0140	14736
-crave	Distant	0.0130	14834
-fanatic	Distant	0.0129	14847
-perpetuate	Distant	0.0129	14861
-latent	Distant	0.0136	14891
-cuff	Distant	0.0024	14937
-forgo	Distant	0.0122	14981
-brim	Distant	0.0138	15001
-camel	Distant	0.0146	15039
-impetus	Distant	0.0132	15093
-honeymoon	Distant	0.0133	15203
-heroine	Distant	0.0137	15210
-slop	Distant	0.0133	15260
-turbine	Distant	0.0131	15282
-lantern	Distant	0.0026	15362
-forego	Distant	0.0130	15385
-infringement	Distant	0.0025	15411
-rugged	Distant	0.0116	15486
-poacher	Distant	0.0125	15606
-sloppy	Distant	0.0022	15617
-fanatical	Distant	0.0112	15677
-latency	Distant	0.0107	15733
-fanaticism	Distant	0.0110	15804
-perpetuation	Distant	0.0120	15871
-anticlimax	Distant	0.0104	15926
-honeymooner	Distant	0.0117	16010
-sloppiness	Distant	0.0116	16060
-fanatically	Distant	0.0115	16103
-ruggedness	Distant	0.0114	16159
-brimful	Distant	0.0114	16160
-ruggedly	Distant	0.0114	16184
-sloppily	Distant	0.0114	16194
-brimless	Distant	0.0324	16439
-unix	Distant	0.0108	16497
-upland	Distant	0.0097	16532
-instigate	Distant	0.0096	16637
-cot	Distant	0.0095	16665
-enamel	Distant	0.0092	16707
-suffocate	Distant	0.0091	16723
-impart	Distant	0.0100	16745
-modulate	Distant	0.0099	16795
-hind	Distant	0.0102	16899
-cider	Distant	0.0091	16933
-hallmark	Distant	0.0090	16983
-disorientate	Distant	0.0098	17112
-melon	Distant	0.0099	17177
-sarcastic	Distant	0.0090	17241
-snapshot	Distant	0.0096	17245
-ornate	Distant	0.0084	17251
-stub	Distant	0.0086	17335
-cosmopolitan	Distant	0.0085	17346
-persona	Distant	0.0094	17382
-vampire	Distant	0.0081	17471
-sarcastically	Distant	0.0092	17564
-modulation	Distant	0.0092	17568
-instigation	Distant	0.0269	17641
-stubby	Distant	0.0090	17660
-disorientation	Distant	0.0090	17689
-suffocation	Distant	0.0090	17703
-instigator	Distant	0.0089	17759
-disorient	Distant	0.0085	17798
-ornately	Distant	0.0261	17858
-modulator	Distant	0.0087	17880
-cosmopolitanism	Distant	0.0075	17999
-hindmost	Distant	0.0084	18124
-ornateness	Distant	0.0083	18233
-nick	Distant	0.0071	18355
-roundabout	Distant	0.0083	18396
-ivy	Distant	0.0081	18424
-amplitude	Distant	0.0077	18499
-indent	Distant	0.0072	18542
-hereditary	Distant	0.0071	18570
-overstate	Distant	0.0068	18707
-mead	Distant	0.0076	18809
-fraught	Distant	0.0068	18864
-replenish	Distant	0.0068	18913
-laborious	Distant	0.0068	18918
-pun	Distant	0.0066	18928
-dogmatic	Distant	0.0067	18961
-sham	Distant	0.0071	18987
-zion	Distant	0.0074	19029
-courtship	Distant	0.0067	19044
-concomitant	Distant	0.0065	19174
-rut	Distant	0.0067	19187
-sweatshirt	Distant	0.0072	19262
-maverick	Distant	0.0064	19341
-zionist	Distant	0.0070	19403
-laboriously	Distant	0.0063	19431
-indentation	Distant	0.0070	19485
-zionism	Distant	0.0069	19557
-dogmatism	Distant	0.0060	19563
-replenishment	Distant	0.0069	19585
-overstatement	Distant	0.0013	19679
-dogmatically	Distant	0.0013	19737
-concomitantly	Distant	0.0067	19760
-laboriousness	Distant	0.0065	19943
-nonhereditary	Distant	0.0064	20087
-wicket	Distant	0.0064	20114
-quay	Distant	0.0055	20152
-doo	Distant	0.0063	20197
-aerosol	Distant	0.0063	20235
-equivalence	Distant	0.0012	20306
-chum	Distant	0.0056	20335
-stanza	Distant	0.0054	20566
-attune	Distant	0.0052	20623
-philharmonic	Distant	0.0055	20631
-infirm	Distant	0.0052	20667
-repertory	Distant	0.0053	20691
-gruff	Distant	0.0053	20709
-hooray	Distant	0.0012	20743
-alcove	Distant	0.0051	20750
-partake	Distant	0.0011	20833
-microbiology	Distant	0.0052	20942
-mystique	Distant	0.0057	20962
-convoluted	Distant	0.0050	21004
-caramel	Distant	0.0011	21086
-imam	Distant	0.0056	21098
-infirmity	Distant	0.0010	21132
-gruffly	Distant	0.0056	21173
-microbiological	Distant	0.0055	21245
-philharmonia	Distant	0.0055	21267
-hurrah	Distant	0.0052	21343
-chummy	Distant	0.0054	21353
-microbiologist	Distant	0.0054	21359
-hurray	Distant	0.0054	21369
-convolution	Distant	0.0054	21406
-caramelise	Distant	0.0054	21436
-chumminess	Distant	0.0053	21582
-gruffness	Distant	0.0053	21589
-partaker	Distant	0.0053	21610
-caramelize	Distant	0.0052	21651
-convolute	Distant	0.0052	21689
-oesophagus	Distant	0.0051	21792
-oesophageal	Distant	0.0051	21797
-plait	Distant	0.0045	21834
-tadpole	Distant	0.0046	21874
-oesophagitis	Distant	0.0050	21970
-overdrive	Distant	0.0050	22027
-sheathe	Distant	0.0045	22037
-tabulate	Distant	0.0009	22055
-habitation	Distant	0.0049	22123
-genera	Distant	0.0049	22222
-swab	Distant	0.0049	22266
-stigmatise	Distant	0.0048	22345
-rewind	Distant	0.0049	22356
-fortuitous	Distant	0.0043	22360
-yucky	Distant	0.0048	22410
-ochre	Distant	0.0048	22433
-jackpot	Distant	0.0047	22494
-longitude	Distant	0.0045	22559
-goo	Distant	0.0009	22585
-pique	Distant	0.0042	22625
-commonality	Distant	0.0046	22690
-tango	Distant	0.0008	22774
-yuk	Distant	0.0046	22798
-tabulation	Distant	0.0009	22825
-stigmatize	Distant	0.0008	22900
-gooey	Distant	0.0045	22926
-fortuitously	Distant	0.0008	22943
-yuck	Distant	0.0045	22955
-unsheathe	Distant	0.0044	23024
-esophageal	Distant	0.0044	23122
-stigmatisation	Distant	0.0044	23177
-yukky	Distant	0.0044	23180
-esophagus	Distant	0.0038	23184
-stigmatization	Distant	0.0044	23194
-yok	Distant	0.0043	23271
-yock	Distant	0.0043	23307
-fortuitousness	Distant	0.0043	23327
-esophagi	Distant	0.0043	23387
-megahertz	Distant	0.0042	23440
-mhz	Distant	0.0042	23441
-herbivore	Distant	0.0042	23504
-moult	Distant	0.0042	23569
-norse	Distant	0.0042	23607
-python	Distant	0.0008	23635
-unionize	Distant	0.0041	23704
-omnibus	Distant	0.0041	23721
-cluck	Distant	0.0041	23774
-titbit	Distant	0.0040	23858
-judo	Distant	0.0040	23867
-asymptomatic	Distant	0.0040	23923
-impetuous	Distant	0.0036	23926
-apostrophe	Distant	0.0036	23982
-surly	Distant	0.0034	24094
-extraterrestrial	Distant	0.0039	24166
-mannequin	Distant	0.0039	24223
-lingerie	Distant	0.0007	24301
-norseman	Distant	0.0038	24303
-chiropractic	Distant	0.0038	24328
-tequila	Distant	0.0038	24373
-herbivorous	Distant	0.0033	24440
-overtax	Distant	0.0034	24482
-unionised	Distant	0.0038	24496
-chiropractor	Distant	0.0038	24509
-impetuosity	Distant	0.0037	24550
-impetuously	Distant	0.0037	24586
-surliness	Distant	0.0037	24736
-tidbit	Distant	0.0037	24737
-unionise	Distant	0.0036	24778
-impetuousness	Distant	0.0036	24813
-molt	Distant	0.0032	24866
-collier	Distant	0.0007	25026
-colliery	Distant	0.0035	25036
-toot	Distant	0.0035	25074
-moray	Distant	0.0035	25118
-marquess	Distant	0.0035	25157
-crocus	Distant	0.0035	25201
-tampon	Distant	0.0035	25249
-mollify	Distant	0.0031	25320
-casement	Distant	0.0007	25370
-hyperplasia	Distant	0.0007	25416
-luminescence	Distant	0.0034	25446
-chomp	Distant	0.0034	25513
-indefatigable	Distant	0.0030	25540
-proclivity	Distant	0.0030	25562
-scoundrel	Distant	0.0033	25613
-crevasse	Distant	0.0030	25680
-shrift	Distant	0.0033	25738
-counterweight	Distant	0.0032	25866
-reprise	Distant	0.0005	25932
-baguette	Distant	0.0032	26013
-exfoliate	Distant	0.0032	26016
-luminescent	Distant	0.0006	26097
-exfoliation	Distant	0.0031	26215
-exfoliator	Distant	0.0006	26248
-indefatigably	Distant	0.0006	26263
-exfoliant	Distant	0.0031	26396
-bangladesh	Distant	0.0030	26551
-apical	Distant	0.0030	26599
-lamina	Distant	0.0030	26643
-bangladeshi	Distant	0.0030	26680
-imbecile	Distant	0.0026	26824
-twit	Distant	0.0029	26898
-oedipal	Distant	0.0029	26944
-technicolor	Distant	0.0029	26982
-bogyman	Distant	0.0029	27014
-absolution	Distant	0.0029	27046
-bogeyman	Distant	0.0029	27082
-equivocate	Distant	0.0005	27159
-scrotum	Distant	0.0028	27266
-tomboy	Distant	0.0028	27281
-droll	Distant	0.0025	27290
-intubate	Distant	0.0005	27308
-phosphorescent	Distant	0.0028	27312
-lascivious	Distant	0.0028	27324
-infernal	Distant	0.0024	27362
-technicolour	Distant	0.0028	27389
-imprimatur	Distant	0.0028	27426
-intubation	Distant	0.0028	27464
-equivocation	Distant	0.0024	27471
-fedora	Distant	0.0028	27503
-superhero	Distant	0.0027	27630
-phosphorescence	Distant	0.0027	27638
-imbecility	Distant	0.0027	27718
-apically	Distant	0.0027	27725
-lasciviousness	Distant	0.0027	27732
-tomboyish	Distant	0.0027	27736
-lasciviously	Distant	0.0027	27745
-laminae	Distant	0.0027	27758
-superheroes	Distant	0.0027	27797
-boogieman	Distant	0.0027	27804
-imbecilic	Distant	0.0027	27816
-scrotal	Distant	0.0027	27825
-equivocator	Distant	0.0027	27841
-droller	Distant	0.0026	27938
-drollness	Distant	0.0026	27939
-tomboyishness	Distant	0.0026	28020
-franked	Distant	0.0026	28041
-franks	Distant	0.0026	28046
-adjudge	Distant	0.0026	28077
-marque	Distant	0.0026	28124
-greatcoat	Distant	0.0026	28214
-bodywork	Distant	0.0026	28264
-wattle	Distant	0.0025	28311
-moraine	Distant	0.0025	28420
-aggrandize	Distant	0.0022	28425
-astringent	Distant	0.0022	28514
-optometrist	Distant	0.0022	28534
-ribald	Distant	0.0022	28563
-chamois	Distant	0.0025	28606
-coronal	Distant	0.0024	28732
-deactivate	Distant	0.0021	28733
-ordinal	Distant	0.0024	28748
-yore	Distant	0.0024	28774
-amigo	Distant	0.0005	28840
-thunk	Distant	0.0024	28909
-aggrandisement	Distant	0.0024	28949
-tweet	Distant	0.0005	28974
-aggrandizement	Distant	0.0005	29035
-ecclesial	Distant	0.0024	29071
-ribaldry	Distant	0.0024	29157
-franking	Distant	0.0023	29167
-morainic	Distant	0.0023	29188
-coronel	Distant	0.0023	29196
-astringency	Distant	0.0023	29203
-aggrandise	Distant	0.0023	29215
-astringently	Distant	0.0023	29218
-deactivation	Distant	0.0023	29241
-optometry	Distant	0.0023	29247
-shammy	Distant	0.0023	29249
-ordinally	Distant	0.0023	29284
-chammy	Distant	0.0023	29368
-morainal	Distant	0.0023	29419
-epistemology	Distant	0.0023	29461
-epistemological	Distant	0.0023	29492
-afforestation	Distant	0.0023	29529
-ladybird	Distant	0.0004	29548
-wadi	Distant	0.0023	29594
-vouchsafe	Distant	0.0022	29689
-interstice	Distant	0.0019	29731
-epistemic	Distant	0.0022	29775
-whist	Distant	0.0022	29840
-dunce	Distant	0.0020	29887
-labium	Distant	0.0004	29918
-afforest	Distant	0.0022	29980
-poultice	Distant	0.0022	30000
-labia	Distant	0.0022	30059
-allusive	Distant	0.0022	30065
-dematerialize	Distant	0.0004	30102
-multicentre	Distant	0.0021	30152
-rheumatology	Distant	0.0021	30159
-litigious	Distant	0.0021	30236
-mishmash	Distant	0.0021	30297
-miniscule	Distant	0.0021	30360
-valorize	Distant	0.0021	30423
-svelte	Distant	0.0018	30431
-episteme	Distant	0.0021	30469
-dematerialise	Distant	0.0021	30480
-dematerialisation	Distant	0.0021	30523
-eggplant	Distant	0.0021	30526
-epistemologically	Distant	0.0021	30540
-rheumatological	Distant	0.0021	30553
-valorisation	Distant	0.0021	30572
-epistemologist	Distant	0.0021	30582
-valorization	Distant	0.0004	30618
-rheumatologist	Distant	0.0004	30637
-dematerialization	Distant	0.0020	30679
-valorise	Distant	0.0004	30762
-epistemically	Distant	0.0020	30803
-litigiously	Distant	0.0020	30827
-multicenter	Distant	0.0020	30833
-multicentered	Distant	0.0020	30834
-multicentric	Distant	0.0004	30835
-valorizes	Distant	0.0020	30880
-lea	Distant	0.0004	30891
-lama	Distant	0.0020	30936
-silurian	Distant	0.0020	30983
-neoplasia	Distant	0.0004	31031
-acanthus	Distant	0.0020	31081
-polyposis	Distant	0.0020	31126
-millipede	Distant	0.0020	31168
-muzak	Distant	0.0020	31220
-polysaccharide	Distant	0.0019	31265
-bridgehead	Distant	0.0019	31316
-hypochondria	Distant	0.0019	31366
-platypus	Distant	0.0004	31442
-torpid	Distant	0.0017	31512
-zilch	Distant	0.0019	31601
-limn	Distant	0.0016	31640
-sextant	Distant	0.0003	31661
-backgammon	Distant	0.0019	31787
-manitou	Distant	0.0019	31812
-strudel	Distant	0.0019	31856
-persimmon	Distant	0.0004	31938
-limner	Distant	0.0016	32007
-torpidly	Distant	0.0018	32075
-platypi	Distant	0.0018	32095
-platypuses	Distant	0.0018	32225
-torpidity	Distant	0.0018	32242
-neutron	Distant	0.0017	32249
-lacklustre	Distant	0.0018	32296
-snivel	Distant	0.0018	32340
-tench	Distant	0.0018	32382
-plosive	Distant	0.0003	32423
-espadrille	Distant	0.0018	32468
-hepatocellular	Distant	0.0017	32569
-mycotoxin	Distant	0.0017	32626
-potentiometer	Distant	0.0017	32643
-arbitral	Distant	0.0017	32680
-pes	Distant	0.0017	32735
-extramural	Distant	0.0003	32818
-seismograph	Distant	0.0015	32876
-novena	Distant	0.0017	32899
-septuagenarian	Distant	0.0003	33026
-quincentenary	Distant	0.0017	33063
-gaga	Distant	0.0017	33144
-potentiometric	Distant	0.0017	33175
-hammerhead	Distant	0.0017	33215
-humungous	Distant	0.0017	33217
-mesoamerican	Distant	0.0016	33304
-humongous	Distant	0.0016	33328
-quincentennial	Distant	0.0016	33367
-extramurally	Distant	0.0016	33426
-seismographic	Distant	0.0016	33448
-seismography	Distant	0.0016	33556
-sniveled	Distant	0.0016	33560
-annum	Distant	0.0016	33580
-centile	Distant	0.0003	33663
-cysteine	Distant	0.0016	33710
-stocktake	Distant	0.0016	33744
-citron	Distant	0.0016	33818
-stocktaking	Distant	0.0016	33836
-flexure	Distant	0.0016	33870
-autarchy	Distant	0.0003	33876
-axisymmetric	Distant	0.0016	33921
-adenine	Distant	0.0016	33968
-catenary	Distant	0.0015	34021
-heliotrope	Distant	0.0013	34129
-protoplasm	Distant	0.0015	34161
-moa	Distant	0.0015	34182
-ibex	Distant	0.0015	34242
-loca	Distant	0.0015	34306
-autarchic	Distant	0.0003	34361
-endocarditis	Distant	0.0015	34368
-genovese	Distant	0.0015	34435
-exes	Distant	0.0015	34499
-masa	Distant	0.0003	34570
-protoplasmic	Distant	0.0015	34647
-madrasa	Distant	0.0015	34682
-endocarditic	Distant	0.0015	34787
-plasmid	Distant	0.0003	34879
-ghi	Distant	0.0014	34923
-satsuma	Distant	0.0014	34967
-buckram	Distant	0.0014	35017
-epicycle	Distant	0.0014	35070
-downmarket	Distant	0.0014	35169
-fogey	Distant	0.0014	35171
-codpiece	Distant	0.0014	35223
-fossa	Distant	0.0014	35319
-pleurisy	Distant	0.0014	35326
-mopeds	Distant	0.0014	35374
-rennet	Distant	0.0014	35483
-appetit	Distant	0.0014	35538
-lissom	Distant	0.0014	35589
-simony	Distant	0.0014	35598
-jojoba	Distant	0.0003	35660
-frigidaire	Distant	0.0014	35731
-fino	Distant	0.0014	35793
-lissome	Distant	0.0012	35838
-bloop	Distant	0.0013	35898
-fossae	Distant	0.0013	35912
-blooper	Distant	0.0013	35936
-lox	Distant	0.0013	35962
-finos	Distant	0.0013	36056
-lissomely	Distant	0.0003	36076
-lissomeness	Distant	0.0013	36077
-perfusion	Distant	0.0013	36143
-perfuse	Distant	0.0003	36156
-wat	Distant	0.0013	36192
-rehash	Distant	0.0013	36275
-fug	Distant	0.0013	36359
-quoin	Distant	0.0013	36395
-nicad	Distant	0.0013	36424
-langur	Distant	0.0013	36477
-micturate	Distant	0.0013	36480
-micturition	Distant	0.0013	36517
-gewgaw	Distant	0.0013	36533
-chocoholic	Distant	0.0013	36638
-monstrance	Distant	0.0013	36690
-dromedary	Distant	0.0013	36747
-leishmania	Distant	0.0013	36761
-silvicultural	Distant	0.0013	36809
-geocentric	Distant	0.0012	36876
-pharyngitis	Distant	0.0012	36936
-leishmaniasis	Distant	0.0012	36961
-glucosamine	Distant	0.0012	36995
-tommyrot	Distant	0.0012	37064
-fuggy	Distant	0.0012	37098
-thyroidectomy	Distant	0.0012	37132
-wats	Distant	0.0012	37140
-coign	Distant	0.0002	37160
-challah	Distant	0.0012	37219
-coigne	Distant	0.0012	37222
-geocentrically	Distant	0.0012	37242
-geocentrism	Distant	0.0012	37243
-socio	Distant	0.0012	37338
-corncrake	Distant	0.0012	37384
-cancerian	Distant	0.0002	37480
-infusoria	Distant	0.0012	37527
-collagenase	Distant	0.0012	37574
-betake	Distant	0.0012	37623
-cryptogam	Distant	0.0002	37628
-cryptogamic	Distant	0.0012	37652
-assiduity	Distant	0.0002	37675
-maximin	Distant	0.0012	37727
-sprue	Distant	0.0012	37781
-culex	Distant	0.0012	37836
-ephemeris	Distant	0.0012	37897
-hoyden	Distant	0.0012	37953
-hyperfine	Distant	0.0011	38012
-phlebitis	Distant	0.0011	38073
-uppercase	Distant	0.0011	38127
-bluebonnet	Distant	0.0011	38186
-counterstrike	Distant	0.0011	38251
-boonies	Distant	0.0011	38334
-cryptogamous	Distant	0.0002	38347
-mastoidectomy	Distant	0.0011	38417
-gastro	Distant	0.0011	38499
-ruddle	Distant	0.0011	38547
-goosander	Distant	0.0011	38596
-keek	Distant	0.0011	38643
-praesidium	Distant	0.0011	38691
-joinder	Distant	0.0011	38740
-agrimony	Distant	0.0002	38792
-fibreoptic	Distant	0.0011	38841
-gharial	Distant	0.0011	38894
-kanamycin	Distant	0.0011	38948
-grapnel	Distant	0.0002	38998
-foulard	Distant	0.0011	39054
-confect	Distant	0.0011	39103
-dirndl	Distant	0.0011	39158
-conformal	Distant	0.0011	39214
-concours	Distant	0.0011	39268
-spica	Distant	0.0010	39315
-noetic	Distant	0.0010	39376
-comlink	Distant	0.0010	39445
-fibreoptics	Distant	0.0010	39472
-keeks	Distant	0.0010	39493
-osteotomy	Distant	0.0010	39520
-ion	Distant	0.0002	39585
-ionise	Distant	0.0010	39593
-ionize	Distant	0.0010	39595
-ionization	Distant	0.0010	39607
-aquilegia	Distant	0.0010	39639
-ionisation	Distant	0.0010	39670
-hamza	Distant	0.0010	39691
-ioniser	Distant	0.0010	39736
-stonk	Distant	0.0010	39738
-darnel	Distant	0.0002	39786
-lanner	Distant	0.0002	39833
-bleb	Distant	0.0010	39884
-cerium	Distant	0.0002	39933
-esparto	Distant	0.0010	39987
-abettor	Distant	0.0010	40041
-oersted	Distant	0.0010	40096
-duotone	Distant	0.0010	40147
-stertorous	Distant	0.0010	40197
-ovate	Distant	0.0010	40252
-diplopia	Distant	0.0002	40304
-bowthruster	Distant	0.0002	40359
-ionizers	Distant	0.0010	40395
-oneiric	Distant	0.0010	40412
-blebby	Distant	0.0010	40472
-canebrake	Distant	0.0010	40477
-hemostatic	Distant	0.0010	40534
-ionizer	Distant	0.0010	40549
-physiatrist	Distant	0.0010	40595
-netware	Distant	0.0002	40654
-zeit	Distant	0.0010	40702
-avion	Distant	0.0010	40755
-geum	Distant	0.0009	40807
-cruck	Distant	0.0002	40858
-yashmak	Distant	0.0002	40905
-venule	Distant	0.0009	40955
-phiz	Distant	0.0009	41006
-hawkweed	Distant	0.0009	41060
-amnion	Distant	0.0009	41110
-dumka	Distant	0.0009	41160
-soth	Distant	0.0009	41212
-coloni	Distant	0.0009	41261
-isogenic	Distant	0.0009	41313
-tapster	Distant	0.0009	41366
-dight	Distant	0.0002	41416
-maist	Distant	0.0009	41466
-melismatic	Distant	0.0009	41518
-enzootic	Distant	0.0009	41573
-odynophagia	Distant	0.0009	41635
-fl	Distant	0.0009	41690
-floruit	Distant	0.0009	41691
-torfaen	Distant	0.0009	41735
-micra	Distant	0.0002	41789
-pamby	Distant	0.0009	41838
-baldric	Distant	0.0009	41895
-effleurage	Distant	0.0009	41944
-toyo	Distant	0.0009	41996
-calif	Distant	0.0002	42048
-mool	Distant	0.0002	42097
-hawkshaw	Distant	0.0009	42159
-gingko	Distant	0.0009	42276
-alane	Distant	0.0009	42335
-cachinnate	Distant	0.0009	42360
-cachinnation	Distant	0.0009	42361
-gavage	Distant	0.0009	42437
-anacoluthic	Distant	0.0008	42524
-anacoluthon	Distant	0.0008	42525
-cartouch	Distant	0.0002	42602
-deflagrate	Distant	0.0008	42680
-deflagration	Distant	0.0008	42681
-deflagrator	Distant	0.0008	42682
-fibroma	Distant	0.0008	42769
-fibromata	Distant	0.0008	42770
-fibromatous	Distant	0.0008	42771
-iodinate	Distant	0.0008	42859
-naugahyde	Distant	0.0008	42951
+lemma	band	p	se	rank
+be	Mastered	1.0000	0.0000	1
+any	Mastered	1.0000	0.0001	63
+follow	Mastered	0.9998	0.0003	96
+re	Mastered	0.9999	0.0001	124
+add	Mastered	0.9991	0.0016	183
+week	Mastered	0.9989	0.0018	195
+light	Mastered	0.9959	0.0061	322
+accept	Mastered	0.9950	0.0072	346
+nature	Mastered	0.9994	0.0009	364
+raise	Mastered	0.9937	0.0087	377
+tax	Mastered	0.9890	0.0139	459
+anything	Mastered	0.9882	0.0149	476
+god	Mastered	0.9871	0.0160	492
+hospital	Mastered	0.9789	0.0241	594
+presented	Mastered	0.9963	0.0042	698
+cup	Mastered	0.9962	0.0045	719
+anyone	Mastered	0.9869	0.0141	751
+natural	Mastered	0.9611	0.0394	754
+hall	Mastered	0.9587	0.0412	772
+worse	Mastered	0.9533	0.0442	802
+anyway	Mastered	0.9501	0.0477	833
+addition	Mastered	0.9937	0.0067	864
+mountain	Mastered	0.9433	0.0525	878
+kitchen	Mastered	0.9928	0.0077	919
+additional	Mastered	0.9538	0.0442	996
+monday	Mastered	0.9705	0.0272	1037
+bath	Mastered	0.9007	0.0748	1100
+worst	Mastered	0.9881	0.0113	1114
+anybody	Target	0.8978	0.0794	1127
+naturally	Target	0.8845	0.0828	1163
+anywhere	Target	0.8874	0.0846	1177
+presentation	Target	0.8825	0.0831	1186
+acceptable	Target	0.8760	0.0863	1201
+acceptance	Target	0.8664	0.0901	1243
+weekly	Target	0.8677	0.0891	1252
+taxation	Target	0.8509	0.1254	1264
+presents	Target	0.8615	0.0887	1269
+innit	Target	0.8535	0.0914	1303
+presenting	Target	0.8320	0.0979	1392
+follower	Target	0.8198	0.1120	1419
+unacceptable	Mastered	0.9781	0.0182	1420
+goddess	Target	0.7830	0.1218	1561
+mon	Target	0.7764	0.1107	1611
+presenter	Mastered	0.9021	0.0933	1618
+additionally	Target	0.7701	0.1118	1635
+unnatural	Target	0.7544	0.1144	1695
+anyhow	Target	0.7574	0.1194	1697
+ff	Target	0.7516	0.1148	1706
+tis	Target	0.7447	0.1158	1732
+additive	Target	0.7232	0.1721	1745
+mountaineer	Target	0.7324	0.1174	1779
+taxable	Mastered	0.9324	0.0446	1783
+naturalist	Target	0.7109	0.1749	1790
+acceptability	Target	0.7001	0.1207	1902
+anymore	Target	0.6975	0.1209	1912
+midweek	Target	0.6568	0.1468	1940
+mountainous	Target	0.6802	0.1295	1994
+natured	Target	0.6625	0.1231	2047
+raiser	Target	0.6537	0.1234	2081
+unnaturally	Target	0.6530	0.1234	2084
+naturalistic	Target	0.6297	0.1874	2093
+owt	Distant	0.6402	0.1238	2134
+mountainside	Distant	0.6136	0.1242	2240
+naturalism	Distant	0.5877	0.1239	2346
+twas	Distant	0.5870	0.1239	2349
+cuppa	Distant	0.5841	0.1239	2361
+presentable	Distant	0.2120	0.0840	2364
+godly	Distant	0.5814	0.1238	2372
+unlit	Distant	0.5795	0.1238	2380
+unacceptably	Distant	0.7993	0.0948	2428
+kitchenette	Distant	0.5641	0.1233	2445
+naturalness	Distant	0.5410	0.1224	2545
+hospitalise	Mastered	0.9159	0.0545	2574
+bein	Distant	0.0385	0.0176	2579
+lighters	Mastered	0.9149	0.0551	2589
+presentational	Distant	0.5292	0.1217	2597
+acceptor	Distant	0.0358	0.0161	2694
+hospitalize	Distant	0.5060	0.1203	2703
+hospitalisation	Distant	0.4949	0.1195	2755
+additionality	Distant	0.1577	0.0624	2761
+hospitalization	Distant	0.4815	0.1184	2819
+godless	Distant	0.4749	0.1179	2851
+ungodly	Distant	0.4723	0.1176	2864
+acceptably	Distant	0.4642	0.1169	2904
+godliness	Distant	0.0296	0.0130	2933
+pretax	Distant	0.4406	0.1146	3025
+unacceptability	Distant	0.4403	0.1146	3027
+untaxed	Distant	0.4355	0.1141	3052
+godlike	Distant	0.8752	0.0756	3086
+cupful	Distant	0.4273	0.1132	3096
+wert	Distant	0.4089	0.1112	3198
+naturalistically	Distant	0.8506	0.0881	3398
+biweekly	Distant	0.8430	0.0915	3459
+cuplike	Distant	0.4856	0.1697	3618
+midweekly	Distant	0.0181	0.0078	3637
+nontaxable	Distant	0.0180	0.0077	3645
+presentably	Distant	0.3364	0.1016	3651
+semiweekly	Distant	0.3347	0.1014	3663
+unpresentable	Distant	0.0172	0.0074	3676
+develop	Distant	0.3420	0.1306	3684
+development	Distant	0.8277	0.1123	3725
+department	Distant	0.0165	0.0080	3771
+profession	Distant	0.2869	0.1250	3806
+character	Distant	0.3141	0.1093	3842
+modern	Distant	0.3120	0.1254	3903
+duty	Distant	0.0160	0.0090	3904
+professional	Distant	0.2922	0.1005	3967
+accuse	Distant	0.1207	0.0750	3986
+wing	Distant	0.2928	0.1217	4056
+fan	Distant	0.7902	0.1322	4129
+elder	Distant	0.2747	0.1179	4211
+diet	Distant	0.3935	0.1738	4241
+cloud	Distant	0.0126	0.0072	4276
+pipe	Distant	0.2591	0.0992	4304
+cap	Distant	0.0124	0.0071	4358
+elderly	Distant	0.2448	0.0913	4391
+shelf	Distant	0.2465	0.1115	4477
+jacket	Distant	0.7549	0.1497	4492
+chat	Distant	0.0193	0.0134	4588
+pro	Distant	0.2270	0.0829	4592
+spray	Distant	0.2243	0.0918	4658
+accent	Distant	0.0099	0.0058	4738
+developer	Distant	0.0018	0.0008	4818
+rice	Distant	0.0096	0.0057	4851
+characterise	Distant	0.1994	0.0772	4916
+characterize	Distant	0.1955	0.0803	4948
+accusation	Distant	0.6725	0.2030	4974
+departmental	Distant	0.0399	0.0284	5010
+dietary	Distant	0.1714	0.1063	5103
+developmental	Distant	0.1831	0.0735	5134
+professionally	Distant	0.0078	0.0037	5178
+professionalism	Distant	0.1655	0.1037	5192
+modernist	Distant	0.0015	0.0007	5224
+modernism	Distant	0.1761	0.0719	5234
+redevelopment	Distant	0.1741	0.0715	5264
+shelve	Distant	0.1557	0.1173	5286
+modernity	Distant	0.1718	0.0709	5299
+dept	Distant	0.1715	0.0708	5304
+modernise	Distant	0.1714	0.0708	5305
+modernisation	Distant	0.1693	0.0703	5337
+modernization	Distant	0.1598	0.0856	5343
+cloudy	Distant	0.1734	0.0911	5379
+dieter	Distant	0.1532	0.0981	5390
+characterisation	Distant	0.1651	0.0693	5403
+modernize	Distant	0.0069	0.0033	5454
+dutifully	Distant	0.0065	0.0032	5521
+characterization	Distant	0.3332	0.2139	5528
+postmodern	Distant	0.0066	0.0032	5563
+postmodernism	Distant	0.4807	0.1648	5580
+undeveloped	Distant	0.1504	0.0656	5652
+redevelop	Distant	0.1500	0.0655	5659
+postmodernist	Distant	0.1495	0.0654	5669
+underdeveloped	Distant	0.0056	0.0042	5698
+dutiful	Distant	0.0053	0.0047	5733
+accusingly	Distant	0.6098	0.1795	5779
+cloudless	Distant	0.0057	0.0029	5830
+chatty	Distant	0.1391	0.0626	5864
+sprayer	Distant	0.1364	0.0619	5919
+unprofessional	Distant	0.5979	0.1833	5938
+accuser	Distant	0.0050	0.0038	5990
+interdepartmental	Distant	0.1291	0.0599	6072
+dietician	Distant	0.1289	0.0598	6076
+underdevelopment	Distant	0.0053	0.0027	6088
+dietitian	Distant	0.0047	0.0035	6093
+uncapped	Distant	0.5763	0.1882	6154
+characterful	Distant	0.5687	0.1889	6188
+developmentally	Distant	0.1231	0.0582	6205
+jacketed	Distant	0.0048	0.0025	6252
+characterless	Distant	0.1195	0.0571	6291
+unclouded	Distant	0.1160	0.0561	6375
+respray	Distant	0.0047	0.0025	6400
+wingless	Distant	0.1139	0.0554	6428
+accusatory	Distant	0.0045	0.0024	6429
+modernizer	Distant	0.0045	0.0024	6460
+departmentally	Distant	0.1097	0.0541	6537
+modernistic	Distant	0.7754	0.1615	6558
+unaccented	Distant	0.0008	0.0004	6643
+dutiable	Distant	0.0001	0.0001	6655
+chattiness	Distant	0.0041	0.0023	6702
+nonprofessional	Distant	0.0945	0.0683	6717
+dutifulness	Distant	0.1672	0.1085	6788
+semipro	Distant	0.0965	0.0499	6921
+semiprofessional	Distant	0.0964	0.0499	6922
+authority	Distant	0.0976	0.0552	6941
+concept	Distant	0.0037	0.0023	7001
+complex	Distant	0.0037	0.0023	7040
+solution	Distant	0.0035	0.0020	7058
+correspond	Distant	0.0907	0.0526	7165
+symptom	Distant	0.4750	0.2131	7245
+gene	Distant	0.0842	0.0471	7314
+respective	Distant	0.4554	0.2082	7435
+prosecute	Distant	0.0030	0.0021	7453
+charter	Distant	0.0029	0.0018	7489
+dedicate	Distant	0.0157	0.0098	7517
+continent	Distant	0.0031	0.0020	7537
+equation	Distant	0.0783	0.0449	7542
+authorise	Distant	0.0001	0.0001	7599
+remote	Distant	0.0029	0.0019	7692
+administrative	Distant	0.0683	0.0529	7716
+literary	Distant	0.0751	0.0462	7770
+respectively	Distant	0.0027	0.0017	7805
+enthusiasm	Distant	0.0028	0.0017	7845
+neutral	Distant	0.0706	0.0418	7879
+jury	Distant	0.0694	0.0413	7936
+prosecution	Distant	0.0617	0.0563	7955
+conception	Distant	0.0662	0.0410	8003
+complexity	Distant	0.0025	0.0016	8020
+continental	Distant	0.1741	0.1088	8059
+correspondence	Distant	0.0001	0.0001	8135
+conceptual	Distant	0.0001	0.0001	8243
+irrespective	Distant	0.0123	0.0081	8288
+authorize	Distant	0.0021	0.0018	8346
+dedication	Distant	0.0108	0.0101	8350
+prosecutor	Distant	0.0573	0.0404	8393
+neutrality	Distant	0.0611	0.0368	8403
+remotely	Distant	0.0000	0.0000	8494
+symptomatic	Distant	0.0022	0.0014	8537
+correspondingly	Distant	0.0586	0.0358	8547
+unauthorised	Distant	0.0022	0.0014	8563
+authorisation	Distant	0.0021	0.0014	8606
+neutralise	Distant	0.0021	0.0014	8685
+remoteness	Distant	0.0548	0.0341	8782
+neutralisation	Distant	0.0547	0.0341	8794
+authorization	Distant	0.0018	0.0017	8827
+neutralize	Distant	0.0487	0.0403	8863
+conceptually	Distant	0.0106	0.0069	8905
+unauthorized	Distant	0.0522	0.0330	8964
+conceptualize	Distant	0.0521	0.0329	8966
+conceptualization	Distant	0.0515	0.0327	9013
+conceptualise	Distant	0.0512	0.0325	9031
+subcontinent	Distant	0.0512	0.0325	9035
+administratively	Distant	0.0507	0.0323	9067
+intercontinental	Distant	0.0503	0.0321	9097
+charterer	Distant	0.0484	0.0313	9238
+neutrally	Distant	0.0475	0.0309	9309
+conceptualisation	Distant	0.0094	0.0063	9357
+transcontinental	Distant	0.0408	0.0348	9522
+neutralization	Distant	0.0086	0.0059	9659
+symptomatically	Distant	0.0419	0.0282	9792
+subcontinental	Distant	0.0412	0.0279	9853
+dedicatedly	Distant	0.0409	0.0277	9884
+irrespectively	Distant	0.0081	0.0056	9897
+acid	Distant	0.0404	0.0296	10010
+mutter	Distant	0.0390	0.0273	10033
+undermine	Distant	0.0373	0.0268	10101
+monopoly	Distant	0.0371	0.0267	10120
+cathedral	Distant	0.0389	0.0287	10165
+proposition	Distant	0.0072	0.0053	10220
+soar	Distant	0.0347	0.0254	10386
+eyebrow	Distant	0.0066	0.0053	10429
+splash	Distant	0.0349	0.0252	10487
+bankrupt	Distant	0.0336	0.0248	10519
+ambulance	Distant	0.0356	0.0269	10527
+con	Distant	0.0341	0.0243	10623
+ballet	Distant	0.0068	0.0053	10640
+adverse	Distant	0.0064	0.0048	10650
+impatient	Distant	0.0331	0.0242	10709
+prevalent	Distant	0.0315	0.0236	10786
+spike	Distant	0.0296	0.0267	10803
+solar	Distant	0.0328	0.0252	10876
+hormone	Distant	0.0291	0.0263	10878
+theology	Distant	0.0314	0.0228	10969
+bankruptcy	Distant	0.0300	0.0227	10994
+prevalence	Distant	0.0299	0.0226	11017
+impatiently	Distant	0.0300	0.0221	11167
+impatience	Distant	0.0297	0.0219	11221
+adversely	Distant	0.0268	0.0245	11225
+acidity	Distant	0.0263	0.0241	11317
+acidic	Distant	0.0256	0.0236	11429
+spiky	Distant	0.0050	0.0047	11450
+adversity	Distant	0.0255	0.0235	11454
+hormonal	Distant	0.0280	0.0209	11479
+monopolist	Distant	0.0276	0.0207	11539
+monopolistic	Distant	0.0274	0.0206	11569
+monopolise	Distant	0.0271	0.0204	11625
+monopolize	Distant	0.0245	0.0227	11634
+acidly	Distant	0.0267	0.0202	11683
+conman	Distant	0.0263	0.0200	11767
+propositional	Distant	0.0261	0.0199	11792
+monopolisation	Distant	0.0248	0.0191	12030
+monopolization	Distant	0.0245	0.0189	12091
+splashy	Distant	0.0212	0.0225	12152
+adverseness	Distant	0.0231	0.0181	12362
+mutterer	Distant	0.0229	0.0180	12397
+enquire	Distant	0.0042	0.0036	12427
+enquiry	Distant	0.0232	0.0194	12432
+sniff	Distant	0.0231	0.0193	12468
+groan	Distant	0.0044	0.0035	12492
+stalk	Distant	0.0042	0.0034	12570
+socialism	Distant	0.0226	0.0189	12572
+chord	Distant	0.0211	0.0172	12615
+grove	Distant	0.0206	0.0169	12726
+skeleton	Distant	0.0200	0.0165	12872
+twitch	Distant	0.0208	0.0167	12885
+vacuum	Distant	0.0204	0.0167	12923
+volatile	Distant	0.0185	0.0179	12955
+relish	Distant	0.0189	0.0167	12985
+plasma	Distant	0.0181	0.0176	13049
+offspring	Distant	0.0191	0.0159	13101
+tolerant	Distant	0.0191	0.0159	13103
+conclusive	Distant	0.0182	0.0162	13198
+diversion	Distant	0.0186	0.0156	13220
+shorts	Distant	0.0592	0.0572	13241
+gratitude	Distant	0.0189	0.0157	13309
+stereo	Distant	0.0181	0.0152	13382
+volatility	Distant	0.0183	0.0152	13511
+intolerance	Distant	0.0182	0.0151	13556
+inconclusive	Distant	0.0163	0.0161	13598
+conclusively	Distant	0.0178	0.0148	13665
+intolerant	Distant	0.0177	0.0147	13703
+stalker	Distant	0.0174	0.0146	13774
+enquirer	Distant	0.0034	0.0029	13779
+sniffer	Distant	0.0173	0.0145	13822
+enquiringly	Distant	0.0170	0.0143	13911
+diversionary	Distant	0.0170	0.0143	13920
+sniffy	Distant	0.0168	0.0142	13962
+twitchy	Distant	0.0033	0.0028	13980
+chordal	Distant	0.0167	0.0141	13988
+twitcher	Distant	0.0165	0.0140	14074
+tolerantly	Distant	0.0164	0.0139	14112
+inconclusively	Distant	0.0163	0.0138	14126
+twitchiness	Distant	0.0157	0.0134	14346
+intolerantly	Distant	0.0156	0.0134	14377
+nonvolatile	Distant	0.0155	0.0133	14404
+twitchily	Distant	0.0153	0.0131	14488
+vacua	Distant	0.0153	0.0131	14491
+al	Distant	0.0153	0.0131	14493
+infringe	Distant	0.0134	0.0137	14635
+poach	Distant	0.0130	0.0147	14638
+vomit	Distant	0.0134	0.0136	14660
+climax	Distant	0.0140	0.0125	14736
+crave	Distant	0.0130	0.0132	14834
+fanatic	Distant	0.0129	0.0132	14847
+perpetuate	Distant	0.0129	0.0132	14861
+latent	Distant	0.0136	0.0122	14891
+cuff	Distant	0.0024	0.0027	14937
+forgo	Distant	0.0122	0.0139	14981
+brim	Distant	0.0138	0.0123	15001
+camel	Distant	0.0146	0.0145	15039
+impetus	Distant	0.0132	0.0118	15093
+honeymoon	Distant	0.0133	0.0119	15203
+heroine	Distant	0.0137	0.0127	15210
+slop	Distant	0.0133	0.0118	15260
+turbine	Distant	0.0131	0.0118	15282
+lantern	Distant	0.0026	0.0024	15362
+forego	Distant	0.0130	0.0116	15385
+infringement	Distant	0.0025	0.0023	15411
+rugged	Distant	0.0116	0.0120	15486
+poacher	Distant	0.0125	0.0113	15606
+sloppy	Distant	0.0022	0.0023	15617
+fanatical	Distant	0.0112	0.0117	15677
+latency	Distant	0.0107	0.0124	15733
+fanaticism	Distant	0.0110	0.0115	15804
+perpetuation	Distant	0.0120	0.0109	15871
+anticlimax	Distant	0.0104	0.0121	15926
+honeymooner	Distant	0.0117	0.0107	16010
+sloppiness	Distant	0.0116	0.0106	16060
+fanatically	Distant	0.0115	0.0105	16103
+ruggedness	Distant	0.0114	0.0105	16159
+brimful	Distant	0.0114	0.0105	16160
+ruggedly	Distant	0.0114	0.0104	16184
+sloppily	Distant	0.0114	0.0104	16194
+brimless	Distant	0.0324	0.0316	16439
+unix	Distant	0.0108	0.0100	16497
+upland	Distant	0.0097	0.0104	16532
+instigate	Distant	0.0096	0.0102	16637
+cot	Distant	0.0095	0.0102	16665
+enamel	Distant	0.0092	0.0108	16707
+suffocate	Distant	0.0091	0.0107	16723
+impart	Distant	0.0100	0.0095	16745
+modulate	Distant	0.0099	0.0094	16795
+hind	Distant	0.0102	0.0095	16899
+cider	Distant	0.0091	0.0098	16933
+hallmark	Distant	0.0090	0.0097	16983
+disorientate	Distant	0.0098	0.0093	17112
+melon	Distant	0.0099	0.0098	17177
+sarcastic	Distant	0.0090	0.0090	17241
+snapshot	Distant	0.0096	0.0091	17245
+ornate	Distant	0.0084	0.0100	17251
+stub	Distant	0.0086	0.0093	17335
+cosmopolitan	Distant	0.0085	0.0093	17346
+persona	Distant	0.0094	0.0090	17382
+vampire	Distant	0.0081	0.0097	17471
+sarcastically	Distant	0.0092	0.0088	17564
+modulation	Distant	0.0092	0.0088	17568
+instigation	Distant	0.0269	0.0273	17641
+stubby	Distant	0.0090	0.0087	17660
+disorientation	Distant	0.0090	0.0086	17689
+suffocation	Distant	0.0090	0.0086	17703
+instigator	Distant	0.0089	0.0086	17759
+disorient	Distant	0.0085	0.0083	17798
+ornately	Distant	0.0261	0.0266	17858
+modulator	Distant	0.0087	0.0084	17880
+cosmopolitanism	Distant	0.0075	0.0090	17999
+hindmost	Distant	0.0084	0.0082	18124
+ornateness	Distant	0.0083	0.0081	18233
+nick	Distant	0.0071	0.0086	18355
+roundabout	Distant	0.0083	0.0085	18396
+ivy	Distant	0.0081	0.0079	18424
+amplitude	Distant	0.0077	0.0076	18499
+indent	Distant	0.0072	0.0080	18542
+hereditary	Distant	0.0071	0.0079	18570
+overstate	Distant	0.0068	0.0082	18707
+mead	Distant	0.0076	0.0076	18809
+fraught	Distant	0.0068	0.0076	18864
+replenish	Distant	0.0068	0.0076	18913
+laborious	Distant	0.0068	0.0076	18918
+pun	Distant	0.0066	0.0080	18928
+dogmatic	Distant	0.0067	0.0076	18961
+sham	Distant	0.0071	0.0072	18987
+zion	Distant	0.0074	0.0074	19029
+courtship	Distant	0.0067	0.0075	19044
+concomitant	Distant	0.0065	0.0074	19174
+rut	Distant	0.0067	0.0071	19187
+sweatshirt	Distant	0.0072	0.0072	19262
+maverick	Distant	0.0064	0.0072	19341
+zionist	Distant	0.0070	0.0071	19403
+laboriously	Distant	0.0063	0.0071	19431
+indentation	Distant	0.0070	0.0070	19485
+zionism	Distant	0.0069	0.0069	19557
+dogmatism	Distant	0.0060	0.0074	19563
+replenishment	Distant	0.0069	0.0069	19585
+overstatement	Distant	0.0013	0.0013	19679
+dogmatically	Distant	0.0013	0.0013	19737
+concomitantly	Distant	0.0067	0.0068	19760
+laboriousness	Distant	0.0065	0.0066	19943
+nonhereditary	Distant	0.0064	0.0065	20087
+wicket	Distant	0.0064	0.0065	20114
+quay	Distant	0.0055	0.0069	20152
+doo	Distant	0.0063	0.0065	20197
+aerosol	Distant	0.0063	0.0064	20235
+equivalence	Distant	0.0012	0.0012	20306
+chum	Distant	0.0056	0.0064	20335
+stanza	Distant	0.0054	0.0063	20566
+attune	Distant	0.0052	0.0065	20623
+philharmonic	Distant	0.0055	0.0060	20631
+infirm	Distant	0.0052	0.0065	20667
+repertory	Distant	0.0053	0.0062	20691
+gruff	Distant	0.0053	0.0062	20709
+hooray	Distant	0.0012	0.0012	20743
+alcove	Distant	0.0051	0.0064	20750
+partake	Distant	0.0011	0.0012	20833
+microbiology	Distant	0.0052	0.0060	20942
+mystique	Distant	0.0057	0.0060	20962
+convoluted	Distant	0.0050	0.0063	21004
+caramel	Distant	0.0011	0.0011	21086
+imam	Distant	0.0056	0.0059	21098
+infirmity	Distant	0.0010	0.0011	21132
+gruffly	Distant	0.0056	0.0058	21173
+microbiological	Distant	0.0055	0.0058	21245
+philharmonia	Distant	0.0055	0.0058	21267
+hurrah	Distant	0.0052	0.0055	21343
+chummy	Distant	0.0054	0.0057	21353
+microbiologist	Distant	0.0054	0.0057	21359
+hurray	Distant	0.0054	0.0057	21369
+convolution	Distant	0.0054	0.0057	21406
+caramelise	Distant	0.0054	0.0057	21436
+chumminess	Distant	0.0053	0.0056	21582
+gruffness	Distant	0.0053	0.0056	21589
+partaker	Distant	0.0053	0.0056	21610
+caramelize	Distant	0.0052	0.0055	21651
+convolute	Distant	0.0052	0.0055	21689
+oesophagus	Distant	0.0051	0.0055	21792
+oesophageal	Distant	0.0051	0.0055	21797
+plait	Distant	0.0045	0.0057	21834
+tadpole	Distant	0.0046	0.0054	21874
+oesophagitis	Distant	0.0050	0.0054	21970
+overdrive	Distant	0.0050	0.0053	22027
+sheathe	Distant	0.0045	0.0053	22037
+tabulate	Distant	0.0009	0.0010	22055
+habitation	Distant	0.0049	0.0053	22123
+genera	Distant	0.0049	0.0052	22222
+swab	Distant	0.0049	0.0052	22266
+stigmatise	Distant	0.0048	0.0052	22345
+rewind	Distant	0.0049	0.0055	22356
+fortuitous	Distant	0.0043	0.0051	22360
+yucky	Distant	0.0048	0.0051	22410
+ochre	Distant	0.0048	0.0051	22433
+jackpot	Distant	0.0047	0.0051	22494
+longitude	Distant	0.0045	0.0049	22559
+goo	Distant	0.0009	0.0010	22585
+pique	Distant	0.0042	0.0050	22625
+commonality	Distant	0.0046	0.0050	22690
+tango	Distant	0.0008	0.0010	22774
+yuk	Distant	0.0046	0.0049	22798
+tabulation	Distant	0.0009	0.0009	22825
+stigmatize	Distant	0.0008	0.0010	22900
+gooey	Distant	0.0045	0.0049	22926
+fortuitously	Distant	0.0008	0.0009	22943
+yuck	Distant	0.0045	0.0049	22955
+unsheathe	Distant	0.0044	0.0048	23024
+esophageal	Distant	0.0044	0.0048	23122
+stigmatisation	Distant	0.0044	0.0048	23177
+yukky	Distant	0.0044	0.0048	23180
+esophagus	Distant	0.0038	0.0049	23184
+stigmatization	Distant	0.0044	0.0048	23194
+yok	Distant	0.0043	0.0047	23271
+yock	Distant	0.0043	0.0047	23307
+fortuitousness	Distant	0.0043	0.0047	23327
+esophagi	Distant	0.0043	0.0047	23387
+megahertz	Distant	0.0042	0.0046	23440
+mhz	Distant	0.0042	0.0046	23441
+herbivore	Distant	0.0042	0.0046	23504
+moult	Distant	0.0042	0.0046	23569
+norse	Distant	0.0042	0.0046	23607
+python	Distant	0.0008	0.0009	23635
+unionize	Distant	0.0041	0.0045	23704
+omnibus	Distant	0.0041	0.0045	23721
+cluck	Distant	0.0041	0.0045	23774
+titbit	Distant	0.0040	0.0045	23858
+judo	Distant	0.0040	0.0045	23867
+asymptomatic	Distant	0.0040	0.0044	23923
+impetuous	Distant	0.0036	0.0044	23926
+apostrophe	Distant	0.0036	0.0044	23982
+surly	Distant	0.0034	0.0045	24094
+extraterrestrial	Distant	0.0039	0.0043	24166
+mannequin	Distant	0.0039	0.0043	24223
+lingerie	Distant	0.0007	0.0008	24301
+norseman	Distant	0.0038	0.0043	24303
+chiropractic	Distant	0.0038	0.0043	24328
+tequila	Distant	0.0038	0.0043	24373
+herbivorous	Distant	0.0033	0.0044	24440
+overtax	Distant	0.0034	0.0042	24482
+unionised	Distant	0.0038	0.0042	24496
+chiropractor	Distant	0.0038	0.0042	24509
+impetuosity	Distant	0.0037	0.0042	24550
+impetuously	Distant	0.0037	0.0042	24586
+surliness	Distant	0.0037	0.0041	24736
+tidbit	Distant	0.0037	0.0041	24737
+unionise	Distant	0.0036	0.0041	24778
+impetuousness	Distant	0.0036	0.0041	24813
+molt	Distant	0.0032	0.0042	24866
+collier	Distant	0.0007	0.0008	25026
+colliery	Distant	0.0035	0.0040	25036
+toot	Distant	0.0035	0.0040	25074
+moray	Distant	0.0035	0.0040	25118
+marquess	Distant	0.0035	0.0040	25157
+crocus	Distant	0.0035	0.0040	25201
+tampon	Distant	0.0035	0.0039	25249
+mollify	Distant	0.0031	0.0038	25320
+casement	Distant	0.0007	0.0007	25370
+hyperplasia	Distant	0.0007	0.0007	25416
+luminescence	Distant	0.0034	0.0039	25446
+chomp	Distant	0.0034	0.0038	25513
+indefatigable	Distant	0.0030	0.0038	25540
+proclivity	Distant	0.0030	0.0038	25562
+scoundrel	Distant	0.0033	0.0038	25613
+crevasse	Distant	0.0030	0.0037	25680
+shrift	Distant	0.0033	0.0038	25738
+counterweight	Distant	0.0032	0.0037	25866
+reprise	Distant	0.0005	0.0007	25932
+baguette	Distant	0.0032	0.0037	26013
+exfoliate	Distant	0.0032	0.0037	26016
+luminescent	Distant	0.0006	0.0007	26097
+exfoliation	Distant	0.0031	0.0036	26215
+exfoliator	Distant	0.0006	0.0007	26248
+indefatigably	Distant	0.0006	0.0007	26263
+exfoliant	Distant	0.0031	0.0036	26396
+bangladesh	Distant	0.0030	0.0035	26551
+apical	Distant	0.0030	0.0035	26599
+lamina	Distant	0.0030	0.0035	26643
+bangladeshi	Distant	0.0030	0.0035	26680
+imbecile	Distant	0.0026	0.0035	26824
+twit	Distant	0.0029	0.0034	26898
+oedipal	Distant	0.0029	0.0034	26944
+technicolor	Distant	0.0029	0.0034	26982
+bogyman	Distant	0.0029	0.0034	27014
+absolution	Distant	0.0029	0.0034	27046
+bogeyman	Distant	0.0029	0.0034	27082
+equivocate	Distant	0.0005	0.0006	27159
+scrotum	Distant	0.0028	0.0033	27266
+tomboy	Distant	0.0028	0.0033	27281
+droll	Distant	0.0025	0.0033	27290
+intubate	Distant	0.0005	0.0006	27308
+phosphorescent	Distant	0.0028	0.0033	27312
+lascivious	Distant	0.0028	0.0033	27324
+infernal	Distant	0.0024	0.0033	27362
+technicolour	Distant	0.0028	0.0033	27389
+imprimatur	Distant	0.0028	0.0033	27426
+intubation	Distant	0.0028	0.0033	27464
+equivocation	Distant	0.0024	0.0033	27471
+fedora	Distant	0.0028	0.0032	27503
+superhero	Distant	0.0027	0.0032	27630
+phosphorescence	Distant	0.0027	0.0032	27638
+imbecility	Distant	0.0027	0.0032	27718
+apically	Distant	0.0027	0.0032	27725
+lasciviousness	Distant	0.0027	0.0032	27732
+tomboyish	Distant	0.0027	0.0032	27736
+lasciviously	Distant	0.0027	0.0032	27745
+laminae	Distant	0.0027	0.0032	27758
+superheroes	Distant	0.0027	0.0032	27797
+boogieman	Distant	0.0027	0.0032	27804
+imbecilic	Distant	0.0027	0.0032	27816
+scrotal	Distant	0.0027	0.0032	27825
+equivocator	Distant	0.0027	0.0032	27841
+droller	Distant	0.0026	0.0031	27938
+drollness	Distant	0.0026	0.0031	27939
+tomboyishness	Distant	0.0026	0.0031	28020
+franked	Distant	0.0026	0.0031	28041
+franks	Distant	0.0026	0.0031	28046
+adjudge	Distant	0.0026	0.0031	28077
+marque	Distant	0.0026	0.0031	28124
+greatcoat	Distant	0.0026	0.0031	28214
+bodywork	Distant	0.0026	0.0030	28264
+wattle	Distant	0.0025	0.0030	28311
+moraine	Distant	0.0025	0.0030	28420
+aggrandize	Distant	0.0022	0.0030	28425
+astringent	Distant	0.0022	0.0030	28514
+optometrist	Distant	0.0022	0.0029	28534
+ribald	Distant	0.0022	0.0030	28563
+chamois	Distant	0.0025	0.0030	28606
+coronal	Distant	0.0024	0.0029	28732
+deactivate	Distant	0.0021	0.0029	28733
+ordinal	Distant	0.0024	0.0029	28748
+yore	Distant	0.0024	0.0029	28774
+amigo	Distant	0.0005	0.0006	28840
+thunk	Distant	0.0024	0.0029	28909
+aggrandisement	Distant	0.0024	0.0029	28949
+tweet	Distant	0.0005	0.0006	28974
+aggrandizement	Distant	0.0005	0.0005	29035
+ecclesial	Distant	0.0024	0.0029	29071
+ribaldry	Distant	0.0024	0.0028	29157
+franking	Distant	0.0023	0.0028	29167
+morainic	Distant	0.0023	0.0028	29188
+coronel	Distant	0.0023	0.0028	29196
+astringency	Distant	0.0023	0.0028	29203
+aggrandise	Distant	0.0023	0.0028	29215
+astringently	Distant	0.0023	0.0028	29218
+deactivation	Distant	0.0023	0.0028	29241
+optometry	Distant	0.0023	0.0028	29247
+shammy	Distant	0.0023	0.0028	29249
+ordinally	Distant	0.0023	0.0028	29284
+chammy	Distant	0.0023	0.0028	29368
+morainal	Distant	0.0023	0.0028	29419
+epistemology	Distant	0.0023	0.0028	29461
+epistemological	Distant	0.0023	0.0028	29492
+afforestation	Distant	0.0023	0.0028	29529
+ladybird	Distant	0.0004	0.0005	29548
+wadi	Distant	0.0023	0.0027	29594
+vouchsafe	Distant	0.0022	0.0027	29689
+interstice	Distant	0.0019	0.0027	29731
+epistemic	Distant	0.0022	0.0027	29775
+whist	Distant	0.0022	0.0027	29840
+dunce	Distant	0.0020	0.0026	29887
+labium	Distant	0.0004	0.0005	29918
+afforest	Distant	0.0022	0.0027	29980
+poultice	Distant	0.0022	0.0027	30000
+labia	Distant	0.0022	0.0026	30059
+allusive	Distant	0.0022	0.0026	30065
+dematerialize	Distant	0.0004	0.0005	30102
+multicentre	Distant	0.0021	0.0026	30152
+rheumatology	Distant	0.0021	0.0026	30159
+litigious	Distant	0.0021	0.0026	30236
+mishmash	Distant	0.0021	0.0026	30297
+miniscule	Distant	0.0021	0.0026	30360
+valorize	Distant	0.0021	0.0026	30423
+svelte	Distant	0.0018	0.0026	30431
+episteme	Distant	0.0021	0.0026	30469
+dematerialise	Distant	0.0021	0.0026	30480
+dematerialisation	Distant	0.0021	0.0026	30523
+eggplant	Distant	0.0021	0.0027	30526
+epistemologically	Distant	0.0021	0.0026	30540
+rheumatological	Distant	0.0021	0.0026	30553
+valorisation	Distant	0.0021	0.0025	30572
+epistemologist	Distant	0.0021	0.0025	30582
+valorization	Distant	0.0004	0.0005	30618
+rheumatologist	Distant	0.0004	0.0005	30637
+dematerialization	Distant	0.0020	0.0025	30679
+valorise	Distant	0.0004	0.0005	30762
+epistemically	Distant	0.0020	0.0025	30803
+litigiously	Distant	0.0020	0.0025	30827
+multicenter	Distant	0.0020	0.0025	30833
+multicentered	Distant	0.0020	0.0025	30834
+multicentric	Distant	0.0004	0.0005	30835
+valorizes	Distant	0.0020	0.0025	30880
+lea	Distant	0.0004	0.0005	30891
+lama	Distant	0.0020	0.0025	30936
+silurian	Distant	0.0020	0.0025	30983
+neoplasia	Distant	0.0004	0.0005	31031
+acanthus	Distant	0.0020	0.0025	31081
+polyposis	Distant	0.0020	0.0024	31126
+millipede	Distant	0.0020	0.0024	31168
+muzak	Distant	0.0020	0.0024	31220
+polysaccharide	Distant	0.0019	0.0024	31265
+bridgehead	Distant	0.0019	0.0024	31316
+hypochondria	Distant	0.0019	0.0024	31366
+platypus	Distant	0.0004	0.0005	31442
+torpid	Distant	0.0017	0.0023	31512
+zilch	Distant	0.0019	0.0024	31601
+limn	Distant	0.0016	0.0023	31640
+sextant	Distant	0.0003	0.0004	31661
+backgammon	Distant	0.0019	0.0023	31787
+manitou	Distant	0.0019	0.0023	31812
+strudel	Distant	0.0019	0.0023	31856
+persimmon	Distant	0.0004	0.0004	31938
+limner	Distant	0.0016	0.0022	32007
+torpidly	Distant	0.0018	0.0023	32075
+platypi	Distant	0.0018	0.0023	32095
+platypuses	Distant	0.0018	0.0023	32225
+torpidity	Distant	0.0018	0.0023	32242
+neutron	Distant	0.0017	0.0022	32249
+lacklustre	Distant	0.0018	0.0022	32296
+snivel	Distant	0.0018	0.0022	32340
+tench	Distant	0.0018	0.0022	32382
+plosive	Distant	0.0003	0.0004	32423
+espadrille	Distant	0.0018	0.0022	32468
+hepatocellular	Distant	0.0017	0.0022	32569
+mycotoxin	Distant	0.0017	0.0022	32626
+potentiometer	Distant	0.0017	0.0022	32643
+arbitral	Distant	0.0017	0.0022	32680
+pes	Distant	0.0017	0.0022	32735
+extramural	Distant	0.0003	0.0004	32818
+seismograph	Distant	0.0015	0.0021	32876
+novena	Distant	0.0017	0.0022	32899
+septuagenarian	Distant	0.0003	0.0004	33026
+quincentenary	Distant	0.0017	0.0021	33063
+gaga	Distant	0.0017	0.0021	33144
+potentiometric	Distant	0.0017	0.0021	33175
+hammerhead	Distant	0.0017	0.0021	33215
+humungous	Distant	0.0017	0.0021	33217
+mesoamerican	Distant	0.0016	0.0021	33304
+humongous	Distant	0.0016	0.0021	33328
+quincentennial	Distant	0.0016	0.0021	33367
+extramurally	Distant	0.0016	0.0021	33426
+seismographic	Distant	0.0016	0.0021	33448
+seismography	Distant	0.0016	0.0021	33556
+sniveled	Distant	0.0016	0.0021	33560
+annum	Distant	0.0016	0.0021	33580
+centile	Distant	0.0003	0.0004	33663
+cysteine	Distant	0.0016	0.0020	33710
+stocktake	Distant	0.0016	0.0020	33744
+citron	Distant	0.0016	0.0020	33818
+stocktaking	Distant	0.0016	0.0020	33836
+flexure	Distant	0.0016	0.0020	33870
+autarchy	Distant	0.0003	0.0004	33876
+axisymmetric	Distant	0.0016	0.0020	33921
+adenine	Distant	0.0016	0.0020	33968
+catenary	Distant	0.0015	0.0020	34021
+heliotrope	Distant	0.0013	0.0019	34129
+protoplasm	Distant	0.0015	0.0020	34161
+moa	Distant	0.0015	0.0020	34182
+ibex	Distant	0.0015	0.0020	34242
+loca	Distant	0.0015	0.0020	34306
+autarchic	Distant	0.0003	0.0004	34361
+endocarditis	Distant	0.0015	0.0019	34368
+genovese	Distant	0.0015	0.0019	34435
+exes	Distant	0.0015	0.0019	34499
+masa	Distant	0.0003	0.0004	34570
+protoplasmic	Distant	0.0015	0.0019	34647
+madrasa	Distant	0.0015	0.0019	34682
+endocarditic	Distant	0.0015	0.0019	34787
+plasmid	Distant	0.0003	0.0004	34879
+ghi	Distant	0.0014	0.0019	34923
+satsuma	Distant	0.0014	0.0019	34967
+buckram	Distant	0.0014	0.0019	35017
+epicycle	Distant	0.0014	0.0019	35070
+downmarket	Distant	0.0014	0.0018	35169
+fogey	Distant	0.0014	0.0018	35171
+codpiece	Distant	0.0014	0.0018	35223
+fossa	Distant	0.0014	0.0018	35319
+pleurisy	Distant	0.0014	0.0018	35326
+mopeds	Distant	0.0014	0.0018	35374
+rennet	Distant	0.0014	0.0018	35483
+appetit	Distant	0.0014	0.0018	35538
+lissom	Distant	0.0014	0.0018	35589
+simony	Distant	0.0014	0.0018	35598
+jojoba	Distant	0.0003	0.0003	35660
+frigidaire	Distant	0.0014	0.0018	35731
+fino	Distant	0.0014	0.0018	35793
+lissome	Distant	0.0012	0.0017	35838
+bloop	Distant	0.0013	0.0018	35898
+fossae	Distant	0.0013	0.0018	35912
+blooper	Distant	0.0013	0.0018	35936
+lox	Distant	0.0013	0.0018	35962
+finos	Distant	0.0013	0.0017	36056
+lissomely	Distant	0.0003	0.0003	36076
+lissomeness	Distant	0.0013	0.0017	36077
+perfusion	Distant	0.0013	0.0017	36143
+perfuse	Distant	0.0003	0.0003	36156
+wat	Distant	0.0013	0.0017	36192
+rehash	Distant	0.0013	0.0017	36275
+fug	Distant	0.0013	0.0017	36359
+quoin	Distant	0.0013	0.0017	36395
+nicad	Distant	0.0013	0.0017	36424
+langur	Distant	0.0013	0.0017	36477
+micturate	Distant	0.0013	0.0017	36480
+micturition	Distant	0.0013	0.0017	36517
+gewgaw	Distant	0.0013	0.0017	36533
+chocoholic	Distant	0.0013	0.0017	36638
+monstrance	Distant	0.0013	0.0017	36690
+dromedary	Distant	0.0013	0.0017	36747
+leishmania	Distant	0.0013	0.0017	36761
+silvicultural	Distant	0.0013	0.0017	36809
+geocentric	Distant	0.0012	0.0017	36876
+pharyngitis	Distant	0.0012	0.0016	36936
+leishmaniasis	Distant	0.0012	0.0016	36961
+glucosamine	Distant	0.0012	0.0016	36995
+tommyrot	Distant	0.0012	0.0016	37064
+fuggy	Distant	0.0012	0.0016	37098
+thyroidectomy	Distant	0.0012	0.0016	37132
+wats	Distant	0.0012	0.0016	37140
+coign	Distant	0.0002	0.0003	37160
+challah	Distant	0.0012	0.0016	37219
+coigne	Distant	0.0012	0.0016	37222
+geocentrically	Distant	0.0012	0.0016	37242
+geocentrism	Distant	0.0012	0.0016	37243
+socio	Distant	0.0012	0.0016	37338
+corncrake	Distant	0.0012	0.0016	37384
+cancerian	Distant	0.0002	0.0003	37480
+infusoria	Distant	0.0012	0.0016	37527
+collagenase	Distant	0.0012	0.0016	37574
+betake	Distant	0.0012	0.0016	37623
+cryptogam	Distant	0.0002	0.0003	37628
+cryptogamic	Distant	0.0012	0.0016	37652
+assiduity	Distant	0.0002	0.0003	37675
+maximin	Distant	0.0012	0.0016	37727
+sprue	Distant	0.0012	0.0016	37781
+culex	Distant	0.0012	0.0016	37836
+ephemeris	Distant	0.0012	0.0016	37897
+hoyden	Distant	0.0012	0.0015	37953
+hyperfine	Distant	0.0011	0.0015	38012
+phlebitis	Distant	0.0011	0.0015	38073
+uppercase	Distant	0.0011	0.0015	38127
+bluebonnet	Distant	0.0011	0.0015	38186
+counterstrike	Distant	0.0011	0.0015	38251
+boonies	Distant	0.0011	0.0015	38334
+cryptogamous	Distant	0.0002	0.0003	38347
+mastoidectomy	Distant	0.0011	0.0015	38417
+gastro	Distant	0.0011	0.0015	38499
+ruddle	Distant	0.0011	0.0015	38547
+goosander	Distant	0.0011	0.0015	38596
+keek	Distant	0.0011	0.0015	38643
+praesidium	Distant	0.0011	0.0015	38691
+joinder	Distant	0.0011	0.0015	38740
+agrimony	Distant	0.0002	0.0003	38792
+fibreoptic	Distant	0.0011	0.0015	38841
+gharial	Distant	0.0011	0.0015	38894
+kanamycin	Distant	0.0011	0.0015	38948
+grapnel	Distant	0.0002	0.0003	38998
+foulard	Distant	0.0011	0.0014	39054
+confect	Distant	0.0011	0.0014	39103
+dirndl	Distant	0.0011	0.0014	39158
+conformal	Distant	0.0011	0.0014	39214
+concours	Distant	0.0011	0.0014	39268
+spica	Distant	0.0010	0.0014	39315
+noetic	Distant	0.0010	0.0014	39376
+comlink	Distant	0.0010	0.0014	39445
+fibreoptics	Distant	0.0010	0.0014	39472
+keeks	Distant	0.0010	0.0014	39493
+osteotomy	Distant	0.0010	0.0014	39520
+ion	Distant	0.0002	0.0003	39585
+ionise	Distant	0.0010	0.0014	39593
+ionize	Distant	0.0010	0.0014	39595
+ionization	Distant	0.0010	0.0014	39607
+aquilegia	Distant	0.0010	0.0014	39639
+ionisation	Distant	0.0010	0.0014	39670
+hamza	Distant	0.0010	0.0014	39691
+ioniser	Distant	0.0010	0.0014	39736
+stonk	Distant	0.0010	0.0014	39738
+darnel	Distant	0.0002	0.0003	39786
+lanner	Distant	0.0002	0.0003	39833
+bleb	Distant	0.0010	0.0014	39884
+cerium	Distant	0.0002	0.0003	39933
+esparto	Distant	0.0010	0.0014	39987
+abettor	Distant	0.0010	0.0014	40041
+oersted	Distant	0.0010	0.0014	40096
+duotone	Distant	0.0010	0.0014	40147
+stertorous	Distant	0.0010	0.0014	40197
+ovate	Distant	0.0010	0.0013	40252
+diplopia	Distant	0.0002	0.0003	40304
+bowthruster	Distant	0.0002	0.0003	40359
+ionizers	Distant	0.0010	0.0013	40395
+oneiric	Distant	0.0010	0.0013	40412
+blebby	Distant	0.0010	0.0013	40472
+canebrake	Distant	0.0010	0.0013	40477
+hemostatic	Distant	0.0010	0.0013	40534
+ionizer	Distant	0.0010	0.0013	40549
+physiatrist	Distant	0.0010	0.0013	40595
+netware	Distant	0.0002	0.0003	40654
+zeit	Distant	0.0010	0.0013	40702
+avion	Distant	0.0010	0.0013	40755
+geum	Distant	0.0009	0.0013	40807
+cruck	Distant	0.0002	0.0002	40858
+yashmak	Distant	0.0002	0.0002	40905
+venule	Distant	0.0009	0.0013	40955
+phiz	Distant	0.0009	0.0013	41006
+hawkweed	Distant	0.0009	0.0013	41060
+amnion	Distant	0.0009	0.0013	41110
+dumka	Distant	0.0009	0.0013	41160
+soth	Distant	0.0009	0.0013	41212
+coloni	Distant	0.0009	0.0013	41261
+isogenic	Distant	0.0009	0.0013	41313
+tapster	Distant	0.0009	0.0013	41366
+dight	Distant	0.0002	0.0002	41416
+maist	Distant	0.0009	0.0013	41466
+melismatic	Distant	0.0009	0.0013	41518
+enzootic	Distant	0.0009	0.0013	41573
+odynophagia	Distant	0.0009	0.0012	41635
+fl	Distant	0.0009	0.0012	41690
+floruit	Distant	0.0009	0.0012	41691
+torfaen	Distant	0.0009	0.0012	41735
+micra	Distant	0.0002	0.0002	41789
+pamby	Distant	0.0009	0.0012	41838
+baldric	Distant	0.0009	0.0012	41895
+effleurage	Distant	0.0009	0.0012	41944
+toyo	Distant	0.0009	0.0012	41996
+calif	Distant	0.0002	0.0002	42048
+mool	Distant	0.0002	0.0002	42097
+hawkshaw	Distant	0.0009	0.0012	42159
+gingko	Distant	0.0009	0.0012	42276
+alane	Distant	0.0009	0.0012	42335
+cachinnate	Distant	0.0009	0.0012	42360
+cachinnation	Distant	0.0009	0.0012	42361
+gavage	Distant	0.0009	0.0012	42437
+anacoluthic	Distant	0.0008	0.0012	42524
+anacoluthon	Distant	0.0008	0.0012	42525
+cartouch	Distant	0.0002	0.0002	42602
+deflagrate	Distant	0.0008	0.0012	42680
+deflagration	Distant	0.0008	0.0012	42681
+deflagrator	Distant	0.0008	0.0012	42682
+fibroma	Distant	0.0008	0.0012	42769
+fibromata	Distant	0.0008	0.0012	42770
+fibromatous	Distant	0.0008	0.0012	42771
+iodinate	Distant	0.0008	0.0012	42859
+naugahyde	Distant	0.0008	0.0012	42951
